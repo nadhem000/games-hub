@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Color Match Challenge</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Game-specific styles */
+        :root {
+            /* New color palette for the game */
+            --game-primary: #8A2BE2;
+            --game-secondary: #4B0082;
+            --game-accent: #00CED1;
+            --game-success: #32CD32;
+            --game-error: #FF6B6B;
+            --game-warning: #FFD700;
+            --game-light-bg: #F8F9FF;
+            --game-dark-bg: #1A1A2E;
+            --game-card-bg: rgba(255, 255, 255, 0.9);
+            --game-dark-card-bg: rgba(30, 30, 46, 0.9);
+        }
+
+        .GH-game-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--gh-space-lg);
+            margin-bottom: var(--gh-space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .GH-game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .GH-color-display-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-dark-mode .GH-color-display-section {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-color-display {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: var(--gh-space-md) auto;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-color-display::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
+        }
+
+        .GH-color-options-section {
+            display: flex;
+            flex-direction: column;
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-dark-mode .GH-color-options-section {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-color-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+        }
+
+        .GH-color-option {
+            width: 100%;
+            height: 100px;
+            border-radius: var(--gh-radius-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-sm);
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-color-option::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
+        }
+
+        .GH-color-option:hover {
+            transform: scale(1.05);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-color-option.selected {
+            border-color: var(--game-accent);
+            box-shadow: 0 0 0 3px var(--game-accent);
+        }
+
+        .GH-color-option.correct {
+            border-color: var(--game-success);
+            box-shadow: 0 0 0 3px var(--game-success), 0 0 20px rgba(50, 205, 50, 0.5);
+            animation: pulse 0.5s ease;
+        }
+
+        .GH-color-option.incorrect {
+            border-color: var(--game-error);
+            box-shadow: 0 0 0 3px var(--game-error);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+        }
+
+        .GH-game-btn {
+            background: var(--gh-gradient-primary);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-level-progress {
+            width: 100%;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: var(--gh-space-md) 0;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-level-progress {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .GH-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .GH-level-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-sm);
+        }
+
+        .GH-level-text {
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-level-text {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-lg);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background-color: var(--game-success);
+        }
+
+        .GH-game-notification.error {
+            background-color: var(--game-error);
+        }
+
+        .GH-game-notification.info {
+            background-color: var(--game-primary);
+        }
+
+        .GH-timer-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .GH-timer-circle {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .GH-timer-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 8;
+        }
+
+        .GH-timer-progress {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .GH-timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: var(--gh-font-size-xl);
+            font-weight: bold;
+            color: white;
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-3xl);
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(138, 43, 226, 0.1);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        .GH-game-complexity {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-sm);
+            margin: var(--gh-space-md) 0;
+        }
+
+        .GH-complexity-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .GH-dark-mode .GH-complexity-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+
+        .GH-complexity-btn.active {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-complexity-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.colorMatch.title">Color Match Challenge</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="score">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.colorMatch.score">Score</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="level">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.colorMatch.level">Level</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="streak">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.colorMatch.streak">Streak</span>
+                    </div>
+                </div>
+                
+                <div class="GH-timer-container">
+                    <svg class="GH-timer-circle" viewBox="0 0 100 100">
+                        <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
+                        <circle class="GH-timer-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="GH-timer-text" id="timer">60</div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.colorMatch.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.colorMatch.instruction1">You will see a target color on the left</li>
+                    <li data-i18n="GH.colorMatch.instruction2">Select the matching color from the options on the right</li>
+                    <li data-i18n="GH.colorMatch.instruction3">You have 60 seconds to match as many colors as possible</li>
+                    <li data-i18n="GH.colorMatch.instruction4">Each correct match increases your score and streak</li>
+                    <li data-i18n="GH.colorMatch.instruction5">The game gets harder as you progress through levels</li>
+                </ul>
+            </div>
+            
+            <div class="GH-game-complexity">
+                <span data-i18n="GH.colorMatch.difficulty">Difficulty:</span>
+                <button class="GH-complexity-btn active" data-complexity="easy" data-i18n="GH.colorMatch.easy">Easy</button>
+                <button class="GH-complexity-btn" data-complexity="medium" data-i18n="GH.colorMatch.medium">Medium</button>
+                <button class="GH-complexity-btn" data-complexity="hard" data-i18n="GH.colorMatch.hard">Hard</button>
+            </div>
+            
+            <div class="GH-level-indicator">
+                <span class="GH-level-text" data-i18n="GH.colorMatch.matchColor">Match the color!</span>
+                <span id="progress-text">0/10</span>
+            </div>
+            
+            <div class="GH-level-progress">
+                <div id="progress" class="GH-progress" style="width: 0%"></div>
+            </div>
+            
+            <div class="GH-game-area">
+                <div class="GH-color-display-section">
+                    <h3 data-i18n="GH.colorMatch.targetColor">Target Color</h3>
+                    <div id="color-display" class="GH-color-display"></div>
+                </div>
+                
+                <div class="GH-color-options-section">
+                    <h3 data-i18n="GH.colorMatch.selectMatch">Select the Match</h3>
+                    <div id="color-options" class="GH-color-options"></div>
+                </div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.colorMatch.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="pause-btn" class="GH-game-btn secondary" data-i18n="GH.colorMatch.pause" disabled>
+                    <span>⏸️</span> Pause
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.colorMatch.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification - Make translatable -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal - Make translatable -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" data-i18n="GH.colorMatch.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.colorMatch.finalScore">Final Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-level">1</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.colorMatch.levelReached">Level Reached</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="matches-made">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.colorMatch.matchesMade">Matches Made</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="accuracy">0%</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.colorMatch.accuracy">Accuracy</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.colorMatch.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.colorMatch.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+    // Enhanced game state variables
+    let gameInterval;
+    let gameTime = 60;
+    let gameScore = 0;
+    let gameLevel = 1;
+    let isGameActive = false;
+    let isGamePaused = false;
+    let targetColor = '';
+    let correctOptionIndex = 0;
+    let colorsGenerated = 0;
+    let correctMatches = 0;
+    let totalAttempts = 0;
+    let currentStreak = 0;
+    let maxStreak = 0;
+    let gameComplexity = 'easy';
+        
+        
+        // DOM elements
+        const timerElement = document.getElementById('timer');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const streakElement = document.getElementById('streak');
+        const colorDisplay = document.getElementById('color-display');
+        const colorOptionsContainer = document.getElementById('color-options');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const progressBar = document.getElementById('progress');
+        const progressText = document.getElementById('progress-text');
+        const gameNotification = document.getElementById('game-notification');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalLevelElement = document.getElementById('final-level');
+        const matchesMadeElement = document.getElementById('matches-made');
+        const accuracyElement = document.getElementById('accuracy');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+        const timerProgress = document.querySelector('.GH-timer-progress');
+        const complexityButtons = document.querySelectorAll('.GH-complexity-btn');
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restartGame);
+        playAgainBtn.addEventListener('click', playAgain);
+        mainMenuBtn.addEventListener('click', goToMainMenu);
+        
+        complexityButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                complexityButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameComplexity = this.getAttribute('data-complexity');
+                if (isGameActive) {
+                    generateColorChallenge();
+                }
+            });
+        });
+        
+
+    // Game functions
+    function startGame() {
+        isGameActive = true;
+        isGamePaused = false;
+        gameTime = 60;
+        gameScore = 0;
+        gameLevel = 1;
+        colorsGenerated = 0;
+        correctMatches = 0;
+        totalAttempts = 0;
+        currentStreak = 0;
+        maxStreak = 0;
+        
+        updateUI();
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        
+        // Generate first color challenge
+        generateColorChallenge();
+        
+        // Start timer
+        clearInterval(gameInterval);
+        gameInterval = setInterval(updateGame, 1000);
+        
+        showTranslatableNotification('GH.colorMatch.gameStarted', 'info');
+    }
+        
+        function updateGame() {
+            if (!isGameActive || isGamePaused) return;
+            
+            gameTime--;
+            updateTimer();
+            
+            if (gameTime <= 0) {
+                endGame();
+            }
+        }
+        
+        function updateTimer() {
+            timerElement.textContent = gameTime;
+            const progress = (gameTime / 60) * 283;
+            timerProgress.style.strokeDashoffset = progress;
+            
+            // Change color based on time remaining
+            if (gameTime <= 10) {
+                timerProgress.style.stroke = 'var(--game-error)';
+            } else if (gameTime <= 20) {
+                timerProgress.style.stroke = 'var(--game-warning)';
+            } else {
+                timerProgress.style.stroke = 'white';
+            }
+        }
+        
+    function togglePause() {
+        isGamePaused = !isGamePaused;
+        const pauseIcon = isGamePaused ? '▶️' : '⏸️';
+        const pauseText = isGamePaused ? 
+            getTranslation('GH.colorMatch.resume', 'Resume') : 
+            getTranslation('GH.colorMatch.pause', 'Pause');
+        pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
+        
+        const messageKey = isGamePaused ? 'GH.colorMatch.gamePaused' : 'GH.colorMatch.gameResumed';
+        showTranslatableNotification(messageKey, 'info');
+    }
+
+    function restartGame() {
+        if (isGameActive) {
+            showTranslatableNotification('GH.colorMatch.restartConfirm', 'warning');
+            // In a real implementation, you might want to create a custom confirmation dialog
+            clearInterval(gameInterval);
+            startGame();
+        } else {
+            clearInterval(gameInterval);
+            startGame();
+        }
+    }
+
+        
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+        
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+        
+        function generateColorChallenge() {
+            // Clear previous options
+            colorOptionsContainer.innerHTML = '';
+            
+            // Generate target color
+            targetColor = generateRandomColor();
+            colorDisplay.style.backgroundColor = targetColor;
+            
+            // Determine number of options based on level and complexity
+            let numOptions;
+            switch(gameComplexity) {
+                case 'easy':
+                    numOptions = 2 + Math.min(2, Math.floor(gameLevel / 3));
+                    break;
+                case 'medium':
+                    numOptions = 3 + Math.min(2, Math.floor(gameLevel / 2));
+                    break;
+                case 'hard':
+                    numOptions = 4 + Math.min(2, Math.floor(gameLevel / 1.5));
+                    break;
+                default:
+                    numOptions = 3;
+            }
+            
+            // Generate options including the correct one
+            const options = [];
+            correctOptionIndex = Math.floor(Math.random() * numOptions);
+            
+            for (let i = 0; i < numOptions; i++) {
+                if (i === correctOptionIndex) {
+                    options.push(targetColor);
+                } else {
+                    // Generate similar but different colors for wrong options
+                    options.push(generateSimilarColor(targetColor));
+                }
+            }
+            
+            // Create option elements
+            options.forEach((color, index) => {
+                const option = document.createElement('div');
+                option.className = 'GH-color-option';
+                option.style.backgroundColor = color;
+                option.dataset.index = index;
+                
+                option.addEventListener('click', () => {
+                    if (!isGameActive || isGamePaused) return;
+                    
+                    handleColorSelection(option, index);
+                });
+                
+                colorOptionsContainer.appendChild(option);
+            });
+            
+            // Update progress
+            updateProgress();
+        }
+        
+        function handleColorSelection(option, selectedIndex) {
+            totalAttempts++;
+            
+            // Disable all options during feedback
+            const allOptions = document.querySelectorAll('.GH-color-option');
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            if (selectedIndex === correctOptionIndex) {
+                // Correct match
+                option.classList.add('correct');
+                handleCorrectMatch();
+            } else {
+                // Wrong match
+                option.classList.add('incorrect');
+                // Highlight the correct option
+                allOptions[correctOptionIndex].classList.add('correct');
+                handleWrongMatch();
+            }
+            
+            // Re-enable options after a delay
+            setTimeout(() => {
+                allOptions.forEach(opt => {
+                    opt.style.pointerEvents = 'auto';
+                    opt.classList.remove('correct', 'incorrect');
+                });
+                
+                if (isGameActive && !isGamePaused) {
+                    generateColorChallenge();
+                }
+            }, 1000);
+        }
+        
+    function handleCorrectMatch() {
+        currentStreak++;
+        maxStreak = Math.max(maxStreak, currentStreak);
+        
+        // Calculate score based on level, streak, and complexity
+        let points = gameLevel;
+        if (currentStreak >= 5) points += Math.floor(currentStreak / 5);
+        
+        switch(gameComplexity) {
+            case 'medium': points *= 1.5; break;
+            case 'hard': points *= 2; break;
+        }
+        
+        gameScore += Math.round(points);
+        correctMatches++;
+        colorsGenerated++;
+        
+        // Check for level up
+        if (colorsGenerated % 10 === 0) {
+            gameLevel++;
+            const levelUpMessage = `${getTranslation('colorMatch.levelUp', 'Level Up!')} ${getTranslation('colorMatch.nowAtLevel', 'Now at Level')} ${gameLevel}`;
+            showNotification(levelUpMessage, 'success');
+        }
+        
+        updateUI();
+        const pointsMessage = `${getTranslation('GH.colorMatch.correct', 'Correct!')} +${Math.round(points)} ${getTranslation('GH.colorMatch.points', 'points')}`;
+        showNotification(pointsMessage, 'success');
+    }
+
+    function handleWrongMatch() {
+        currentStreak = 0;
+        colorsGenerated++;
+        
+        updateUI();
+        showTranslatableNotification('GH.colorMatch.wrong', 'error');
+    }
+        
+        function updateUI() {
+            scoreElement.textContent = gameScore;
+            levelElement.textContent = gameLevel;
+            streakElement.textContent = currentStreak;
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const progress = (colorsGenerated % 10) * 10;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${colorsGenerated % 10}/10`;
+        }
+        
+        function generateRandomColor() {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+        
+        function generateSimilarColor(baseColor) {
+            // Extract RGB values from baseColor
+            const rgbValues = baseColor.match(/\d+/g);
+            const r = parseInt(rgbValues[0]);
+            const g = parseInt(rgbValues[1]);
+            const b = parseInt(rgbValues[2]);
+            
+            // Generate a similar color by slightly modifying each channel
+            // Less variation at higher levels and harder complexities
+            let variation;
+            switch(gameComplexity) {
+                case 'easy':
+                    variation = 80 - (gameLevel * 3);
+                    break;
+                case 'medium':
+                    variation = 60 - (gameLevel * 4);
+                    break;
+                case 'hard':
+                    variation = 40 - (gameLevel * 5);
+                    break;
+                default:
+                    variation = 60;
+            }
+            
+            variation = Math.max(10, variation);
+            
+            const newR = Math.max(0, Math.min(255, r + Math.floor(Math.random() * variation * 2 - variation)));
+            const newG = Math.max(0, Math.min(255, g + Math.floor(Math.random() * variation * 2 - variation)));
+            const newB = Math.max(0, Math.min(255, b + Math.floor(Math.random() * variation * 2 - variation)));
+            
+            return `rgb(${newR}, ${newG}, ${newB})`;
+        }
+        
+        function endGame() {
+        isGameActive = false;
+        clearInterval(gameInterval);
+        
+        // Calculate accuracy
+        const accuracy = totalAttempts > 0 ? Math.round((correctMatches / totalAttempts) * 100) : 0;
+        
+        // Update modal with final stats
+        finalScoreElement.textContent = gameScore;
+        finalLevelElement.textContent = gameLevel;
+        matchesMadeElement.textContent = correctMatches;
+        accuracyElement.textContent = accuracy + '%';
+        
+        // Show game over modal
+        setTimeout(() => {
+            gameOverModal.classList.add('active');
+        }, 500);
+        
+        // Reset buttons
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        
+        const gameOverMessage = `${getTranslation('colorMatch.gameOver', 'Game Over!')} ${getTranslation('colorMatch.finalScore', 'Final Score')}: ${gameScore}`;
+        showNotification(gameOverMessage, 'info');
+    }
+    
+// Enhanced notification function that supports translation keys
+function showTranslatableNotification(messageKey, type) {
+    const translations = window.getTranslations ? window.getTranslations() : {};
+    
+    // Remove 'GH.' prefix if present and split the key
+    const cleanKey = messageKey.replace(/^GH\./, '');
+    const keys = cleanKey.split('.');
+    
+    let message = keys.reduce((obj, key) => {
+        return obj && obj[key] !== undefined ? obj[key] : undefined;
+    }, translations);
+    
+    // Fallback if translation not found
+    if (!message || typeof message !== 'string') {
+        console.warn(`Translation not found for key: ${messageKey}`);
+        message = getFallbackGameMessage(cleanKey);
+    }
+    
+    showNotification(message, type);
+}
+
+function getFallbackGameMessage(key) {
+    const fallbackMessages = {
+        'colorMatch.gameStarted': 'Game started! Good luck!',
+        'colorMatch.gamePaused': 'Game paused',
+        'colorMatch.gameResumed': 'Game resumed',
+        'colorMatch.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
+        'colorMatch.correct': 'Correct!',
+        'colorMatch.wrong': 'Wrong! Try again.',
+        'colorMatch.levelUp': 'Level Up!',
+        'colorMatch.gameOver': 'Game Over!'
+    };
+    
+    return fallbackMessages[key] || key;
+}
+
+    function showNotification(message, type) {
+        gameNotification.textContent = message;
+        gameNotification.className = `GH-game-notification ${type}`;
+        gameNotification.style.display = 'block';
+        gameNotification.classList.add('show');
+        
+        setTimeout(() => {
+            gameNotification.classList.remove('show');
+            setTimeout(() => {
+                gameNotification.style.display = 'none';
+            }, 300);
+        }, 3000);
+    }
+        
+    // Helper function to get translations
+function getTranslation(key, fallback) {
+    const translations = window.getTranslations ? window.getTranslations() : {};
+    
+    // Remove 'GH.' prefix if present and split the key
+    const cleanKey = key.replace(/^GH\./, '');
+    const keys = cleanKey.split('.');
+    
+    let value = keys.reduce((obj, k) => {
+        return obj && obj[k] !== undefined ? obj[k] : undefined;
+    }, translations);
+    
+    return value && typeof value === 'string' ? value : fallback;
+}
+        
+    // Initialize timer display
+    updateTimer();
+    </script>
+    
+    <script>
+        // Object specific translations for GH-color-match.html
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                colorMatch: {
+                    title: "Color Match Challenge",
+                    description: "Match the target color as quickly as possible!",
+                    howToPlay: "How to Play",
+                    instruction1: "You will see a target color on the left",
+                    instruction2: "Select the matching color from the options on the right",
+                    instruction3: "You have 60 seconds to match as many colors as possible",
+                    instruction4: "Each correct match increases your score and streak",
+                    instruction5: "The game gets harder as you progress through levels",
+                    time: "Time:",
+                    score: "Score:",
+                    level: "Level:",
+                    streak: "Streak",
+                    matchColor: "Match the color!",
+                    targetColor: "Target Color",
+                    selectMatch: "Select the Match",
+                    startGame: "Start Game",
+                    pause: "Pause",
+                    resume: "Resume",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    correct: "Correct!",
+                    wrong: "Wrong! Try again.",
+                    levelUp: "Level Up!",
+                    nowAtLevel: "Now at Level",
+                    points: "points",
+                    gameOver: "Game Over!",
+                    finalScore: "Final Score",
+                    levelReached: "Level Reached",
+                    matchesMade: "Matches Made",
+                    accuracy: "Accuracy",
+                    gameStarted: "Game started! Good luck!",
+                    gamePaused: "Game paused",
+                    gameResumed: "Game resumed",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    medium: "Medium",
+                    hard: "Hard"
+                }
+            },
+            ar: {
+                colorMatch: {
+                    title: "تحدي مطابقة الألوان",
+                    description: "طابق اللون المستهدف بأسرع ما يمكن!",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "سترى لون مستهدف على اليسار",
+                    instruction2: "اختر اللون المطابق من الخيارات على اليمين",
+                    instruction3: "لديك 60 ثانية لمطابقة أكبر عدد ممكن من الألوان",
+                    instruction4: "كل تطابق صحيح يزيد من نقاطك وتتابعك",
+                    instruction5: "تصعب اللعبة كلما تقدمت في المستويات",
+                    time: "الوقت:",
+                    score: "النقاط:",
+                    level: "المستوى:",
+                    streak: "التتابع",
+                    matchColor: "طابق اللون!",
+                    targetColor: "اللون المستهدف",
+                    selectMatch: "اختر المطابق",
+                    startGame: "ابدأ اللعبة",
+                    pause: "إيقاف مؤقت",
+                    resume: "استئناف",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    correct: "صحيح!",
+                    wrong: "خطأ! حاول مرة أخرى.",
+                    levelUp: "تمت ترقية المستوى!",
+                    nowAtLevel: "الآن في المستوى",
+                    points: "نقاط",
+                    gameOver: "انتهت اللعبة!",
+                    finalScore: "النتيجة النهائية",
+                    levelReached: "المستوى الذي تم الوصول إليه",
+                    matchesMade: "عدد المطابقات",
+                    accuracy: "الدقة",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    gamePaused: "تم إيقاف اللعبة مؤقتاً",
+                    gameResumed: "تم استئناف اللعبة",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    medium: "متوسط",
+                    hard: "صعب"
+                }
+            },
+            fr: {
+                colorMatch: {
+                    title: "Défi de Correspondance de Couleurs",
+                    description: "Faites correspondre la couleur cible le plus rapidement possible!",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Vous verrez une couleur cible à gauche",
+                    instruction2: "Sélectionnez la couleur correspondante parmi les options à droite",
+                    instruction3: "Vous avez 60 secondes pour faire correspondre autant de couleurs que possible",
+                    instruction4: "Chaque correspondance correcte augmente votre score et votre série",
+                    instruction5: "Le jeu devient plus difficile à mesure que vous progressez dans les niveaux",
+                    time: "Temps:",
+                    score: "Score:",
+                    level: "Niveau:",
+                    streak: "Série",
+                    matchColor: "Faites correspondre la couleur!",
+                    targetColor: "Couleur Cible",
+                    selectMatch: "Sélectionnez la Correspondance",
+                    startGame: "Commencer le Jeu",
+                    pause: "Pause",
+                    resume: "Reprendre",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    correct: "Correct!",
+                    wrong: "Faux! Réessayez.",
+                    levelUp: "Niveau Supérieur!",
+                    nowAtLevel: "Maintenant au Niveau",
+                    points: "points",
+                    gameOver: "Jeu Terminé!",
+                    finalScore: "Score Final",
+                    levelReached: "Niveau Atteint",
+                    matchesMade: "Correspondances Réalisées",
+                    accuracy: "Précision",
+                    gameStarted: "Jeu commencé! Bonne chance!",
+                    gamePaused: "Jeu en pause",
+                    gameResumed: "Jeu repris",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer? Votre progression sera perdue.",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    medium: "Moyen",
+                    hard: "Difficile"
+                }
+            }
+        };
+    </script>
+</body>
+</html>

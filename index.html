@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>GameHub - Collection</title>
+		<link rel="stylesheet" href="main.css">
+		<!-- PWA Manifest -->
+		<link rel="manifest" href="manifest.json">
+		<meta name="theme-color" content="#667eea">
+		<meta name="description" content="GameHub - A collection of fun and interactive browser games">
+		<!-- iOS Safari PWA -->
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<meta name="apple-mobile-web-app-title" content="GameHub">
+		<link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+		<style>
+			/* Modal Styles */
+			.GH-modal-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background-color: rgba(0, 0, 0, 0.7);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 2000;
+				opacity: 0;
+				visibility: hidden;
+				transition: all var(--gh-transition-normal);
+				backdrop-filter: blur(5px);
+			}
+
+			.GH-modal-overlay.active {
+				opacity: 1;
+				visibility: visible;
+			}
+
+			.GH-modal {
+				background: var(--gh-light-card-bg);
+				border-radius: var(--gh-radius-lg);
+				width: 90%;
+				max-width: 600px;
+				max-height: 80vh;
+				overflow-y: auto;
+				box-shadow: var(--gh-shadow-lg);
+				transform: translateY(-20px);
+				transition: transform var(--gh-transition-normal);
+				position: relative;
+			}
+
+			.GH-dark-mode .GH-modal {
+				background: var(--gh-dark-card-bg);
+				color: var(--gh-dark-text);
+			}
+
+			.GH-modal-overlay.active .GH-modal {
+				transform: translateY(0);
+			}
+
+			.GH-modal-header {
+				padding: var(--gh-space-lg);
+				border-bottom: 1px solid var(--gh-light-border);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.GH-dark-mode .GH-modal-header {
+				border-bottom-color: var(--gh-dark-border);
+			}
+
+			.GH-modal-title {
+				font-size: var(--gh-font-size-2xl);
+				font-weight: 600;
+				margin: 0;
+			}
+
+			.GH-modal-close {
+				background: none;
+				border: none;
+				font-size: var(--gh-font-size-2xl);
+				cursor: pointer;
+				width: 40px;
+				height: 40px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+				transition: all var(--gh-transition-fast);
+				color: inherit;
+			}
+
+			.GH-modal-close:hover {
+				background-color: rgba(0, 0, 0, 0.1);
+			}
+
+			.GH-dark-mode .GH-modal-close:hover {
+				background-color: rgba(255, 255, 255, 0.1);
+			}
+
+			.GH-modal-body {
+				padding: var(--gh-space-lg);
+			}
+
+			.GH-modal-games {
+				display: grid;
+				gap: var(--gh-space-md);
+			}
+
+			.GH-modal-game {
+				display: flex;
+				align-items: center;
+				padding: var(--gh-space-md);
+				border-radius: var(--gh-radius-md);
+				background: rgba(255, 255, 255, 0.05);
+				transition: all var(--gh-transition-normal);
+				cursor: pointer;
+				text-decoration: none;
+				color: inherit;
+				border: 1px solid transparent;
+			}
+
+			.GH-dark-mode .GH-modal-game {
+				background: rgba(255, 255, 255, 0.05);
+			}
+
+			.GH-modal-game:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--gh-shadow-md);
+				border-color: var(--gh-primary);
+				background: rgba(102, 126, 234, 0.1);
+			}
+
+			.GH-modal-game-icon {
+				width: 60px;
+				height: 60px;
+				border-radius: var(--gh-radius-md);
+				background: var(--gh-gradient-primary);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-right: var(--gh-space-md);
+				font-size: var(--gh-font-size-xl);
+				color: white;
+				flex-shrink: 0;
+			}
+
+			.GH-modal-game-info {
+				flex: 1;
+			}
+
+			.GH-modal-game-title {
+				font-size: var(--gh-font-size-lg);
+				font-weight: 600;
+				margin-bottom: 4px;
+			}
+
+			.GH-modal-game-description {
+				font-size: var(--gh-font-size-sm);
+				opacity: 0.8;
+			}
+
+			/* Install Button Styles */
+			.GH-install-btn {
+				background: rgba(255, 255, 255, 0.95);
+				border: 1px solid rgba(255, 255, 255, 0.3);
+				color: var(--gh-light-text);
+				padding: var(--gh-space-xs) var(--gh-space-sm);
+				border-radius: var(--gh-radius-md);
+				cursor: pointer;
+				transition: all var(--gh-transition-normal);
+				font-size: var(--gh-font-size-sm);
+				font-weight: 500;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				backdrop-filter: blur(10px);
+			}
+
+			.GH-dark-mode .GH-install-btn {
+				background: rgba(255, 255, 255, 0.95);
+				color: var(--gh-dark-bg);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+			}
+
+			.GH-install-btn:hover {
+				transform: translateY(-2px);
+				box-shadow: var(--gh-shadow-lg);
+			}
+
+			.GH-install-btn .GH-icon {
+				font-size: 1.1rem;
+			}
+
+			.GH-install-btn.hidden {
+				display: none;
+			}
+
+			/* No games message */
+			.GH-modal-no-games {
+				text-align: center;
+				padding: var(--gh-space-xl);
+				opacity: 0.7;
+			}
+
+			/* Responsive adjustments */
+			@media (max-width: 768px) {
+				.GH-modal {
+					width: 95%;
+					max-height: 85vh;
+				}
+
+				.GH-modal-game {
+					flex-direction: column;
+					text-align: center;
+				}
+
+				.GH-modal-game-icon {
+					margin-right: 0;
+					margin-bottom: var(--gh-space-sm);
+				}
+
+				.GH-controls {
+					flex-wrap: wrap;
+					justify-content: center;
+				}
+
+				.GH-install-btn {
+					font-size: var(--gh-font-size-xs);
+					padding: 8px 12px;
+				}
+			}
+		</style>
+	</head>
+	<body class="GH-body GH-light-mode">
+		<!-- Header -->
+		<header class="GH-header">
+			<div class="GH-header-content">
+				<div class="GH-logo-section">
+					<a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+						<img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+					</a>
+				</div>
+				
+				<h1 class="GH-title" data-i18n="GH.general.title">GameHub</h1>
+				
+				<div class="GH-controls">
+					<button class="GH-install-btn hidden" id="installButton">
+						<span class="GH-icon">📱</span>
+						<span data-i18n="GH.general.install">Install</span>
+					</button>
+					
+					<select class="GH-language-select" id="languageSelect">
+						<option value="en">English</option>
+						<option value="ar">العربية</option>
+						<option value="fr">Français</option>
+					</select>
+					
+					<button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+						<span class="GH-icon">🌙</span>
+					</button>
+					
+					<button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+						<span class="GH-icon">🔔</span>
+					</button>
+				</div>
+			</div>
+		</header>
+		
+		<!-- Main Content -->
+		<main class="GH-main">
+			<div class="GH-cards-container">
+				<div class="GH-card GH-card-1" id="action-games-card">
+					<h2 data-i18n="GH.index.card1Title">Action Games</h2>
+					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
+				</div>
+				
+				<div class="GH-card GH-card-2">
+					<h2 data-i18n="GH.index.card2Title">Adventure Games</h2>
+					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
+				</div>
+				
+				<div class="GH-card GH-card-3">
+					<h2 data-i18n="GH.index.card3Title">Puzzle Games</h2>
+					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
+				</div>
+			</div>
+		</main>
+		
+		<!-- Footer -->
+		<footer class="GH-footer">
+			<div class="GH-footer-content">
+				<div class="GH-footer-column">
+					<span data-i18n="GH.general.version">Version:</span>
+					<span>v0.0.1</span>
+				</div>
+				
+				<div class="GH-footer-column">
+					<span data-i18n="GH.general.developer">Developer:</span>
+					<span>Mejri Ziad</span>
+				</div>
+				
+				<div class="GH-footer-column">
+					<a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+					<span> | </span>
+					<a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+				</div>
+			</div>
+		</footer>
+		
+		<!-- Games Modal -->
+		<div class="GH-modal-overlay" id="games-modal">
+			<div class="GH-modal">
+				<div class="GH-modal-header">
+					<h2 class="GH-modal-title" data-i18n="GH.index.modalTitle">Action Games</h2>
+					<button class="GH-modal-close" id="modal-close">&times;</button>
+				</div>
+				<div class="GH-modal-body">
+					<div class="GH-modal-games" id="games-list">
+						<!-- Games will be populated here by JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Include JavaScript files -->
+		<script src="translation.js"></script>
+		<script src="global.js"></script>
+		<script src="main.js"></script>
+		<script>
+			// Games data with translation keys
+			const actionGames = [
+				{
+					id: 'color-match',
+					titleKey: 'GH.index.games.colorMatch.title',
+					descriptionKey: 'GH.index.games.colorMatch.description',
+					icon: '🎨',
+					url: 'GH-color-match.html'
+				},
+				{
+					id: 'memory-challenge',
+					titleKey: 'GH.index.games.memoryChallenge.title',
+					descriptionKey: 'GH.index.games.memoryChallenge.description',
+					icon: '🧠',
+					url: 'GH-memory-challenge.html'
+				}
+			];
+
+			// Modal functionality
+			document.addEventListener('DOMContentLoaded', function() {
+				const modal = document.getElementById('games-modal');
+				const actionGamesCard = document.getElementById('action-games-card');
+				const modalClose = document.getElementById('modal-close');
+				const gamesList = document.getElementById('games-list');
+				
+				// Open modal when clicking on Action Games card
+				if (actionGamesCard) {
+					actionGamesCard.addEventListener('click', function() {
+						openModal();
+					});
+				}
+				
+				// Close modal when clicking close button
+				if (modalClose) {
+					modalClose.addEventListener('click', function() {
+						closeModal();
+					});
+				}
+				
+				// Close modal when clicking outside of it
+				if (modal) {
+					modal.addEventListener('click', function(e) {
+						if (e.target === modal) {
+							closeModal();
+						}
+					});
+				}
+				
+				// Close modal with Escape key
+				document.addEventListener('keydown', function(e) {
+					if (e.key === 'Escape' && modal.classList.contains('active')) {
+						closeModal();
+					}
+				});
+				
+				// Function to open modal and populate games list
+				function openModal() {
+					if (modal) {
+						// Populate games list
+						populateGamesList();
+						
+						// Show modal
+						modal.classList.add('active');
+						document.body.style.overflow = 'hidden'; // Prevent scrolling
+					}
+				}
+				
+				// Function to close modal
+				function closeModal() {
+					if (modal) {
+						modal.classList.remove('active');
+						document.body.style.overflow = ''; // Restore scrolling
+					}
+				}
+				
+				// Function to populate games list
+function populateGamesList() {
+    if (!gamesList) return;
+    
+    // Clear previous content
+    gamesList.innerHTML = '';
+    
+    if (actionGames.length === 0) {
+        // Show message if no games
+        const noGamesMessage = document.createElement('div');
+        noGamesMessage.className = 'GH-modal-no-games';
+        noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
+        gamesList.appendChild(noGamesMessage);
+    } else {
+        // Create game cards
+        actionGames.forEach(game => {
+            const gameElement = document.createElement('a');
+            gameElement.href = game.url;
+            gameElement.className = 'GH-modal-game';
+            
+            // Get translated title and description
+            const title = getTranslation(game.titleKey, game.titleKey); // Use key as fallback
+            const description = getTranslation(game.descriptionKey, game.descriptionKey); // Use key as fallback
+            
+            gameElement.innerHTML = `
+                <div class="GH-modal-game-icon">${game.icon}</div>
+                <div class="GH-modal-game-info">
+                    <div class="GH-modal-game-title">${title}</div>
+                    <div class="GH-modal-game-description">${description}</div>
+                </div>
+            `;
+            
+            gamesList.appendChild(gameElement);
+        });
+    }
+}
+				
+				// Helper function to get translations
+function getTranslation(key, fallback) {
+    const translations = window.getTranslations ? window.getTranslations() : {};
+    
+    // Remove 'GH.' prefix if present and split the key
+    const cleanKey = key.replace(/^GH\./, '');
+    const keys = cleanKey.split('.');
+    
+    let value = translations;
+    for (const k of keys) {
+        if (value && value[k] !== undefined) {
+            value = value[k];
+        } else {
+            return fallback;
+        }
+    }
+    
+    return value || fallback;
+}
+
+				// Listen for language changes to update modal content
+				document.addEventListener('translationsUpdated', function() {
+					// If modal is open, refresh the games list with new translations
+					if (modal && modal.classList.contains('active')) {
+						populateGamesList();
+					}
+				});
+			});
+		</script>
+		
+		<script>
+			// object specific translations for index.html
+			window.GHObjectTranslations = window.GHObjectTranslations || {
+				en: {
+					index: {
+						card1Title: "Action Games",
+						card2Title: "Adventure Games",
+						card3Title: "Puzzle Games",
+						comingSoon: "Coming Soon",
+						modalTitle: "Action Games",
+						noGames: "No games available yet",
+						games: {
+							colorMatch: {
+								title: "Color Match Challenge",
+								description: "Test your color perception skills by matching the target color"
+							},
+							memoryChallenge: {
+								title: "Memory Challenge",
+								description: "Train your memory by matching pairs of cards with increasing difficulty"
+							}
+						}
+					}
+				},
+				ar: {
+					index: {
+						card1Title: "ألعاب الحركة",
+						card2Title: "ألعاب المغامرة",
+						card3Title: "ألعاب الألغاز",
+						comingSoon: "قريباً",
+						modalTitle: "ألعاب الحركة",
+						noGames: "لا توجد ألعاب متاحة بعد",
+						games: {
+							colorMatch: {
+								title: "تحدي مطابقة الألوان",
+								description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
+							},
+							memoryChallenge: {
+								title: "تحدي الذاكرة",
+								description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
+							}
+						}
+					}
+				},
+				fr: {
+					index: {
+						card1Title: "Jeux d'Action",
+						card2Title: "Jeux d'Aventure",
+						card3Title: "Jeux de Réflexion",
+						comingSoon: "Bientôt Disponible",
+						modalTitle: "Jeux d'Action",
+						noGames: "Aucun jeu disponible pour le moment",
+						games: {
+							colorMatch: {
+								title: "Défi de Correspondance de Couleurs",
+								description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
+							},
+							memoryChallenge: {
+								title: "Défi de Mémoire",
+								description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
+							}
+						}
+					}
+				}
+			};
+		</script>
+	</body>
+</html>

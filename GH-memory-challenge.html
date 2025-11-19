@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Memory Challenge</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Game-specific styles - New color palette */
+        :root {
+            /* Memory Challenge color palette - Forest theme */
+            --game-primary: #2E8B57;
+            --game-secondary: #3CB371;
+            --game-accent: #FFD700;
+            --game-success: #32CD32;
+            --game-error: #FF6B6B;
+            --game-warning: #FFA500;
+            --game-light-bg: #F0FFF0;
+            --game-dark-bg: #1A3C27;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(40, 80, 60, 0.95);
+            --game-card-front: linear-gradient(135deg, #2E8B57, #3CB371);
+            --game-card-back: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
+        .GH-game-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-md);
+            min-height: 500px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+
+        @media (min-width: 768px) {
+            .GH-memory-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+                max-width: 600px;
+            }
+        }
+
+        .GH-memory-card {
+            width: 100px;
+            height: 120px;
+            perspective: 1000px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .GH-memory-card {
+                width: 80px;
+                height: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .GH-memory-card {
+                width: 70px;
+                height: 90px;
+            }
+        }
+
+        .GH-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: var(--gh-radius-md);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-memory-card.flipped .GH-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .GH-memory-card.matched .GH-card-inner {
+            transform: rotateY(180deg);
+            box-shadow: 0 0 15px var(--game-success);
+            animation: pulseMatch 1.5s infinite;
+        }
+
+        .GH-card-front, .GH-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: var(--gh-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .GH-card-front {
+            background: var(--game-card-front);
+            transform: rotateY(180deg);
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .GH-card-back {
+            background: var(--game-card-back);
+            font-size: 1.8rem;
+        }
+
+        .GH-card-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .GH-card-number {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: var(--gh-gradient-primary);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-level-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-sm);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .GH-level-text {
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-level-text {
+            color: var(--game-accent);
+        }
+
+        .GH-level-progress {
+            width: 100%;
+            max-width: 500px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: var(--gh-space-md) 0;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-level-progress {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .GH-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .GH-result-message {
+            font-size: 1.8rem;
+            margin: 20px 0;
+            font-weight: bold;
+            min-height: 50px;
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-result-message {
+            color: var(--game-accent);
+        }
+
+        .GH-win-message {
+            color: var(--game-success);
+            animation: celebrate 1s ease;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-lg);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background-color: var(--game-success);
+        }
+
+        .GH-game-notification.error {
+            background-color: var(--game-error);
+        }
+
+        .GH-game-notification.info {
+            background-color: var(--game-primary);
+        }
+
+        .GH-game-notification.warning {
+            background-color: var(--game-warning);
+            color: var(--gh-dark-text);
+        }
+
+        .GH-timer-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .GH-timer-circle {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .GH-timer-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 8;
+        }
+
+        .GH-timer-progress {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .GH-timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: var(--gh-font-size-xl);
+            font-weight: bold;
+            color: white;
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-3xl);
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(46, 139, 87, 0.1);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-sm);
+            margin: var(--gh-space-md) 0;
+        }
+
+        .GH-difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        /* Card flip animation */
+        @keyframes flipIn {
+            0% { transform: rotateY(0); }
+            100% { transform: rotateY(180deg); }
+        }
+
+        /* Card match animation */
+        @keyframes pulseMatch {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        /* Card reveal animation */
+        @keyframes revealCard {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .GH-memory-card {
+            animation: revealCard 0.5s ease;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+
+            .GH-game-stats {
+                order: 2;
+            }
+
+            .GH-timer-container {
+                order: 1;
+            }
+
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Score animation */
+        .GH-score-animation {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--game-accent);
+            animation: scoreFloat 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes scoreFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        /* Game background pattern */
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(46, 139, 87, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.memory.title">Memory Challenge</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="score">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.memory.score">Score</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="level">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.memory.level">Level</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="moves">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.memory.moves">Moves</span>
+                    </div>
+                </div>
+                
+                <div class="GH-timer-container">
+                    <svg class="GH-timer-circle" viewBox="0 0 100 100">
+                        <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
+                        <circle class="GH-timer-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="GH-timer-text" id="timer">60</div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.memory.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.memory.instruction1">Flip two cards at a time to find matching pairs</li>
+                    <li data-i18n="GH.memory.instruction2">Match all pairs before time runs out</li>
+                    <li data-i18n="GH.memory.instruction3">Each level increases difficulty with more cards</li>
+                    <li data-i18n="GH.memory.instruction4">Complete levels to earn points and progress</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span data-i18n="GH.memory.difficulty">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-difficulty="easy" data-i18n="GH.memory.easy">Easy</button>
+                <button class="GH-difficulty-btn" data-difficulty="medium" data-i18n="GH.memory.medium">Medium</button>
+                <button class="GH-difficulty-btn" data-difficulty="hard" data-i18n="GH.memory.hard">Hard</button>
+            </div>
+            
+            <div class="GH-level-indicator">
+                <span class="GH-level-text" data-i18n="GH.memory.findPairs">Find all matching pairs!</span>
+                <span id="progress-text">0/6</span>
+            </div>
+            
+            <div class="GH-level-progress">
+                <div id="progress" class="GH-progress" style="width: 0%"></div>
+            </div>
+            
+            <div class="GH-game-area">
+                <div id="memory-grid" class="GH-memory-grid"></div>
+                <div class="GH-result-message" id="result-message"></div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.memory.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="pause-btn" class="GH-game-btn secondary" data-i18n="GH.memory.pause" disabled>
+                    <span>⏸️</span> Pause
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.memory.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" data-i18n="GH.memory.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memory.finalScore">Final Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-level">1</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memory.levelReached">Level Reached</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="matches-made">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memory.matchesMade">Matches Made</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="accuracy">0%</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memory.accuracy">Accuracy</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.memory.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.memory.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+        // Game state variables
+        let gameInterval;
+        let gameTime = 60;
+        let gameScore = 0;
+        let gameLevel = 1;
+        let isGameActive = false;
+        let isGamePaused = false;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let totalMoves = 0;
+        let totalPairs = 0;
+        let gameDifficulty = 'easy';
+        
+        // Difficulty settings
+        const difficultySettings = {
+            easy: { pairs: 6, time: 60, grid: 4 },
+            medium: { pairs: 8, time: 90, grid: 4 },
+            hard: { pairs: 12, time: 120, grid: 4 }
+        };
+        
+        // Card symbols with icons and numbers
+        const cardSymbols = [
+            { icon: '🌲', number: 1 },
+            { icon: '🌳', number: 2 },
+            { icon: '🌴', number: 3 },
+            { icon: '🍀', number: 4 },
+            { icon: '🍁', number: 5 },
+            { icon: '🍂', number: 6 },
+            { icon: '🌸', number: 7 },
+            { icon: '🌷', number: 8 },
+            { icon: '🌹', number: 9 },
+            { icon: '🌺', number: 10 },
+            { icon: '🌻', number: 11 },
+            { icon: '🌼', number: 12 }
+        ];
+        
+        // DOM elements
+        const timerElement = document.getElementById('timer');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const movesElement = document.getElementById('moves');
+        const memoryGrid = document.getElementById('memory-grid');
+        const resultMessage = document.getElementById('result-message');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const gameNotification = document.getElementById('game-notification');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalLevelElement = document.getElementById('final-level');
+        const matchesMadeElement = document.getElementById('matches-made');
+        const accuracyElement = document.getElementById('accuracy');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+        const timerProgress = document.querySelector('.GH-timer-progress');
+        const progressBar = document.getElementById('progress');
+        const progressText = document.getElementById('progress-text');
+        const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restartGame);
+        playAgainBtn.addEventListener('click', playAgain);
+        mainMenuBtn.addEventListener('click', goToMainMenu);
+        
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameDifficulty = this.getAttribute('data-difficulty');
+                if (isGameActive) {
+                    restartGame();
+                }
+            });
+        });
+        
+        // Game functions
+        function startGame() {
+            isGameActive = true;
+            isGamePaused = false;
+            
+            // Reset game state
+            const settings = difficultySettings[gameDifficulty];
+            gameTime = settings.time;
+            gameScore = 0;
+            gameLevel = 1;
+            flippedCards = [];
+            matchedPairs = 0;
+            totalMoves = 0;
+            totalPairs = settings.pairs;
+            
+            updateUI();
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            // Create memory game
+            createMemoryGame();
+            
+            // Start timer
+            clearInterval(gameInterval);
+            gameInterval = setInterval(updateGame, 1000);
+            
+            showTranslatableNotification('GH.memory.gameStarted', 'info');
+        }
+        
+        function updateGame() {
+            if (!isGameActive || isGamePaused) return;
+            
+            gameTime--;
+            updateTimer();
+            
+            if (gameTime <= 0) {
+                endGame();
+            }
+        }
+        
+        function updateTimer() {
+            timerElement.textContent = gameTime;
+            const settings = difficultySettings[gameDifficulty];
+            const progress = (gameTime / settings.time) * 283;
+            timerProgress.style.strokeDashoffset = progress;
+            
+            // Change color based on time remaining
+            if (gameTime <= 10) {
+                timerProgress.style.stroke = 'var(--game-error)';
+            } else if (gameTime <= 20) {
+                timerProgress.style.stroke = 'var(--game-warning)';
+            } else {
+                timerProgress.style.stroke = 'white';
+            }
+        }
+        
+        function togglePause() {
+            isGamePaused = !isGamePaused;
+            const pauseIcon = isGamePaused ? '▶️' : '⏸️';
+            const pauseText = isGamePaused ? 
+                getTranslation('GH.memory.resume', 'Resume') : 
+                getTranslation('GH.memory.pause', 'Pause');
+            pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
+            
+            const messageKey = isGamePaused ? 'GH.memory.gamePaused' : 'GH.memory.gameResumed';
+            showTranslatableNotification(messageKey, 'info');
+        }
+
+        function restartGame() {
+            if (isGameActive) {
+                showTranslatableNotification('GH.memory.restartConfirm', 'warning');
+                clearInterval(gameInterval);
+                startGame();
+            } else {
+                clearInterval(gameInterval);
+                startGame();
+            }
+        }
+        
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+        
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+        
+        function createMemoryGame() {
+            // Clear previous grid
+            memoryGrid.innerHTML = '';
+            resultMessage.textContent = '';
+            resultMessage.className = 'GH-result-message';
+            
+            // Get settings for current difficulty
+            const settings = difficultySettings[gameDifficulty];
+            totalPairs = settings.pairs;
+            
+            // Update progress
+            updateProgress();
+            
+            // Create symbols for cards
+            const symbols = [];
+            for (let i = 0; i < totalPairs; i++) {
+                symbols.push(cardSymbols[i]);
+            }
+            
+            // Duplicate symbols for pairs and shuffle
+            const cards = [...symbols, ...symbols];
+            shuffleArray(cards);
+            
+            // Update grid columns based on difficulty
+            memoryGrid.style.gridTemplateColumns = `repeat(${settings.grid}, 1fr)`;
+            
+            // Create card elements
+            cards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'GH-memory-card';
+                card.dataset.symbol = symbol.number;
+                card.dataset.index = index;
+                
+                card.innerHTML = `
+                    <div class="GH-card-inner">
+                        <div class="GH-card-front">
+                            <div class="GH-card-icon">${symbol.icon}</div>
+                            <div class="GH-card-number">${symbol.number}</div>
+                        </div>
+                        <div class="GH-card-back">?</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    if (!isGameActive || isGamePaused) return;
+                    
+                    if (flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                        flipCard(card);
+                        
+                        if (flippedCards.length === 2) {
+                            totalMoves++;
+                            movesElement.textContent = totalMoves;
+                            
+                            checkForMatch();
+                        }
+                    }
+                });
+                
+                memoryGrid.appendChild(card);
+            });
+        }
+        
+        function flipCard(card) {
+            card.classList.add('flipped');
+            flippedCards.push(card);
+        }
+        
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.symbol === card2.dataset.symbol) {
+                // Match found
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                
+                // Calculate score based on time remaining and level
+                const timeBonus = Math.floor(gameTime / 10);
+                const levelBonus = gameLevel * 10;
+                const moveBonus = Math.max(0, 50 - totalMoves);
+                
+                const points = 100 + timeBonus + levelBonus + moveBonus;
+                gameScore += points;
+                
+                // Show score animation
+                showScoreAnimation(points, card1);
+                
+                updateUI();
+                
+                if (matchedPairs === totalPairs) {
+                    // Level completed
+                    levelComplete();
+                }
+                
+                flippedCards = [];
+                
+                const pointsMessage = `${getTranslation('GH.memory.correct', 'Correct!')} +${points} ${getTranslation('GH.memory.points', 'points')}`;
+                showNotification(pointsMessage, 'success');
+            } else {
+                // No match, flip back after a delay
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                }, 1000);
+                
+                showTranslatableNotification('GH.memory.wrong', 'error');
+            }
+        }
+        
+        function showScoreAnimation(points, element) {
+            const scoreAnim = document.createElement('div');
+            scoreAnim.className = 'GH-score-animation';
+            scoreAnim.textContent = `+${points}`;
+            
+            // Position the animation near the matched card
+            const rect = element.getBoundingClientRect();
+            scoreAnim.style.left = `${rect.left + rect.width / 2}px`;
+            scoreAnim.style.top = `${rect.top}px`;
+            
+            document.body.appendChild(scoreAnim);
+            
+            // Remove animation after it completes
+            setTimeout(() => {
+                document.body.removeChild(scoreAnim);
+            }, 1000);
+        }
+        
+        function levelComplete() {
+            gameLevel++;
+            const levelUpMessage = `${getTranslation('GH.memory.levelUp', 'Level Up!')} ${getTranslation('GH.memory.nowAtLevel', 'Now at Level')} ${gameLevel}`;
+            resultMessage.textContent = levelUpMessage;
+            resultMessage.className = 'GH-result-message GH-win-message';
+            
+            showTranslatableNotification('GH.memory.levelCompleted', 'success');
+            
+            // Increase difficulty for next level
+            if (gameLevel % 3 === 0 && gameDifficulty !== 'hard') {
+                // Increase difficulty every 3 levels
+                if (gameDifficulty === 'easy') {
+                    gameDifficulty = 'medium';
+                    difficultyButtons.forEach(b => {
+                        if (b.getAttribute('data-difficulty') === 'medium') {
+                            b.classList.add('active');
+                        } else {
+                            b.classList.remove('active');
+                        }
+                    });
+                } else if (gameDifficulty === 'medium') {
+                    gameDifficulty = 'hard';
+                    difficultyButtons.forEach(b => {
+                        if (b.getAttribute('data-difficulty') === 'hard') {
+                            b.classList.add('active');
+                        } else {
+                            b.classList.remove('active');
+                        }
+                    });
+                }
+                
+                showTranslatableNotification('GH.memory.difficultyIncreased', 'warning');
+            }
+            
+            // Reset for next level with more time
+            const settings = difficultySettings[gameDifficulty];
+            gameTime = settings.time + (gameLevel * 5); // Add 5 seconds per level
+            
+            // Create new memory game for next level
+            setTimeout(() => {
+                createMemoryGame();
+                updateTimer();
+            }, 2000);
+        }
+        
+        function updateUI() {
+            scoreElement.textContent = gameScore;
+            levelElement.textContent = gameLevel;
+            movesElement.textContent = totalMoves;
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const progress = (matchedPairs / totalPairs) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${matchedPairs}/${totalPairs}`;
+        }
+        
+        function endGame() {
+            isGameActive = false;
+            clearInterval(gameInterval);
+            
+            // Calculate accuracy
+            const accuracy = totalMoves > 0 ? Math.round((matchedPairs / totalMoves) * 100) : 0;
+            
+            // Update modal with final stats
+            finalScoreElement.textContent = gameScore;
+            finalLevelElement.textContent = gameLevel;
+            matchesMadeElement.textContent = matchedPairs;
+            accuracyElement.textContent = accuracy + '%';
+            
+            // Show game over modal
+            setTimeout(() => {
+                gameOverModal.classList.add('active');
+            }, 500);
+            
+            // Reset buttons
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            
+            const gameOverMessage = `${getTranslation('GH.memory.gameOver', 'Game Over!')} ${getTranslation('GH.memory.finalScore', 'Final Score')}: ${gameScore}`;
+            showNotification(gameOverMessage, 'info');
+        }
+        
+        // Utility functions
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Enhanced notification function that supports translation keys
+        function showTranslatableNotification(messageKey, type) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = messageKey.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let message = keys.reduce((obj, key) => {
+                return obj && obj[key] !== undefined ? obj[key] : undefined;
+            }, translations);
+            
+            // Fallback if translation not found
+            if (!message || typeof message !== 'string') {
+                console.warn(`Translation not found for key: ${messageKey}`);
+                message = getFallbackGameMessage(cleanKey);
+            }
+            
+            showNotification(message, type);
+        }
+
+        function getFallbackGameMessage(key) {
+            const fallbackMessages = {
+                'memory.gameStarted': 'Game started! Good luck!',
+                'memory.gamePaused': 'Game paused',
+                'memory.gameResumed': 'Game resumed',
+                'memory.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
+                'memory.correct': 'Correct!',
+                'memory.wrong': 'Wrong! Try again.',
+                'memory.levelUp': 'Level Up!',
+                'memory.levelCompleted': 'Level completed!',
+                'memory.difficultyIncreased': 'Difficulty increased!',
+                'memory.gameOver': 'Game Over!'
+            };
+            
+            return fallbackMessages[key] || key;
+        }
+
+        function showNotification(message, type) {
+            gameNotification.textContent = message;
+            gameNotification.className = `GH-game-notification ${type}`;
+            gameNotification.style.display = 'block';
+            gameNotification.classList.add('show');
+            
+            setTimeout(() => {
+                gameNotification.classList.remove('show');
+                setTimeout(() => {
+                    gameNotification.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+        
+        // Helper function to get translations
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let value = keys.reduce((obj, k) => {
+                return obj && obj[k] !== undefined ? obj[k] : undefined;
+            }, translations);
+            
+            return value && typeof value === 'string' ? value : fallback;
+        }
+        
+        // Initialize timer display
+        updateTimer();
+    </script>
+    
+    <script>
+        // Object specific translations for GH-memory-challenge.html
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                memory: {
+                    title: "Memory Challenge",
+                    description: "Test your memory by matching pairs of cards!",
+                    howToPlay: "How to Play",
+                    instruction1: "Flip two cards at a time to find matching pairs",
+                    instruction2: "Match all pairs before time runs out",
+                    instruction3: "Each level increases difficulty with more cards",
+                    instruction4: "Complete levels to earn points and progress",
+                    time: "Time",
+                    score: "Score",
+                    level: "Level",
+                    moves: "Moves",
+                    pairs: "Pairs",
+                    findPairs: "Find all matching pairs!",
+                    startGame: "Start Game",
+                    pause: "Pause",
+                    resume: "Resume",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    correct: "Correct!",
+                    wrong: "Wrong! Try again.",
+                    levelUp: "Level Up!",
+                    nowAtLevel: "Now at Level",
+                    points: "points",
+                    gameOver: "Game Over!",
+                    finalScore: "Final Score",
+                    levelReached: "Level Reached",
+                    matchesMade: "Matches Made",
+                    accuracy: "Accuracy",
+                    gameStarted: "Game started! Good luck!",
+                    gamePaused: "Game paused",
+                    gameResumed: "Game resumed",
+                    levelCompleted: "Level completed!",
+                    difficultyIncreased: "Difficulty increased!",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    medium: "Medium",
+                    hard: "Hard"
+                }
+            },
+            ar: {
+                memory: {
+                    title: "تحدي الذاكرة",
+                    description: "اختبر ذاكرتك بمطابقة أزواج البطاقات!",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "اقلب بطاقتين في كل مرة للعثور على أزواج متطابقة",
+                    instruction2: "طابق جميع الأزواج قبل انتهاء الوقت",
+                    instruction3: "كل مستوى يزيد الصعوبة مع بطاقات أكثر",
+                    instruction4: "أكمل المستويات لتحقيق النقاط والتقدم",
+                    time: "الوقت",
+                    score: "النقاط",
+                    level: "المستوى",
+                    moves: "الحركات",
+                    pairs: "الأزواج",
+                    findPairs: "ابحث عن جميع الأزواج المطابقة!",
+                    startGame: "ابدأ اللعبة",
+                    pause: "إيقاف مؤقت",
+                    resume: "استئناف",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    correct: "صحيح!",
+                    wrong: "خطأ! حاول مرة أخرى.",
+                    levelUp: "تمت ترقية المستوى!",
+                    nowAtLevel: "الآن في المستوى",
+                    points: "نقاط",
+                    gameOver: "انتهت اللعبة!",
+                    finalScore: "النتيجة النهائية",
+                    levelReached: "المستوى الذي تم الوصول إليه",
+                    matchesMade: "عدد المطابقات",
+                    accuracy: "الدقة",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    gamePaused: "تم إيقاف اللعبة مؤقتاً",
+                    gameResumed: "تم استئناف اللعبة",
+                    levelCompleted: "تم إكمال المستوى!",
+                    difficultyIncreased: "تم زيادة الصعوبة!",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    medium: "متوسط",
+                    hard: "صعب"
+                }
+            },
+            fr: {
+                memory: {
+                    title: "Défi de Mémoire",
+                    description: "Testez votre mémoire en associant des paires de cartes !",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Retournez deux cartes à la fois pour trouver des paires identiques",
+                    instruction2: "Associez toutes les paires avant la fin du temps",
+                    instruction3: "Chaque niveau augmente la difficulté avec plus de cartes",
+                    instruction4: "Terminez les niveaux pour gagner des points et progresser",
+                    time: "Temps",
+                    score: "Score",
+                    level: "Niveau",
+                    moves: "Mouvements",
+                    pairs: "Paires",
+                    findPairs: "Trouvez toutes les paires correspondantes !",
+                    startGame: "Commencer le Jeu",
+                    pause: "Pause",
+                    resume: "Reprendre",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    correct: "Correct !",
+                    wrong: "Faux ! Réessayez.",
+                    levelUp: "Niveau Supérieur !",
+                    nowAtLevel: "Maintenant au Niveau",
+                    points: "points",
+                    gameOver: "Jeu Terminé !",
+                    finalScore: "Score Final",
+                    levelReached: "Niveau Atteint",
+                    matchesMade: "Correspondances Réalisées",
+                    accuracy: "Précision",
+                    gameStarted: "Jeu commencé ! Bonne chance !",
+                    gamePaused: "Jeu en pause",
+                    gameResumed: "Jeu repris",
+                    levelCompleted: "Niveau terminé !",
+                    difficultyIncreased: "Difficulté augmentée !",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    medium: "Moyen",
+                    hard: "Difficile"
+                }
+            }
+        };
+    </script>
+</body>
+</html>
