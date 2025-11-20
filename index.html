@@ -333,21 +333,21 @@
 		<script>
 			// Games data with translation keys
 			const actionGames = [
-				{
-					id: 'color-match',
-					titleKey: 'GH.index.games.colorMatch.title',
-					descriptionKey: 'GH.index.games.colorMatch.description',
-					icon: '🎨',
-					url: 'GH-color-match.html'
-				},
-				{
-					id: 'memory-challenge',
-					titleKey: 'GH.index.games.memoryChallenge.title',
-					descriptionKey: 'GH.index.games.memoryChallenge.description',
-					icon: '🧠',
-					url: 'GH-memory-challenge.html'
-				}
-			];
+    {
+        id: 'color-match',
+        titleKey: 'GH.index.games.colorMatch.title',
+        descriptionKey: 'GH.index.games.colorMatch.description',
+        icon: '🎨',
+        url: '/GH-color-match'  // Remove .html extension
+    },
+    {
+        id: 'memory-challenge',
+        titleKey: 'GH.index.games.memoryChallenge.title',
+        descriptionKey: 'GH.index.games.memoryChallenge.description',
+        icon: '🧠',
+        url: '/GH-memory-challenge'  // Remove .html extension
+    }
+];
 
 			// Modal functionality
 			document.addEventListener('DOMContentLoaded', function() {
@@ -539,4 +539,5 @@ function getTranslation(key, fallback) {
 			};
 		</script>
 	</body>
+
 </html>
