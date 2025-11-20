@@ -1,7 +1,7 @@
 // Service Worker for GameHub PWA
-const CACHE_NAME = 'gamehub-v0.0.2';
-const STATIC_CACHE = 'static-v0.0.2';
-const DYNAMIC_CACHE = 'dynamic-v0.0.2';
+const CACHE_NAME = 'gamehub-v0.0.3';
+const STATIC_CACHE = 'static-v0.0.3';
+const DYNAMIC_CACHE = 'dynamic-v0.0.3';
 
 // Assets to cache immediately on install
 const STATIC_ASSETS = [
