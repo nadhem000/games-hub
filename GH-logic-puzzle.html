@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Logic Puzzle Challenge</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Game-specific styles - Enigma theme */
+        :root {
+            /* Logic Puzzle color palette - Enigma theme */
+            --game-primary: #0D47A1;
+            --game-secondary: #1976D2;
+            --game-accent: #FF5722;
+            --game-success: #388E3C;
+            --game-error: #D32F2F;
+            --game-warning: #F57C00;
+            --game-info: #0288D1;
+            --game-light-bg: #E3F2FD;
+            --game-dark-bg: #0A1930;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(20, 40, 70, 0.95);
+            --game-clue-bg: rgba(13, 71, 161, 0.1);
+            --game-dark-clue-bg: rgba(13, 71, 161, 0.2);
+        }
+
+        .GH-game-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-md);
+            min-height: 500px;
+            justify-content: flex-start;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-puzzle-container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .GH-scenario {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: var(--game-primary);
+            text-align: center;
+            line-height: 1.5;
+            padding: 15px;
+            border-radius: var(--gh-radius-md);
+            background-color: var(--game-clue-bg);
+            position: relative;
+        }
+
+        .GH-dark-mode .GH-scenario {
+            color: var(--game-accent);
+            background-color: var(--game-dark-clue-bg);
+        }
+
+        .GH-scenario::before {
+            content: '🧩';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+        }
+
+        [dir="rtl"] .GH-scenario::before {
+            left: auto;
+            right: 15px;
+        }
+
+        .GH-clues-container {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: var(--gh-radius-md);
+            background-color: var(--game-clue-bg);
+            position: relative;
+        }
+
+        .GH-dark-mode .GH-clues-container {
+            background-color: var(--game-dark-clue-bg);
+        }
+
+        .GH-clues-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--game-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .GH-dark-mode .GH-clues-title {
+            color: var(--game-accent);
+        }
+
+        .GH-clues-list {
+            padding-left: 20px;
+        }
+
+        .GH-clues-list li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .GH-clues-list li::before {
+            content: '🔍';
+            position: absolute;
+            left: -20px;
+        }
+
+        [dir="rtl"] .GH-clues-list li {
+            padding-left: 0;
+            padding-right: 10px;
+        }
+
+        [dir="rtl"] .GH-clues-list li::before {
+            left: auto;
+            right: -20px;
+        }
+
+        .GH-options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .GH-options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .GH-option-btn {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: var(--gh-radius-md);
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: var(--gh-shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-option-btn {
+            background-color: var(--game-dark-card-bg);
+            border-color: #444;
+            color: white;
+        }
+
+        .GH-option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-md);
+            border-color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-option-btn:hover {
+            border-color: var(--game-accent);
+        }
+
+        .GH-option-btn.correct {
+            background-color: var(--game-success);
+            color: white;
+            border-color: var(--game-success);
+            animation: pulse 0.5s ease;
+        }
+
+        .GH-option-btn.incorrect {
+            background-color: var(--game-error);
+            color: white;
+            border-color: var(--game-error);
+            animation: shake 0.5s ease;
+        }
+
+        .GH-option-btn.hint-highlight {
+            border-color: var(--game-info);
+            background-color: rgba(2, 136, 209, 0.1);
+        }
+
+        .GH-dark-mode .GH-option-btn.hint-highlight {
+            background-color: rgba(2, 136, 209, 0.2);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .GH-result-message {
+            text-align: center;
+            font-size: 1.3rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: var(--gh-radius-md);
+            font-weight: bold;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .GH-win-message {
+            background-color: rgba(56, 142, 60, 0.2);
+            color: var(--game-success);
+            border: 2px solid var(--game-success);
+        }
+
+        .GH-lose-message {
+            background-color: rgba(211, 47, 47, 0.2);
+            color: var(--game-error);
+            border: 2px solid var(--game-error);
+        }
+
+        .GH-explanation-container {
+            background-color: var(--game-clue-bg);
+            padding: 15px;
+            border-radius: var(--gh-radius-md);
+            margin: 20px 0;
+            border-left: 4px solid var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-explanation-container {
+            background-color: var(--game-dark-clue-bg);
+            border-left-color: var(--game-accent);
+        }
+
+        [dir="rtl"] .GH-explanation-container {
+            border-left: none;
+            border-right: 4px solid var(--game-primary);
+        }
+
+        [dir="rtl"].GH-dark-mode .GH-explanation-container {
+            border-right-color: var(--game-accent);
+        }
+
+        .GH-explanation-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--game-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .GH-dark-mode .GH-explanation-title {
+            color: var(--game-accent);
+        }
+
+        .GH-explanation-content {
+            line-height: 1.5;
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-level-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-sm);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .GH-level-text {
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-level-text {
+            color: var(--game-accent);
+        }
+
+        .GH-level-progress {
+            width: 100%;
+            max-width: 500px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: var(--gh-space-md) 0;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-level-progress {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .GH-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        [dir="rtl"] .GH-instructions li::before {
+            margin-left: 0;
+            margin-right: -1em;
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-lg);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background-color: var(--game-success);
+        }
+
+        .GH-game-notification.error {
+            background-color: var(--game-error);
+        }
+
+        .GH-game-notification.info {
+            background-color: var(--game-info);
+        }
+
+        .GH-game-notification.warning {
+            background-color: var(--game-warning);
+            color: var(--gh-dark-text);
+        }
+
+        [dir="rtl"] .GH-game-notification {
+            right: auto;
+            left: 20px;
+            transform: translateX(-150%);
+        }
+
+        [dir="rtl"] .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-timer-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .GH-timer-circle {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .GH-timer-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 8;
+        }
+
+        .GH-timer-progress {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .GH-timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: var(--gh-font-size-xl);
+            font-weight: bold;
+            color: white;
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-3xl);
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(13, 71, 161, 0.1);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-sm);
+            margin: var(--gh-space-md) 0;
+        }
+
+        .GH-difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-hint-section {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-md) 0;
+        }
+
+        .GH-hint-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid var(--game-info);
+            color: var(--game-info);
+            border-radius: var(--gh-radius-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .GH-dark-mode .GH-hint-btn {
+            border-color: var(--game-info);
+            color: var(--game-info);
+        }
+
+        .GH-hint-btn:hover:not(:disabled) {
+            background: var(--game-info);
+            color: white;
+        }
+
+        .GH-hint-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Puzzle type badges */
+        .GH-puzzle-type {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: var(--game-primary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .GH-dark-mode .GH-puzzle-type {
+            background-color: var(--game-accent);
+        }
+
+        [dir="rtl"] .GH-puzzle-type {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+
+            .GH-game-stats {
+                order: 2;
+            }
+
+            .GH-timer-container {
+                order: 1;
+            }
+
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .GH-scenario {
+                font-size: 1.1rem;
+                padding: 15px 15px 15px 45px;
+            }
+
+            [dir="rtl"] .GH-scenario {
+                padding: 15px 45px 15px 15px;
+            }
+
+            .GH-scenario::before {
+                left: 10px;
+            }
+
+            [dir="rtl"] .GH-scenario::before {
+                left: auto;
+                right: 10px;
+            }
+        }
+
+        /* Game background pattern */
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(13, 71, 161, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 87, 34, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.logicPuzzle.title">Logic Puzzle Challenge</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="score">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.logicPuzzle.score">Score</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="level">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.logicPuzzle.level">Level</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="streak">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.logicPuzzle.streak">Streak</span>
+                    </div>
+                </div>
+                
+                <div class="GH-timer-container">
+                    <svg class="GH-timer-circle" viewBox="0 0 100 100">
+                        <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
+                        <circle class="GH-timer-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="GH-timer-text" id="timer">60</div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.logicPuzzle.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.logicPuzzle.instruction1">Read the puzzle scenario and clues carefully</li>
+                    <li data-i18n="GH.logicPuzzle.instruction2">Use logical reasoning to determine the correct answer</li>
+                    <li data-i18n="GH.logicPuzzle.instruction3">Select your answer from the options provided</li>
+                    <li data-i18n="GH.logicPuzzle.instruction4">Use hints if you get stuck (limited uses)</li>
+                    <li data-i18n="GH.logicPuzzle.instruction5">Each correct answer increases your score and streak</li>
+                    <li data-i18n="GH.logicPuzzle.instruction6">The puzzles get more challenging as you level up</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span data-i18n="GH.logicPuzzle.difficulty">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-difficulty="easy" data-i18n="GH.logicPuzzle.easy">Easy</button>
+                <button class="GH-difficulty-btn" data-difficulty="medium" data-i18n="GH.logicPuzzle.medium">Medium</button>
+                <button class="GH-difficulty-btn" data-difficulty="hard" data-i18n="GH.logicPuzzle.hard">Hard</button>
+            </div>
+            
+            <div class="GH-level-indicator">
+                <span class="GH-level-text" data-i18n="GH.logicPuzzle.solvePuzzle">Solve the puzzle!</span>
+                <span id="progress-text">0/5</span>
+            </div>
+            
+            <div class="GH-level-progress">
+                <div id="progress" class="GH-progress" style="width: 0%"></div>
+            </div>
+            
+            <div class="GH-game-area">
+                <div class="GH-puzzle-container">
+                    <div id="puzzle-scenario" class="GH-scenario">Loading puzzle...</div>
+                    
+                    <div class="GH-clues-container">
+                        <div class="GH-clues-title">
+                            <span>🔍</span>
+                            <span data-i18n="GH.logicPuzzle.clues">Clues:</span>
+                        </div>
+                        <ul id="clues-list" class="GH-clues-list">
+                            <!-- Clues will be inserted here -->
+                        </ul>
+                    </div>
+                    
+                    <div id="options-container" class="GH-options-container">
+                        <!-- Options will be inserted here -->
+                    </div>
+                    
+                    <div id="result-message" class="GH-result-message"></div>
+                    
+                    <div id="explanation-container" class="GH-explanation-container" style="display: none;">
+                        <div class="GH-explanation-title">
+                            <span>💡</span>
+                            <span data-i18n="GH.logicPuzzle.explanation">Explanation:</span>
+                        </div>
+                        <div id="explanation-content" class="GH-explanation-content">
+                            <!-- Explanation will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <div class="GH-hint-section">
+                        <button id="hint-btn" class="GH-hint-btn" disabled>
+                            <span>💡</span> <span data-i18n="GH.logicPuzzle.getHint">Get Hint</span> (<span id="hint-count">3</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.logicPuzzle.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="pause-btn" class="GH-game-btn secondary" data-i18n="GH.logicPuzzle.pause" disabled>
+                    <span>⏸️</span> Pause
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.logicPuzzle.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" data-i18n="GH.logicPuzzle.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.logicPuzzle.finalScore">Final Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-level">1</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.logicPuzzle.levelReached">Level Reached</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="puzzles-solved">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.logicPuzzle.puzzlesSolved">Puzzles Solved</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="accuracy">0%</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.logicPuzzle.accuracy">Accuracy</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.logicPuzzle.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.logicPuzzle.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+	<!-- Include puzzle data -->
+<script src="data-logic-puzzle.js"></script>
+    <script>
+        // Game state variables
+        let gameInterval;
+        let gameTime = 60;
+        let gameScore = 0;
+        let gameLevel = 1;
+        let isGameActive = false;
+        let isGamePaused = false;
+        let puzzlesSolved = 0;
+        let totalAttempts = 0;
+        let correctAttempts = 0;
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let currentDifficulty = 'easy';
+        let hintsRemaining = 3;
+        let currentPuzzle = null;
+        
+        // Puzzle database with enhanced content
+const puzzles = window.logicPuzzles || {};
+        
+        // DOM elements
+        const timerElement = document.getElementById('timer');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const streakElement = document.getElementById('streak');
+        const puzzleScenario = document.getElementById('puzzle-scenario');
+        const cluesList = document.getElementById('clues-list');
+        const optionsContainer = document.getElementById('options-container');
+        const resultMessage = document.getElementById('result-message');
+        const explanationContainer = document.getElementById('explanation-container');
+        const explanationContent = document.getElementById('explanation-content');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const hintCountElement = document.getElementById('hint-count');
+        const gameNotification = document.getElementById('game-notification');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalLevelElement = document.getElementById('final-level');
+        const puzzlesSolvedElement = document.getElementById('puzzles-solved');
+        const accuracyElement = document.getElementById('accuracy');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+        const timerProgress = document.querySelector('.GH-timer-progress');
+        const progressBar = document.getElementById('progress');
+        const progressText = document.getElementById('progress-text');
+        const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
+        // language change listener to regenerate puzzles
+document.getElementById('languageSelect').addEventListener('change', function() {
+    const newLang = this.value;
+    window.changeLanguage(newLang).then(() => {
+        // Regenerate puzzle with new language if game is active
+        if (isGameActive && currentPuzzle) {
+            generatePuzzle();
+        }
+    });
+});
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restartGame);
+        hintBtn.addEventListener('click', useHint);
+        playAgainBtn.addEventListener('click', playAgain);
+        mainMenuBtn.addEventListener('click', goToMainMenu);
+        
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentDifficulty = this.getAttribute('data-difficulty');
+                if (isGameActive) {
+                    restartGame();
+                }
+            });
+        });
+        
+        // Game functions
+        function startGame() {
+            isGameActive = true;
+            isGamePaused = false;
+            
+            // Reset game state
+            gameTime = 60;
+            gameScore = 0;
+            gameLevel = 1;
+            puzzlesSolved = 0;
+            totalAttempts = 0;
+            correctAttempts = 0;
+            currentStreak = 0;
+            maxStreak = 0;
+            hintsRemaining = 3;
+            
+            updateUI();
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            hintBtn.disabled = false;
+            
+            // Generate first puzzle
+            generatePuzzle();
+            
+            // Start timer
+            clearInterval(gameInterval);
+            gameInterval = setInterval(updateGame, 1000);
+            
+            showTranslatableNotification('GH.logicPuzzle.gameStarted', 'info');
+        }
+        
+        function updateGame() {
+            if (!isGameActive || isGamePaused) return;
+            
+            gameTime--;
+            updateTimer();
+            
+            if (gameTime <= 0) {
+                endGame();
+            }
+        }
+        
+        function updateTimer() {
+            timerElement.textContent = gameTime;
+            const progress = (gameTime / 60) * 283;
+            timerProgress.style.strokeDashoffset = progress;
+            
+            // Change color based on time remaining
+            if (gameTime <= 10) {
+                timerProgress.style.stroke = 'var(--game-error)';
+            } else if (gameTime <= 20) {
+                timerProgress.style.stroke = 'var(--game-warning)';
+            } else {
+                timerProgress.style.stroke = 'white';
+            }
+        }
+        
+        function togglePause() {
+            isGamePaused = !isGamePaused;
+            const pauseIcon = isGamePaused ? '▶️' : '⏸️';
+            const pauseText = isGamePaused ? 
+                getTranslation('GH.logicPuzzle.resume', 'Resume') : 
+                getTranslation('GH.logicPuzzle.pause', 'Pause');
+            pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
+            
+            const messageKey = isGamePaused ? 'GH.logicPuzzle.gamePaused' : 'GH.logicPuzzle.gameResumed';
+            showTranslatableNotification(messageKey, 'info');
+        }
+
+        function restartGame() {
+            if (isGameActive) {
+                showTranslatableNotification('GH.logicPuzzle.restartConfirm', 'warning');
+                clearInterval(gameInterval);
+                startGame();
+            } else {
+                clearInterval(gameInterval);
+                startGame();
+            }
+        }
+        
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+        
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+        
+        function generatePuzzle() {
+    // Clear previous options
+    optionsContainer.innerHTML = '';
+    cluesList.innerHTML = '';
+    resultMessage.textContent = '';
+    resultMessage.className = 'GH-result-message';
+    explanationContainer.style.display = 'none';
+    
+    // Get puzzles for current language, fallback to English if not available
+    const currentLang = window.currentLanguage || 'en';
+    console.log('Current language:', currentLang, 'Difficulty:', currentDifficulty);
+    console.log('Available puzzles:', puzzles);
+    
+    // Safely access the puzzle data - FIXED: Properly navigate the puzzle structure
+    let puzzleList = [];
+    
+    // Check if puzzles exist for current language and difficulty
+    if (puzzles && puzzles[currentLang]) {
+        console.log(`Found puzzles for language: ${currentLang}`, puzzles[currentLang]);
+        
+        if (puzzles[currentLang][currentDifficulty]) {
+            puzzleList = puzzles[currentLang][currentDifficulty];
+            console.log(`Found ${puzzleList.length} puzzles for ${currentLang}/${currentDifficulty}`);
+        } else {
+            console.warn(`No puzzles found for difficulty: ${currentDifficulty} in language: ${currentLang}`);
+        }
+    }
+    
+    // Fallback to English if no puzzles found for current language
+    if (puzzleList.length === 0 && currentLang !== 'en') {
+        console.log(`Falling back to English puzzles`);
+        if (puzzles && puzzles['en'] && puzzles['en'][currentDifficulty]) {
+            puzzleList = puzzles['en'][currentDifficulty];
+        }
+    }
+    
+    if (puzzleList.length === 0) {
+        puzzleScenario.textContent = getTranslation('GH.logicPuzzle.noPuzzles', 'No puzzles available for this difficulty.');
+        return;
+    }
+    
+    const randomIndex = Math.floor(Math.random() * puzzleList.length);
+    currentPuzzle = puzzleList[randomIndex];
+    
+    console.log('Selected puzzle:', currentPuzzle);
+    
+    // Display puzzle scenario with type badge
+    puzzleScenario.innerHTML = currentPuzzle.scenario + 
+        `<span class="GH-puzzle-type">${currentPuzzle.type}</span>`;
+    
+    // Display clues
+    currentPuzzle.clues.forEach(clue => {
+        const clueItem = document.createElement('li');
+        clueItem.textContent = clue;
+        cluesList.appendChild(clueItem);
+    });
+    
+    // Create option buttons
+    currentPuzzle.options.forEach((option, index) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.className = 'GH-option-btn';
+        optionBtn.textContent = option;
+        optionBtn.dataset.index = index;
+        
+        optionBtn.addEventListener('click', () => {
+            if (!isGameActive || isGamePaused) return;
+            
+            totalAttempts++;
+            
+            // Disable all buttons during feedback
+            const allButtons = document.querySelectorAll('.GH-option-btn');
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            if (parseInt(optionBtn.dataset.index) === currentPuzzle.correctAnswer) {
+                // Correct answer
+                handleCorrectAnswer();
+                optionBtn.classList.add('correct');
+            } else {
+                // Wrong answer
+                handleWrongAnswer();
+                optionBtn.classList.add('incorrect');
+                
+                // Highlight correct answer
+                setTimeout(() => {
+                    const correctBtn = document.querySelector(`.GH-option-btn[data-index="${currentPuzzle.correctAnswer}"]`);
+                    if (correctBtn) {
+                        correctBtn.classList.add('correct');
+                    }
+                }, 500);
+            }
+            
+            // Show explanation
+            explanationContent.textContent = currentPuzzle.explanation;
+            explanationContainer.style.display = 'block';
+        });
+        
+        optionsContainer.appendChild(optionBtn);
+    });
+}
+        
+        function useHint() {
+            if (hintsRemaining <= 0) return;
+            
+            hintsRemaining--;
+            hintCountElement.textContent = hintsRemaining;
+            
+            if (hintsRemaining <= 0) {
+                hintBtn.disabled = true;
+            }
+            
+            // Remove one incorrect option
+            const optionButtons = document.querySelectorAll('.GH-option-btn');
+            const incorrectOptions = Array.from(optionButtons).filter(btn => 
+                parseInt(btn.dataset.index) !== currentPuzzle.correctAnswer
+            );
+            
+            if (incorrectOptions.length > 1) {
+                const randomIncorrect = incorrectOptions[Math.floor(Math.random() * incorrectOptions.length)];
+                randomIncorrect.style.display = 'none';
+                
+                showTranslatableNotification('GH.logicPuzzle.hintUsed', 'info');
+            }
+        }
+        
+        function handleCorrectAnswer() {
+            currentStreak++;
+            maxStreak = Math.max(maxStreak, currentStreak);
+            
+            // Calculate score based on level, streak, and difficulty
+            let points = gameLevel * 10; // Higher levels give more points
+            
+            switch(currentDifficulty) {
+                case 'medium': points *= 1.5; break;
+                case 'hard': points *= 2; break;
+            }
+            
+            if (currentStreak >= 3) points += Math.floor(currentStreak / 3) * 5;
+            
+            gameScore += Math.round(points);
+            puzzlesSolved++;
+            correctAttempts++;
+            
+            scoreElement.textContent = gameScore;
+            streakElement.textContent = currentStreak;
+            
+            // Check for level up
+            if (puzzlesSolved % 5 === 0) {
+                gameLevel++;
+                levelElement.textContent = gameLevel;
+                
+                const levelUpMessage = `${getTranslation('GH.logicPuzzle.levelUp', 'Level Up!')} ${getTranslation('GH.logicPuzzle.nowAtLevel', 'Now at Level')} ${gameLevel}`;
+                resultMessage.textContent = levelUpMessage;
+                resultMessage.className = 'GH-result-message GH-win-message';
+                
+                showTranslatableNotification('GH.logicPuzzle.levelUp', 'success');
+            } else {
+                resultMessage.textContent = getTranslation('GH.logicPuzzle.correct', 'Correct!');
+                resultMessage.className = 'GH-result-message GH-win-message';
+            }
+            
+            // Update progress
+            updateProgress();
+            
+            // Generate next puzzle after delay
+            setTimeout(generatePuzzle, 3000);
+        }
+        
+        function handleWrongAnswer() {
+            currentStreak = 0;
+            puzzlesSolved++;
+            
+            gameScore = Math.max(0, gameScore - 5); // Lose points for wrong answer
+            scoreElement.textContent = gameScore;
+            streakElement.textContent = currentStreak;
+            
+            resultMessage.textContent = getTranslation('GH.logicPuzzle.incorrect', 'Incorrect! Try the next puzzle.');
+            resultMessage.className = 'GH-result-message GH-lose-message';
+            
+            // Update progress
+            updateProgress();
+            
+            // Generate next puzzle after delay
+            setTimeout(generatePuzzle, 3000);
+        }
+        
+        function updateProgress() {
+            const progress = (puzzlesSolved % 5) * 20;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${puzzlesSolved % 5}/5`;
+        }
+        
+        function updateUI() {
+            scoreElement.textContent = gameScore;
+            levelElement.textContent = gameLevel;
+            streakElement.textContent = currentStreak;
+            hintCountElement.textContent = hintsRemaining;
+            updateProgress();
+        }
+        
+        function endGame() {
+            isGameActive = false;
+            clearInterval(gameInterval);
+            
+            // Calculate accuracy
+            const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
+            
+            // Update modal with final stats
+            finalScoreElement.textContent = gameScore;
+            finalLevelElement.textContent = gameLevel;
+            puzzlesSolvedElement.textContent = puzzlesSolved;
+            accuracyElement.textContent = accuracy + '%';
+            
+            // Show game over modal
+            setTimeout(() => {
+                gameOverModal.classList.add('active');
+            }, 500);
+            
+            // Reset buttons
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            hintBtn.disabled = true;
+            
+            const gameOverMessage = `${getTranslation('GH.logicPuzzle.gameOver', 'Game Over!')} ${getTranslation('GH.logicPuzzle.finalScore', 'Final Score')}: ${gameScore}`;
+            showNotification(gameOverMessage, 'info');
+        }
+        
+        // Enhanced notification function that supports translation keys
+        function showTranslatableNotification(messageKey, type) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = messageKey.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let message = keys.reduce((obj, key) => {
+                return obj && obj[key] !== undefined ? obj[key] : undefined;
+            }, translations);
+            
+            // Fallback if translation not found
+            if (!message || typeof message !== 'string') {
+                console.warn(`Translation not found for key: ${messageKey}`);
+                message = getFallbackGameMessage(cleanKey);
+            }
+            
+            showNotification(message, type);
+        }
+
+        function getFallbackGameMessage(key) {
+            const fallbackMessages = {
+                'logicPuzzle.gameStarted': 'Game started! Good luck!',
+                'logicPuzzle.gamePaused': 'Game paused',
+                'logicPuzzle.gameResumed': 'Game resumed',
+                'logicPuzzle.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
+                'logicPuzzle.correct': 'Correct!',
+                'logicPuzzle.incorrect': 'Incorrect! Try the next puzzle.',
+                'logicPuzzle.levelUp': 'Level Up!',
+                'logicPuzzle.gameOver': 'Game Over!',
+                'logicPuzzle.hintUsed': 'Hint used! One incorrect option removed.'
+            };
+            
+            return fallbackMessages[key] || key;
+        }
+
+        function showNotification(message, type) {
+            gameNotification.textContent = message;
+            gameNotification.className = `GH-game-notification ${type}`;
+            gameNotification.style.display = 'block';
+            gameNotification.classList.add('show');
+            
+            setTimeout(() => {
+                gameNotification.classList.remove('show');
+                setTimeout(() => {
+                    gameNotification.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+        
+        // Helper function to get translations
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let value = keys.reduce((obj, k) => {
+                return obj && obj[k] !== undefined ? obj[k] : undefined;
+            }, translations);
+            
+            return value && typeof value === 'string' ? value : fallback;
+        }
+        
+        // Initialize timer display
+        updateTimer();
+    </script>
+    
+    <script>
+        // Object specific translations for GH-logic-puzzle.html
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                logicPuzzle: {
+                    title: "Logic Puzzle Challenge",
+                    description: "Test your logical reasoning with challenging puzzles!",
+                    howToPlay: "How to Play",
+                    instruction1: "Read the puzzle scenario and clues carefully",
+                    instruction2: "Use logical reasoning to determine the correct answer",
+                    instruction3: "Select your answer from the options provided",
+                    instruction4: "Use hints if you get stuck (limited uses)",
+                    instruction5: "Each correct answer increases your score and streak",
+                    instruction6: "The puzzles get more challenging as you level up",
+                    time: "Time",
+                    score: "Score",
+                    level: "Level",
+                    streak: "Streak",
+                    solvePuzzle: "Solve the puzzle!",
+                    clues: "Clues:",
+                    explanation: "Explanation:",
+                    getHint: "Get Hint",
+                    startGame: "Start Game",
+                    pause: "Pause",
+                    resume: "Resume",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    correct: "Correct!",
+                    incorrect: "Incorrect! Try the next puzzle.",
+                    levelUp: "Level Up!",
+                    nowAtLevel: "Now at Level",
+                    gameOver: "Game Over!",
+                    finalScore: "Final Score",
+                    levelReached: "Level Reached",
+                    puzzlesSolved: "Puzzles Solved",
+                    accuracy: "Accuracy",
+                    gameStarted: "Game started! Good luck!",
+                    gamePaused: "Game paused",
+                    gameResumed: "Game resumed",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    hintUsed: "Hint used! One incorrect option removed.",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    medium: "Medium",
+                    hard: "Hard"
+                }
+            },
+            ar: {
+                logicPuzzle: {
+                    title: "تحدي الألغاز المنطقية",
+                    description: "اختبر تفكيرك المنطقي بألغاز صعبة!",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "اقرأ سيناريو اللغز والأدلة بعناية",
+                    instruction2: "استخدم التفكير المنطقي لتحديد الإجابة الصحيحة",
+                    instruction3: "اختر إجابتك من الخيارات المتاحة",
+                    instruction4: "استخدم التلميحات إذا علقت (استخدامات محدودة)",
+                    instruction5: "كل إجابة صحيحة تزيد من نقاطك وتتابعك",
+                    instruction6: "تصبح الألغاز أكثر صعوبة كلما ارتفع مستواك",
+                    time: "الوقت",
+                    score: "النقاط",
+                    level: "المستوى",
+                    streak: "التتابع",
+                    solvePuzzle: "حل اللغز!",
+                    clues: "الأدلة:",
+                    explanation: "الشرح:",
+                    getHint: "احصل على تلميح",
+                    startGame: "ابدأ اللعبة",
+                    pause: "إيقاف مؤقت",
+                    resume: "استئناف",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    correct: "صحيح!",
+                    incorrect: "خطأ! حاول في اللغز التالي.",
+                    levelUp: "تمت ترقية المستوى!",
+                    nowAtLevel: "الآن في المستوى",
+                    gameOver: "انتهت اللعبة!",
+                    finalScore: "النتيجة النهائية",
+                    levelReached: "المستوى الذي تم الوصول إليه",
+                    puzzlesSolved: "الألغاز المحلولة",
+                    accuracy: "الدقة",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    gamePaused: "تم إيقاف اللعبة مؤقتاً",
+                    gameResumed: "تم استئناف اللعبة",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    hintUsed: "تم استخدام التلميح! تمت إزالة خيار غير صحيح.",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    medium: "متوسط",
+                    hard: "صعب"
+                }
+            },
+            fr: {
+                logicPuzzle: {
+                    title: "Défi de Puzzles Logiques",
+                    description: "Testez votre raisonnement logique avec des puzzles stimulants!",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Lisez attentivement le scénario du puzzle et les indices",
+                    instruction2: "Utilisez le raisonnement logique pour déterminer la bonne réponse",
+                    instruction3: "Sélectionnez votre réponse parmi les options proposées",
+                    instruction4: "Utilisez des indices si vous êtes bloqué (utilisations limitées)",
+                    instruction5: "Chaque bonne réponse augmente votre score et votre série",
+                    instruction6: "Les puzzles deviennent plus difficiles à mesure que vous montez de niveau",
+                    time: "Temps",
+                    score: "Score",
+                    level: "Niveau",
+                    streak: "Série",
+                    solvePuzzle: "Résolvez le puzzle!",
+                    clues: "Indices:",
+                    explanation: "Explication:",
+                    getHint: "Obtenir un Indice",
+                    startGame: "Commencer le Jeu",
+                    pause: "Pause",
+                    resume: "Reprendre",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    correct: "Correct!",
+                    incorrect: "Incorrect! Essayez le puzzle suivant.",
+                    levelUp: "Niveau Supérieur!",
+                    nowAtLevel: "Maintenant au Niveau",
+                    gameOver: "Jeu Terminé!",
+                    finalScore: "Score Final",
+                    levelReached: "Niveau Atteint",
+                    puzzlesSolved: "Puzzles Résolus",
+                    accuracy: "Précision",
+                    gameStarted: "Jeu commencé! Bonne chance!",
+                    gamePaused: "Jeu en pause",
+                    gameResumed: "Jeu repris",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer? Votre progression sera perdue.",
+                    hintUsed: "Indice utilisé! Une option incorrecte a été supprimée.",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    medium: "Moyen",
+                    hard: "Difficile"
+                }
+            }
+        };
+    </script>
+</body>
+</html>

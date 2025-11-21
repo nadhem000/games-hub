@@ -173,6 +173,7 @@ function updateTranslations() {
 }
 
 // Set initial language based on stored preference or browser preference
+// Set initial language based on stored preference or browser preference
 function detectBrowserLanguage() {
     // First check if we have stored settings
     const storedSettings = localStorage.getItem('GH-settings');
@@ -180,6 +181,7 @@ function detectBrowserLanguage() {
         const settings = JSON.parse(storedSettings);
         if (settings.language) {
             currentLanguage = settings.language;
+            window.currentLanguage = currentLanguage;
             return;
         }
     }
@@ -191,12 +193,15 @@ function detectBrowserLanguage() {
     
     if (supportedLangs.includes(primaryLang)) {
         currentLanguage = primaryLang;
+        window.currentLanguage = currentLanguage;
     }
 }
 
 // Function to change language
+// Function to change language
 async function changeLanguage(lang) {
     currentLanguage = lang;
+    window.currentLanguage = currentLanguage;
     await loadGeneralTranslations();
     updateTranslations();
 }

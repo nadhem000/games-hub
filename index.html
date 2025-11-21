@@ -17,221 +17,221 @@
 		<style>
 			/* Modal Styles */
 			.GH-modal-overlay {
-				position: fixed;
-				top: 0;
-				left: 0;
-				right: 0;
-				bottom: 0;
-				background-color: rgba(0, 0, 0, 0.7);
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				z-index: 2000;
-				opacity: 0;
-				visibility: hidden;
-				transition: all var(--gh-transition-normal);
-				backdrop-filter: blur(5px);
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: rgba(0, 0, 0, 0.7);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 2000;
+			opacity: 0;
+			visibility: hidden;
+			transition: all var(--gh-transition-normal);
+			backdrop-filter: blur(5px);
 			}
-
+			
 			.GH-modal-overlay.active {
-				opacity: 1;
-				visibility: visible;
+			opacity: 1;
+			visibility: visible;
 			}
-
+			
 			.GH-modal {
-				background: var(--gh-light-card-bg);
-				border-radius: var(--gh-radius-lg);
-				width: 90%;
-				max-width: 600px;
-				max-height: 80vh;
-				overflow-y: auto;
-				box-shadow: var(--gh-shadow-lg);
-				transform: translateY(-20px);
-				transition: transform var(--gh-transition-normal);
-				position: relative;
+			background: var(--gh-light-card-bg);
+			border-radius: var(--gh-radius-lg);
+			width: 90%;
+			max-width: 600px;
+			max-height: 80vh;
+			overflow-y: auto;
+			box-shadow: var(--gh-shadow-lg);
+			transform: translateY(-20px);
+			transition: transform var(--gh-transition-normal);
+			position: relative;
 			}
-
+			
 			.GH-dark-mode .GH-modal {
-				background: var(--gh-dark-card-bg);
-				color: var(--gh-dark-text);
+			background: var(--gh-dark-card-bg);
+			color: var(--gh-dark-text);
 			}
-
+			
 			.GH-modal-overlay.active .GH-modal {
-				transform: translateY(0);
+			transform: translateY(0);
 			}
-
+			
 			.GH-modal-header {
-				padding: var(--gh-space-lg);
-				border-bottom: 1px solid var(--gh-light-border);
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
+			padding: var(--gh-space-lg);
+			border-bottom: 1px solid var(--gh-light-border);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
 			}
-
+			
 			.GH-dark-mode .GH-modal-header {
-				border-bottom-color: var(--gh-dark-border);
+			border-bottom-color: var(--gh-dark-border);
 			}
-
+			
 			.GH-modal-title {
-				font-size: var(--gh-font-size-2xl);
-				font-weight: 600;
-				margin: 0;
+			font-size: var(--gh-font-size-2xl);
+			font-weight: 600;
+			margin: 0;
 			}
-
+			
 			.GH-modal-close {
-				background: none;
-				border: none;
-				font-size: var(--gh-font-size-2xl);
-				cursor: pointer;
-				width: 40px;
-				height: 40px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				border-radius: 50%;
-				transition: all var(--gh-transition-fast);
-				color: inherit;
+			background: none;
+			border: none;
+			font-size: var(--gh-font-size-2xl);
+			cursor: pointer;
+			width: 40px;
+			height: 40px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			transition: all var(--gh-transition-fast);
+			color: inherit;
 			}
-
+			
 			.GH-modal-close:hover {
-				background-color: rgba(0, 0, 0, 0.1);
+			background-color: rgba(0, 0, 0, 0.1);
 			}
-
+			
 			.GH-dark-mode .GH-modal-close:hover {
-				background-color: rgba(255, 255, 255, 0.1);
+			background-color: rgba(255, 255, 255, 0.1);
 			}
-
+			
 			.GH-modal-body {
-				padding: var(--gh-space-lg);
+			padding: var(--gh-space-lg);
 			}
-
+			
 			.GH-modal-games {
-				display: grid;
-				gap: var(--gh-space-md);
+			display: grid;
+			gap: var(--gh-space-md);
 			}
-
+			
 			.GH-modal-game {
-				display: flex;
-				align-items: center;
-				padding: var(--gh-space-md);
-				border-radius: var(--gh-radius-md);
-				background: rgba(255, 255, 255, 0.05);
-				transition: all var(--gh-transition-normal);
-				cursor: pointer;
-				text-decoration: none;
-				color: inherit;
-				border: 1px solid transparent;
+			display: flex;
+			align-items: center;
+			padding: var(--gh-space-md);
+			border-radius: var(--gh-radius-md);
+			background: rgba(255, 255, 255, 0.05);
+			transition: all var(--gh-transition-normal);
+			cursor: pointer;
+			text-decoration: none;
+			color: inherit;
+			border: 1px solid transparent;
 			}
-
+			
 			.GH-dark-mode .GH-modal-game {
-				background: rgba(255, 255, 255, 0.05);
+			background: rgba(255, 255, 255, 0.05);
 			}
-
+			
 			.GH-modal-game:hover {
-				transform: translateY(-3px);
-				box-shadow: var(--gh-shadow-md);
-				border-color: var(--gh-primary);
-				background: rgba(102, 126, 234, 0.1);
+			transform: translateY(-3px);
+			box-shadow: var(--gh-shadow-md);
+			border-color: var(--gh-primary);
+			background: rgba(102, 126, 234, 0.1);
 			}
-
+			
 			.GH-modal-game-icon {
-				width: 60px;
-				height: 60px;
-				border-radius: var(--gh-radius-md);
-				background: var(--gh-gradient-primary);
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				margin-right: var(--gh-space-md);
-				font-size: var(--gh-font-size-xl);
-				color: white;
-				flex-shrink: 0;
+			width: 60px;
+			height: 60px;
+			border-radius: var(--gh-radius-md);
+			background: var(--gh-gradient-primary);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: var(--gh-space-md);
+			font-size: var(--gh-font-size-xl);
+			color: white;
+			flex-shrink: 0;
 			}
-
+			
 			.GH-modal-game-info {
-				flex: 1;
+			flex: 1;
 			}
-
+			
 			.GH-modal-game-title {
-				font-size: var(--gh-font-size-lg);
-				font-weight: 600;
-				margin-bottom: 4px;
+			font-size: var(--gh-font-size-lg);
+			font-weight: 600;
+			margin-bottom: 4px;
 			}
-
+			
 			.GH-modal-game-description {
-				font-size: var(--gh-font-size-sm);
-				opacity: 0.8;
+			font-size: var(--gh-font-size-sm);
+			opacity: 0.8;
 			}
-
+			
 			/* Install Button Styles */
 			.GH-install-btn {
-				background: rgba(255, 255, 255, 0.95);
-				border: 1px solid rgba(255, 255, 255, 0.3);
-				color: var(--gh-light-text);
-				padding: var(--gh-space-xs) var(--gh-space-sm);
-				border-radius: var(--gh-radius-md);
-				cursor: pointer;
-				transition: all var(--gh-transition-normal);
-				font-size: var(--gh-font-size-sm);
-				font-weight: 500;
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				backdrop-filter: blur(10px);
+			background: rgba(255, 255, 255, 0.95);
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			color: var(--gh-light-text);
+			padding: var(--gh-space-xs) var(--gh-space-sm);
+			border-radius: var(--gh-radius-md);
+			cursor: pointer;
+			transition: all var(--gh-transition-normal);
+			font-size: var(--gh-font-size-sm);
+			font-weight: 500;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			backdrop-filter: blur(10px);
 			}
-
+			
 			.GH-dark-mode .GH-install-btn {
-				background: rgba(255, 255, 255, 0.95);
-				color: var(--gh-dark-bg);
-				border: 1px solid rgba(255, 255, 255, 0.2);
+			background: rgba(255, 255, 255, 0.95);
+			color: var(--gh-dark-bg);
+			border: 1px solid rgba(255, 255, 255, 0.2);
 			}
-
+			
 			.GH-install-btn:hover {
-				transform: translateY(-2px);
-				box-shadow: var(--gh-shadow-lg);
+			transform: translateY(-2px);
+			box-shadow: var(--gh-shadow-lg);
 			}
-
+			
 			.GH-install-btn .GH-icon {
-				font-size: 1.1rem;
+			font-size: 1.1rem;
 			}
-
+			
 			.GH-install-btn.hidden {
-				display: none;
+			display: none;
 			}
-
+			
 			/* No games message */
 			.GH-modal-no-games {
-				text-align: center;
-				padding: var(--gh-space-xl);
-				opacity: 0.7;
+			text-align: center;
+			padding: var(--gh-space-xl);
+			opacity: 0.7;
 			}
-
+			
 			/* Responsive adjustments */
 			@media (max-width: 768px) {
-				.GH-modal {
-					width: 95%;
-					max-height: 85vh;
-				}
-
-				.GH-modal-game {
-					flex-direction: column;
-					text-align: center;
-				}
-
-				.GH-modal-game-icon {
-					margin-right: 0;
-					margin-bottom: var(--gh-space-sm);
-				}
-
-				.GH-controls {
-					flex-wrap: wrap;
-					justify-content: center;
-				}
-
-				.GH-install-btn {
-					font-size: var(--gh-font-size-xs);
-					padding: 8px 12px;
-				}
+			.GH-modal {
+			width: 95%;
+			max-height: 85vh;
+			}
+			
+			.GH-modal-game {
+			flex-direction: column;
+			text-align: center;
+			}
+			
+			.GH-modal-game-icon {
+			margin-right: 0;
+			margin-bottom: var(--gh-space-sm);
+			}
+			
+			.GH-controls {
+			flex-wrap: wrap;
+			justify-content: center;
+			}
+			
+			.GH-install-btn {
+			font-size: var(--gh-font-size-xs);
+			padding: 8px 12px;
+			}
 			}
 		</style>
 	</head>
@@ -275,7 +275,7 @@
 			<div class="GH-cards-container">
 				<div class="GH-card GH-card-1" id="action-games-card">
 					<h2 data-i18n="GH.index.card1Title">Action Games</h2>
-					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
+					<p data-i18n="GH.index.explore">Explore the games</p>
 				</div>
 				
 				<div class="GH-card GH-card-2">
@@ -332,23 +332,50 @@
 		<script src="main.js"></script>
 		<script>
 			// Games data with translation keys
-			const actionGames = [
+    const actionGames = [
     {
         id: 'color-match',
         titleKey: 'GH.index.games.colorMatch.title',
         descriptionKey: 'GH.index.games.colorMatch.description',
         icon: '🎨',
-        url: '/GH-color-match'  // Remove .html extension
+        url: '/GH-color-match'
     },
     {
         id: 'memory-challenge',
         titleKey: 'GH.index.games.memoryChallenge.title',
         descriptionKey: 'GH.index.games.memoryChallenge.description',
         icon: '🧠',
-        url: '/GH-memory-challenge'  // Remove .html extension
+        url: '/GH-memory-challenge'
+    },
+    {
+        id: 'logic-puzzle',
+        titleKey: 'GH.index.games.logicPuzzle.title',
+        descriptionKey: 'GH.index.games.logicPuzzle.description',
+        icon: '🧩',
+        url: '/GH-logic-puzzle'
+    },
+    {
+        id: 'memory-pc',
+        titleKey: 'GH.index.games.memoryPC.title',
+        descriptionKey: 'GH.index.games.memoryPC.description',
+        icon: '💻',
+        url: '/GH-memoryPC'
+    },
+    {
+        id: 'pattern-recognition',
+        titleKey: 'GH.index.games.patternRecognition.title',
+        descriptionKey: 'GH.index.games.patternRecognition.description',
+        icon: '🔍',
+        url: '/GH-pattern-recognition'
+    },
+    {
+        id: 'sequence-prediction',
+        titleKey: 'GH.index.games.sequencePrediction.title',
+        descriptionKey: 'GH.index.games.sequencePrediction.description',
+        icon: '🔢',
+        url: '/GH-sequence-prediction'
     }
 ];
-
 			// Modal functionality
 			document.addEventListener('DOMContentLoaded', function() {
 				const modal = document.getElementById('games-modal');
@@ -407,62 +434,62 @@
 				}
 				
 				// Function to populate games list
-function populateGamesList() {
-    if (!gamesList) return;
-    
-    // Clear previous content
-    gamesList.innerHTML = '';
-    
-    if (actionGames.length === 0) {
-        // Show message if no games
-        const noGamesMessage = document.createElement('div');
-        noGamesMessage.className = 'GH-modal-no-games';
-        noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
-        gamesList.appendChild(noGamesMessage);
-    } else {
-        // Create game cards
-        actionGames.forEach(game => {
-            const gameElement = document.createElement('a');
-            gameElement.href = game.url;
-            gameElement.className = 'GH-modal-game';
-            
-            // Get translated title and description
-            const title = getTranslation(game.titleKey, game.titleKey); // Use key as fallback
-            const description = getTranslation(game.descriptionKey, game.descriptionKey); // Use key as fallback
-            
-            gameElement.innerHTML = `
-                <div class="GH-modal-game-icon">${game.icon}</div>
-                <div class="GH-modal-game-info">
-                    <div class="GH-modal-game-title">${title}</div>
-                    <div class="GH-modal-game-description">${description}</div>
-                </div>
-            `;
-            
-            gamesList.appendChild(gameElement);
-        });
-    }
-}
+				function populateGamesList() {
+					if (!gamesList) return;
+					
+					// Clear previous content
+					gamesList.innerHTML = '';
+					
+					if (actionGames.length === 0) {
+						// Show message if no games
+						const noGamesMessage = document.createElement('div');
+						noGamesMessage.className = 'GH-modal-no-games';
+						noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
+						gamesList.appendChild(noGamesMessage);
+						} else {
+						// Create game cards
+						actionGames.forEach(game => {
+							const gameElement = document.createElement('a');
+							gameElement.href = game.url;
+							gameElement.className = 'GH-modal-game';
+							
+							// Get translated title and description
+							const title = getTranslation(game.titleKey, game.titleKey); // Use key as fallback
+							const description = getTranslation(game.descriptionKey, game.descriptionKey); // Use key as fallback
+							
+							gameElement.innerHTML = `
+							<div class="GH-modal-game-icon">${game.icon}</div>
+							<div class="GH-modal-game-info">
+							<div class="GH-modal-game-title">${title}</div>
+							<div class="GH-modal-game-description">${description}</div>
+							</div>
+							`;
+							
+							gamesList.appendChild(gameElement);
+						});
+					}
+				}
 				
 				// Helper function to get translations
-function getTranslation(key, fallback) {
-    const translations = window.getTranslations ? window.getTranslations() : {};
-    
-    // Remove 'GH.' prefix if present and split the key
-    const cleanKey = key.replace(/^GH\./, '');
-    const keys = cleanKey.split('.');
-    
-    let value = translations;
-    for (const k of keys) {
-        if (value && value[k] !== undefined) {
-            value = value[k];
-        } else {
-            return fallback;
-        }
-    }
-    
-    return value || fallback;
-}
-
+				function getTranslation(key, fallback) {
+					const translations = window.getTranslations ? window.getTranslations() : {};
+					
+					// Remove 'GH.' prefix if present and split the key
+					const cleanKey = key.replace(/^GH\./, '');
+					const keys = cleanKey.split('.');
+					
+					let value = translations;
+					for (const k of keys) {
+						if (value && value[k] !== undefined) {
+							value = value[k];
+							} else {
+							return fallback;
+						}
+					}
+					
+					return value || fallback;
+				}
+				
 				// Listen for language changes to update modal content
 				document.addEventListener('translationsUpdated', function() {
 					// If modal is open, refresh the games list with new translations
@@ -472,72 +499,122 @@ function getTranslation(key, fallback) {
 				});
 			});
 		</script>
-		
+					
 		<script>
-			// object specific translations for index.html
+						// object specific translations for index.html
 			window.GHObjectTranslations = window.GHObjectTranslations || {
-				en: {
-					index: {
-						card1Title: "Action Games",
-						card2Title: "Adventure Games",
-						card3Title: "Puzzle Games",
-						comingSoon: "Coming Soon",
-						modalTitle: "Action Games",
-						noGames: "No games available yet",
-						games: {
-							colorMatch: {
-								title: "Color Match Challenge",
-								description: "Test your color perception skills by matching the target color"
-							},
-							memoryChallenge: {
-								title: "Memory Challenge",
-								description: "Train your memory by matching pairs of cards with increasing difficulty"
-							}
-						}
-					}
-				},
-				ar: {
-					index: {
-						card1Title: "ألعاب الحركة",
-						card2Title: "ألعاب المغامرة",
-						card3Title: "ألعاب الألغاز",
-						comingSoon: "قريباً",
-						modalTitle: "ألعاب الحركة",
-						noGames: "لا توجد ألعاب متاحة بعد",
-						games: {
-							colorMatch: {
-								title: "تحدي مطابقة الألوان",
-								description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
-							},
-							memoryChallenge: {
-								title: "تحدي الذاكرة",
-								description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
-							}
-						}
-					}
-				},
-				fr: {
-					index: {
-						card1Title: "Jeux d'Action",
-						card2Title: "Jeux d'Aventure",
-						card3Title: "Jeux de Réflexion",
-						comingSoon: "Bientôt Disponible",
-						modalTitle: "Jeux d'Action",
-						noGames: "Aucun jeu disponible pour le moment",
-						games: {
-							colorMatch: {
-								title: "Défi de Correspondance de Couleurs",
-								description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
-							},
-							memoryChallenge: {
-								title: "Défi de Mémoire",
-								description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
-							}
-						}
-					}
-				}
-			};
+    en: {
+        index: {
+            card1Title: "Action Games",
+            card2Title: "Adventure Games",
+            card3Title: "Puzzle Games",
+            comingSoon: "Coming Soon",
+            explore: "Explore the games",
+            modalTitle: "Action Games",
+            noGames: "No games available yet",
+            games: {
+                colorMatch: {
+                    title: "Color Match Challenge",
+                    description: "Test your color perception skills by matching the target color"
+                },
+                memoryChallenge: {
+                    title: "Memory Challenge",
+                    description: "Train your memory by matching pairs of cards with increasing difficulty"
+                },
+                logicPuzzle: {
+                    title: "Logic Puzzle Challenge",
+                    description: "Test your logical reasoning with challenging puzzles"
+                },
+                memoryPC: {
+                    title: "Memory PC Challenge",
+                    description: "Test your memory with computer-themed cards and increasing difficulty levels"
+                },
+                patternRecognition: {
+                    title: "Pattern Recognition Challenge",
+                    description: "Test your memory by recreating complex patterns"
+                },
+                sequencePrediction: {
+                    title: "Sequence Prediction Challenge",
+                    description: "Test your logical reasoning with sequence patterns!"
+                }
+            }
+        }
+    },
+    ar: {
+        index: {
+            card1Title: "ألعاب الحركة",
+            card2Title: "ألعاب المغامرة",
+            card3Title: "ألعاب الألغاز",
+            comingSoon: "قريباً",
+            explore: "اكتشف الألعاب",
+            modalTitle: "ألعاب الحركة",
+            noGames: "لا توجد ألعاب متاحة بعد",
+            games: {
+                colorMatch: {
+                    title: "تحدي مطابقة الألوان",
+                    description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
+                },
+                memoryChallenge: {
+                    title: "تحدي الذاكرة",
+                    description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
+                },
+                logicPuzzle: {
+                    title: "تحدي الألغاز المنطقية",
+                    description: "اختبر تفكيرك المنطقي بألغاز صعبة"
+                },
+                memoryPC: {
+                    title: "تحدي الذاكرة الحاسوبي",
+                    description: "اختبر ذاكرتك ببطاقات ذات طابع حاسوبي ومستويات صعوبة متزايدة"
+                },
+                patternRecognition: {
+                    title: "تحدي التعرف على الأنماط",
+                    description: "اختبر ذاكرتك بإعادة إنشاء الأنماط المعقدة"
+                },
+                sequencePrediction: {
+                    title: "تحدي توقع التسلسل",
+                    description: "اختبر تفكيرك المنطقي بأنماط التسلسل!"
+                }
+            }
+        }
+    },
+    fr: {
+        index: {
+            card1Title: "Jeux d'Action",
+            card2Title: "Jeux d'Aventure",
+            card3Title: "Jeux de Réflexion",
+            comingSoon: "Bientôt Disponible",
+            explore: "Explorer les jeux",
+            modalTitle: "Jeux d'Action",
+            noGames: "Aucun jeu disponible pour le moment",
+            games: {
+                colorMatch: {
+                    title: "Défi de Correspondance de Couleurs",
+                    description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
+                },
+                memoryChallenge: {
+                    title: "Défi de Mémoire",
+                    description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
+                },
+                logicPuzzle: {
+                    title: "Défi de Puzzles Logiques",
+                    description: "Testez votre raisonnement logique avec des puzzles stimulants"
+                },
+                memoryPC: {
+                    title: "Défi Mémoire PC",
+                    description: "Testez votre mémoire avec des cartes à thème informatique et des niveaux de difficulté croissants"
+                },
+                patternRecognition: {
+                    title: "Défi de Reconnaissance de Motifs",
+                    description: "Testez votre mémoire en recréant des motifs complexes"
+                },
+                sequencePrediction: {
+                    title: "Défi de Prédiction de Séquence",
+                    description: "Testez votre raisonnement logique avec des motifs de séquence!"
+                }
+            }
+        }
+    }
+};
 		</script>
 	</body>
-
-</html>
+</html>									

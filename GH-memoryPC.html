@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Memory Challenge (Player vs PC)</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Game-specific styles - Ocean theme */
+        :root {
+            /* Memory Challenge PC version color palette - Ocean theme */
+            --game-primary: #1E90FF;
+            --game-secondary: #4169E1;
+            --game-accent: #FFD700;
+            --game-player: #32CD32;
+            --game-pc: #FF6347;
+            --game-success: #00CED1;
+            --game-error: #FF6B6B;
+            --game-warning: #FFA500;
+            --game-light-bg: #F0F8FF;
+            --game-dark-bg: #0F1A2A;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(30, 60, 90, 0.95);
+            --game-card-front: linear-gradient(135deg, #1E90FF, #4169E1);
+            --game-card-back: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
+        .GH-game-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-md);
+            min-height: 500px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+
+        @media (min-width: 768px) {
+            .GH-memory-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+                max-width: 600px;
+            }
+        }
+
+        .GH-memory-card {
+            width: 100px;
+            height: 120px;
+            perspective: 1000px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .GH-memory-card {
+                width: 80px;
+                height: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .GH-memory-card {
+                width: 70px;
+                height: 90px;
+            }
+        }
+
+        .GH-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: var(--gh-radius-md);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-memory-card.flipped .GH-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .GH-memory-card.matched .GH-card-inner {
+            transform: rotateY(180deg);
+            box-shadow: 0 0 15px var(--game-success);
+        }
+
+        .GH-memory-card.player-matched .GH-card-inner {
+            box-shadow: 0 0 15px var(--game-player);
+        }
+
+        .GH-memory-card.pc-matched .GH-card-inner {
+            box-shadow: 0 0 15px var(--game-pc);
+        }
+
+        .GH-card-front, .GH-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: var(--gh-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .GH-card-front {
+            background: var(--game-card-front);
+            transform: rotateY(180deg);
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .GH-card-back {
+            background: var(--game-card-back);
+            font-size: 1.8rem;
+        }
+
+        .GH-card-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .GH-card-number {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: var(--gh-gradient-primary);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-turn-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: var(--gh-space-md);
+            padding: var(--gh-space-sm) var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-sm);
+            font-weight: bold;
+            font-size: var(--gh-font-size-lg);
+            gap: var(--gh-space-sm);
+        }
+
+        .GH-dark-mode .GH-turn-indicator {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-player-turn {
+            color: var(--game-player);
+            border: 2px solid var(--game-player);
+        }
+
+        .GH-pc-turn {
+            color: var(--game-pc);
+            border: 2px solid var(--game-pc);
+        }
+
+        .GH-player-indicator {
+            color: var(--game-player);
+        }
+
+        .GH-pc-indicator {
+            color: var(--game-pc);
+        }
+
+        .GH-score-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: var(--gh-space-md);
+        }
+
+        .GH-player-score, .GH-pc-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--gh-space-sm);
+            border-radius: var(--gh-radius-md);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-sm);
+            min-width: 120px;
+        }
+
+        .GH-dark-mode .GH-player-score, .GH-dark-mode .GH-pc-score {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-player-score {
+            border: 2px solid var(--game-player);
+        }
+
+        .GH-pc-score {
+            border: 2px solid var(--game-pc);
+        }
+
+        .GH-score-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+        }
+
+        .GH-player-score .GH-score-value {
+            color: var(--game-player);
+        }
+
+        .GH-pc-score .GH-score-value {
+            color: var(--game-pc);
+        }
+
+        .GH-score-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-lg);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background-color: var(--game-success);
+        }
+
+        .GH-game-notification.error {
+            background-color: var(--game-error);
+        }
+
+        .GH-game-notification.info {
+            background-color: var(--game-primary);
+        }
+
+        .GH-game-notification.warning {
+            background-color: var(--game-warning);
+            color: var(--gh-dark-text);
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-3xl);
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(30, 144, 255, 0.1);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-sm);
+            margin: var(--gh-space-md) 0;
+        }
+
+        .GH-difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        /* Card flip animation */
+        @keyframes flipIn {
+            0% { transform: rotateY(0); }
+            100% { transform: rotateY(180deg); }
+        }
+
+        /* Card reveal animation */
+        @keyframes revealCard {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .GH-memory-card {
+            animation: revealCard 0.5s ease;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+
+            .GH-game-stats {
+                order: 2;
+            }
+
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .GH-score-container {
+                flex-direction: column;
+                gap: var(--gh-space-sm);
+                align-items: center;
+            }
+        }
+
+        /* Game background pattern */
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(30, 144, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.memoryPC.title">Memory Challenge (Player vs PC)</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="pairs-remaining">12</span>
+                        <span class="GH-stat-label" data-i18n="GH.memoryPC.pairsRemaining">Pairs Remaining</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="moves">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.memoryPC.moves">Moves</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.memoryPC.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.memoryPC.instruction1">Play against the computer in a memory matching game</li>
+                    <li data-i18n="GH.memoryPC.instruction2">Take turns flipping two cards to find matching pairs</li>
+                    <li data-i18n="GH.memoryPC.instruction3">If you find a match, you get another turn</li>
+                    <li data-i18n="GH.memoryPC.instruction4">The player with the most pairs at the end wins</li>
+                    <li data-i18n="GH.memoryPC.instruction5">Choose difficulty level to adjust the computer's skill</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span data-i18n="GH.memoryPC.difficulty">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-difficulty="easy" data-i18n="GH.memoryPC.easy">Easy</button>
+                <button class="GH-difficulty-btn" data-difficulty="normal" data-i18n="GH.memoryPC.normal">Normal</button>
+                <button class="GH-difficulty-btn" data-difficulty="hard" data-i18n="GH.memoryPC.hard">Hard</button>
+            </div>
+            
+            <div class="GH-score-container">
+                <div class="GH-player-score">
+                    <span class="GH-score-value" id="player-score">0</span>
+                    <span class="GH-score-label" data-i18n="GH.memoryPC.player">Player</span>
+                </div>
+                <div class="GH-pc-score">
+                    <span class="GH-score-value" id="pc-score">0</span>
+                    <span class="GH-score-label" data-i18n="GH.memoryPC.computer">Computer</span>
+                </div>
+            </div>
+            
+            <div class="GH-turn-indicator GH-player-turn" id="turn-indicator">
+                <span data-i18n="GH.memoryPC.yourTurn">Your Turn</span>
+            </div>
+            
+            <div class="GH-game-area">
+                <div id="memory-grid" class="GH-memory-grid"></div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.memoryPC.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.memoryPC.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="game-result-title" data-i18n="GH.memoryPC.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-player-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memoryPC.playerScore">Player Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-pc-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memoryPC.computerScore">Computer Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="total-moves">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memoryPC.totalMoves">Total Moves</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="winner">-</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.memoryPC.winner">Winner</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.memoryPC.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.memoryPC.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+        // Game state variables
+        let isGameActive = false;
+        let isPlayerTurn = true;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let totalMoves = 0;
+        let totalPairs = 0;
+        let playerScore = 0;
+        let pcScore = 0;
+        let gameDifficulty = 'easy';
+        
+        // PC memory for different difficulty levels
+        let pcMemory = {
+            // Remember flipped cards and their positions
+            knownCards: new Map(), // symbol -> [card indices]
+            // Remember pairs that have been found
+            foundPairs: new Set(),
+            // Remember cards that were flipped in the current turn
+            currentTurnCards: []
+        };
+        
+        // Difficulty settings
+        const difficultySettings = {
+            easy: { pairs: 6, grid: 4 },
+            normal: { pairs: 8, grid: 4 },
+            hard: { pairs: 12, grid: 4 }
+        };
+        
+        // Card symbols with icons and numbers
+        const cardSymbols = [
+            { icon: '🐠', number: 1 },
+            { icon: '🐡', number: 2 },
+            { icon: '🐬', number: 3 },
+            { icon: '🐳', number: 4 },
+            { icon: '🦈', number: 5 },
+            { icon: '🐙', number: 6 },
+            { icon: '🦀', number: 7 },
+            { icon: '🐚', number: 8 },
+            { icon: '🦑', number: 9 },
+            { icon: '🦐', number: 10 },
+            { icon: '🐟', number: 11 },
+            { icon: '🐋', number: 12 }
+        ];
+        
+        // DOM elements
+        const pairsRemainingElement = document.getElementById('pairs-remaining');
+        const movesElement = document.getElementById('moves');
+        const playerScoreElement = document.getElementById('player-score');
+        const pcScoreElement = document.getElementById('pc-score');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const memoryGrid = document.getElementById('memory-grid');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const gameNotification = document.getElementById('game-notification');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalPlayerScoreElement = document.getElementById('final-player-score');
+        const finalPcScoreElement = document.getElementById('final-pc-score');
+        const totalMovesElement = document.getElementById('total-moves');
+        const winnerElement = document.getElementById('winner');
+        const gameResultTitle = document.getElementById('game-result-title');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+        const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        playAgainBtn.addEventListener('click', playAgain);
+        mainMenuBtn.addEventListener('click', goToMainMenu);
+        
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameDifficulty = this.getAttribute('data-difficulty');
+                if (isGameActive) {
+                    restartGame();
+                }
+            });
+        });
+        
+        // Game functions
+        function startGame() {
+            isGameActive = true;
+            isPlayerTurn = true;
+            
+            // Reset game state
+            const settings = difficultySettings[gameDifficulty];
+            totalPairs = settings.pairs;
+            matchedPairs = 0;
+            totalMoves = 0;
+            playerScore = 0;
+            pcScore = 0;
+            flippedCards = [];
+            
+            // Reset PC memory
+            pcMemory.knownCards.clear();
+            pcMemory.foundPairs.clear();
+            pcMemory.currentTurnCards = [];
+            
+            updateUI();
+            startBtn.disabled = true;
+            
+            // Create memory game
+            createMemoryGame();
+            
+            // Update turn indicator
+            updateTurnIndicator();
+            
+            showTranslatableNotification('GH.memoryPC.gameStarted', 'info');
+        }
+        
+        function createMemoryGame() {
+            // Clear previous grid
+            memoryGrid.innerHTML = '';
+            
+            // Get settings for current difficulty
+            const settings = difficultySettings[gameDifficulty];
+            totalPairs = settings.pairs;
+            
+            // Update pairs remaining
+            updatePairsRemaining();
+            
+            // Create symbols for cards
+            const symbols = [];
+            for (let i = 0; i < totalPairs; i++) {
+                symbols.push(cardSymbols[i]);
+            }
+            
+            // Duplicate symbols for pairs and shuffle
+            const cards = [...symbols, ...symbols];
+            shuffleArray(cards);
+            
+            // Update grid columns based on difficulty
+            memoryGrid.style.gridTemplateColumns = `repeat(${settings.grid}, 1fr)`;
+            
+            // Create card elements
+            cards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'GH-memory-card';
+                card.dataset.symbol = symbol.number;
+                card.dataset.index = index;
+                
+                card.innerHTML = `
+                    <div class="GH-card-inner">
+                        <div class="GH-card-front">
+                            <div class="GH-card-icon">${symbol.icon}</div>
+                            <div class="GH-card-number">${symbol.number}</div>
+                        </div>
+                        <div class="GH-card-back">?</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    if (!isGameActive || !isPlayerTurn) return;
+                    
+                    if (flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                        flipCard(card);
+                        
+                        if (flippedCards.length === 2) {
+                            totalMoves++;
+                            movesElement.textContent = totalMoves;
+                            
+                            // Check for match after a short delay
+                            setTimeout(() => {
+                                checkForMatch();
+                            }, 1000);
+                        }
+                    }
+                });
+                
+                memoryGrid.appendChild(card);
+            });
+        }
+        
+        function flipCard(card) {
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            
+            // Add to PC memory
+            const symbol = card.dataset.symbol;
+            const index = parseInt(card.dataset.index);
+            
+            if (!pcMemory.knownCards.has(symbol)) {
+                pcMemory.knownCards.set(symbol, []);
+            }
+            
+            if (!pcMemory.knownCards.get(symbol).includes(index)) {
+                pcMemory.knownCards.get(symbol).push(index);
+            }
+        }
+        
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.symbol === card2.dataset.symbol) {
+                // Match found
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                
+                // Add class to indicate who found the match
+                if (isPlayerTurn) {
+                    card1.classList.add('player-matched');
+                    card2.classList.add('player-matched');
+                    playerScore++;
+                    playerScoreElement.textContent = playerScore;
+                    showTranslatableNotification('GH.memoryPC.playerMatch', 'success');
+                } else {
+                    card1.classList.add('pc-matched');
+                    card2.classList.add('pc-matched');
+                    pcScore++;
+                    pcScoreElement.textContent = pcScore;
+                    showTranslatableNotification('GH.memoryPC.pcMatch', 'error');
+                }
+                
+                matchedPairs++;
+                updatePairsRemaining();
+                
+                // Add to PC found pairs
+                pcMemory.foundPairs.add(card1.dataset.symbol);
+                
+                // Check if game is over
+                if (matchedPairs === totalPairs) {
+                    endGame();
+                    return;
+                }
+                
+                // If match found, same player gets another turn
+                flippedCards = [];
+                
+                if (isPlayerTurn) {
+                    // Player continues
+                    updateTurnIndicator();
+                } else {
+                    // PC continues
+                    setTimeout(() => {
+                        pcTurn();
+                    }, 1000);
+                }
+            } else {
+                // No match, flip back after a delay and switch turns
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    
+                    // Switch turns
+                    isPlayerTurn = !isPlayerTurn;
+                    updateTurnIndicator();
+                    
+                    if (!isPlayerTurn) {
+                        // PC's turn
+                        setTimeout(() => {
+                            pcTurn();
+                        }, 1000);
+                    }
+                }, 1000);
+                
+                if (isPlayerTurn) {
+                    showTranslatableNotification('GH.memoryPC.noMatch', 'warning');
+                }
+            }
+        }
+        
+        function pcTurn() {
+            if (!isGameActive || isPlayerTurn) return;
+            
+            // PC AI based on difficulty
+            let firstCardIndex, secondCardIndex;
+            
+            switch(gameDifficulty) {
+                case 'easy':
+                    // Easy: Random selection with some memory
+                    [firstCardIndex, secondCardIndex] = getPCMoveEasy();
+                    break;
+                case 'normal':
+                    // Normal: Uses memory to find matches when possible
+                    [firstCardIndex, secondCardIndex] = getPCMoveNormal();
+                    break;
+                case 'hard':
+                    // Hard: Almost perfect memory, prioritizes known pairs
+                    [firstCardIndex, secondCardIndex] = getPCMoveHard();
+                    break;
+                default:
+                    [firstCardIndex, secondCardIndex] = getPCMoveEasy();
+            }
+            
+            // Flip the first card
+            const firstCard = document.querySelector(`.GH-memory-card[data-index="${firstCardIndex}"]`);
+            if (firstCard && !firstCard.classList.contains('flipped') && !firstCard.classList.contains('matched')) {
+                flipCard(firstCard);
+                pcMemory.currentTurnCards.push(firstCardIndex);
+                
+                // Flip the second card after a delay
+                setTimeout(() => {
+                    const secondCard = document.querySelector(`.GH-memory-card[data-index="${secondCardIndex}"]`);
+                    if (secondCard && !secondCard.classList.contains('flipped') && !secondCard.classList.contains('matched')) {
+                        flipCard(secondCard);
+                        pcMemory.currentTurnCards.push(secondCardIndex);
+                        
+                        totalMoves++;
+                        movesElement.textContent = totalMoves;
+                        
+                        // Check for match after a short delay
+                        setTimeout(() => {
+                            checkForMatch();
+                        }, 1000);
+                    } else {
+                        // If second card is invalid, just flip back the first and end turn
+                        setTimeout(() => {
+                            firstCard.classList.remove('flipped');
+                            flippedCards = [];
+                            pcMemory.currentTurnCards = [];
+                            
+                            isPlayerTurn = true;
+                            updateTurnIndicator();
+                        }, 500);
+                    }
+                }, 800);
+            } else {
+                // If first card is invalid, end turn
+                isPlayerTurn = true;
+                updateTurnIndicator();
+            }
+        }
+        
+        function getPCMoveEasy() {
+            // Easy: Mostly random, but will occasionally use memory
+            const unmatchedCards = getUnmatchedCards();
+            
+            // 30% chance to use memory if a pair is known
+            if (Math.random() < 0.3) {
+                for (const [symbol, indices] of pcMemory.knownCards) {
+                    if (indices.length >= 2 && !pcMemory.foundPairs.has(symbol)) {
+                        const availableIndices = indices.filter(idx => 
+                            unmatchedCards.includes(idx) && !pcMemory.currentTurnCards.includes(idx)
+                        );
+                        
+                        if (availableIndices.length >= 2) {
+                            return [availableIndices[0], availableIndices[1]];
+                        }
+                    }
+                }
+            }
+            
+            // Otherwise, random selection
+            return getRandomCardPair(unmatchedCards);
+        }
+        
+        function getPCMoveNormal() {
+            // Normal: Tries to use memory first, then random
+            const unmatchedCards = getUnmatchedCards();
+            
+            // First, check if we know any pairs
+            for (const [symbol, indices] of pcMemory.knownCards) {
+                if (indices.length >= 2 && !pcMemory.foundPairs.has(symbol)) {
+                    const availableIndices = indices.filter(idx => 
+                        unmatchedCards.includes(idx) && !pcMemory.currentTurnCards.includes(idx)
+                    );
+                    
+                    if (availableIndices.length >= 2) {
+                        return [availableIndices[0], availableIndices[1]];
+                    }
+                }
+            }
+            
+            // If no known pairs, try to flip one known card and one random
+            const knownUnmatched = [];
+            for (const [symbol, indices] of pcMemory.knownCards) {
+                if (!pcMemory.foundPairs.has(symbol)) {
+                    for (const idx of indices) {
+                        if (unmatchedCards.includes(idx) && 
+                            !pcMemory.currentTurnCards.includes(idx) && 
+                            !knownUnmatched.includes(idx)) {
+                            knownUnmatched.push(idx);
+                        }
+                    }
+                }
+            }
+            
+            if (knownUnmatched.length > 0) {
+                const firstCardIndex = knownUnmatched[Math.floor(Math.random() * knownUnmatched.length)];
+                let secondCardIndex;
+                
+                // Try to find a card with the same symbol if possible
+                for (const [symbol, indices] of pcMemory.knownCards) {
+                    if (indices.includes(firstCardIndex) && indices.length > 1) {
+                        const otherIndices = indices.filter(idx => 
+                            idx !== firstCardIndex && 
+                            unmatchedCards.includes(idx) && 
+                            !pcMemory.currentTurnCards.includes(idx)
+                        );
+                        
+                        if (otherIndices.length > 0) {
+                            secondCardIndex = otherIndices[0];
+                            break;
+                        }
+                    }
+                }
+                
+                if (secondCardIndex === undefined) {
+                    // If no matching card found, pick a random second card
+                    const availableCards = unmatchedCards.filter(idx => 
+                        idx !== firstCardIndex && !pcMemory.currentTurnCards.includes(idx)
+                    );
+                    secondCardIndex = availableCards[Math.floor(Math.random() * availableCards.length)];
+                }
+                
+                return [firstCardIndex, secondCardIndex];
+            }
+            
+            // If no known cards, random selection
+            return getRandomCardPair(unmatchedCards);
+        }
+        
+        function getPCMoveHard() {
+            // Hard: Uses memory extensively, tries to make matches whenever possible
+            const unmatchedCards = getUnmatchedCards();
+            
+            // First priority: Make a match if we know one
+            for (const [symbol, indices] of pcMemory.knownCards) {
+                if (indices.length >= 2 && !pcMemory.foundPairs.has(symbol)) {
+                    const availableIndices = indices.filter(idx => 
+                        unmatchedCards.includes(idx) && !pcMemory.currentTurnCards.includes(idx)
+                    );
+                    
+                    if (availableIndices.length >= 2) {
+                        return [availableIndices[0], availableIndices[1]];
+                    }
+                }
+            }
+            
+            // Second priority: Flip one known card and try to find its pair
+            const knownUnmatched = [];
+            for (const [symbol, indices] of pcMemory.knownCards) {
+                if (!pcMemory.foundPairs.has(symbol)) {
+                    for (const idx of indices) {
+                        if (unmatchedCards.includes(idx) && 
+                            !pcMemory.currentTurnCards.includes(idx) && 
+                            !knownUnmatched.includes(idx)) {
+                            knownUnmatched.push(idx);
+                        }
+                    }
+                }
+            }
+            
+            if (knownUnmatched.length > 0) {
+                // Sort by how many cards of this symbol we know (more is better)
+                knownUnmatched.sort((a, b) => {
+                    const symbolA = getSymbolByIndex(a);
+                    const symbolB = getSymbolByIndex(b);
+                    const countA = pcMemory.knownCards.get(symbolA)?.length || 0;
+                    const countB = pcMemory.knownCards.get(symbolB)?.length || 0;
+                    return countB - countA;
+                });
+                
+                const firstCardIndex = knownUnmatched[0];
+                let secondCardIndex;
+                
+                // Try to find a card with the same symbol if possible
+                const symbol = getSymbolByIndex(firstCardIndex);
+                const indices = pcMemory.knownCards.get(symbol) || [];
+                const otherIndices = indices.filter(idx => 
+                    idx !== firstCardIndex && 
+                    unmatchedCards.includes(idx) && 
+                    !pcMemory.currentTurnCards.includes(idx)
+                );
+                
+                if (otherIndices.length > 0) {
+                    secondCardIndex = otherIndices[0];
+                } else {
+                    // If no matching card found, pick a strategic second card
+                    // Prefer cards that have been seen before
+                    const seenCards = [];
+                    const unseenCards = [];
+                    
+                    for (const idx of unmatchedCards) {
+                        if (idx === firstCardIndex || pcMemory.currentTurnCards.includes(idx)) continue;
+                        
+                        const cardSymbol = getSymbolByIndex(idx);
+                        if (pcMemory.knownCards.has(cardSymbol)) {
+                            seenCards.push(idx);
+                        } else {
+                            unseenCards.push(idx);
+                        }
+                    }
+                    
+                    // Prefer seen cards over unseen ones
+                    if (seenCards.length > 0) {
+                        secondCardIndex = seenCards[Math.floor(Math.random() * seenCards.length)];
+                    } else if (unseenCards.length > 0) {
+                        secondCardIndex = unseenCards[Math.floor(Math.random() * unseenCards.length)];
+                    } else {
+                        // Fallback
+                        const availableCards = unmatchedCards.filter(idx => 
+                            idx !== firstCardIndex && !pcMemory.currentTurnCards.includes(idx)
+                        );
+                        secondCardIndex = availableCards[Math.floor(Math.random() * availableCards.length)];
+                    }
+                }
+                
+                return [firstCardIndex, secondCardIndex];
+            }
+            
+            // If no known cards, pick two unseen cards strategically
+            // Try to pick cards that are likely to be different to maximize information
+            return getRandomCardPair(unmatchedCards);
+        }
+        
+        function getUnmatchedCards() {
+            const unmatched = [];
+            const cards = document.querySelectorAll('.GH-memory-card');
+            cards.forEach(card => {
+                if (!card.classList.contains('matched')) {
+                    unmatched.push(parseInt(card.dataset.index));
+                }
+            });
+            return unmatched;
+        }
+        
+        function getRandomCardPair(unmatchedCards) {
+            // Make a copy to avoid modifying the original array
+            const availableCards = [...unmatchedCards];
+            
+            // Remove any cards that are already in the current turn
+            for (const idx of pcMemory.currentTurnCards) {
+                const index = availableCards.indexOf(idx);
+                if (index !== -1) {
+                    availableCards.splice(index, 1);
+                }
+            }
+            
+            if (availableCards.length < 2) {
+                // Fallback: use any unmatched cards
+                const fallbackCards = [...unmatchedCards];
+                const firstIndex = Math.floor(Math.random() * fallbackCards.length);
+                const firstCard = fallbackCards[firstIndex];
+                fallbackCards.splice(firstIndex, 1);
+                const secondCard = fallbackCards[Math.floor(Math.random() * fallbackCards.length)];
+                return [firstCard, secondCard];
+            }
+            
+            const firstIndex = Math.floor(Math.random() * availableCards.length);
+            const firstCard = availableCards[firstIndex];
+            availableCards.splice(firstIndex, 1);
+            const secondCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+            
+            return [firstCard, secondCard];
+        }
+        
+        function getSymbolByIndex(index) {
+            const card = document.querySelector(`.GH-memory-card[data-index="${index}"]`);
+            return card ? card.dataset.symbol : null;
+        }
+        
+        function updateTurnIndicator() {
+            if (isPlayerTurn) {
+                turnIndicator.textContent = getTranslation('GH.memoryPC.yourTurn', 'Your Turn');
+                turnIndicator.className = 'GH-turn-indicator GH-player-turn';
+            } else {
+                turnIndicator.textContent = getTranslation('GH.memoryPC.pcTurn', "Computer's Turn");
+                turnIndicator.className = 'GH-turn-indicator GH-pc-turn';
+            }
+        }
+        
+        function updatePairsRemaining() {
+            const remaining = totalPairs - matchedPairs;
+            pairsRemainingElement.textContent = remaining;
+        }
+        
+        function updateUI() {
+            playerScoreElement.textContent = playerScore;
+            pcScoreElement.textContent = pcScore;
+            movesElement.textContent = totalMoves;
+            updatePairsRemaining();
+        }
+        
+        function endGame() {
+            isGameActive = false;
+            
+            // Determine winner
+            let winnerText;
+            let winnerTitle;
+            
+            if (playerScore > pcScore) {
+                winnerText = getTranslation('GH.memoryPC.playerWins', 'Player Wins!');
+                winnerTitle = getTranslation('GH.memoryPC.victory', 'Victory!');
+            } else if (pcScore > playerScore) {
+                winnerText = getTranslation('GH.memoryPC.computerWins', 'Computer Wins!');
+                winnerTitle = getTranslation('GH.memoryPC.defeat', 'Defeat!');
+            } else {
+                winnerText = getTranslation('GH.memoryPC.tie', "It's a Tie!");
+                winnerTitle = getTranslation('GH.memoryPC.gameOver', 'Game Over!');
+            }
+            
+            // Update modal with final stats
+            finalPlayerScoreElement.textContent = playerScore;
+            finalPcScoreElement.textContent = pcScore;
+            totalMovesElement.textContent = totalMoves;
+            winnerElement.textContent = winnerText;
+            gameResultTitle.textContent = winnerTitle;
+            
+            // Show game over modal
+            setTimeout(() => {
+                gameOverModal.classList.add('active');
+            }, 1000);
+            
+            // Reset buttons
+            startBtn.disabled = false;
+            
+            const gameOverMessage = `${winnerTitle} ${getTranslation('GH.memoryPC.finalScore', 'Final Score')}: ${playerScore}-${pcScore}`;
+            showNotification(gameOverMessage, 'info');
+        }
+        
+        function restartGame() {
+            if (isGameActive) {
+                showTranslatableNotification('GH.memoryPC.restartConfirm', 'warning');
+                startGame();
+            } else {
+                startGame();
+            }
+        }
+        
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+        
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+        
+        // Utility functions
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Enhanced notification function that supports translation keys
+        function showTranslatableNotification(messageKey, type) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = messageKey.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let message = keys.reduce((obj, key) => {
+                return obj && obj[key] !== undefined ? obj[key] : undefined;
+            }, translations);
+            
+            // Fallback if translation not found
+            if (!message || typeof message !== 'string') {
+                console.warn(`Translation not found for key: ${messageKey}`);
+                message = getFallbackGameMessage(cleanKey);
+            }
+            
+            showNotification(message, type);
+        }
+
+        function getFallbackGameMessage(key) {
+            const fallbackMessages = {
+                'memoryPC.gameStarted': 'Game started! Good luck!',
+                'memoryPC.playerMatch': 'You found a match!',
+                'memoryPC.pcMatch': 'Computer found a match!',
+                'memoryPC.noMatch': 'No match found.',
+                'memoryPC.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
+                'memoryPC.playerWins': 'Player Wins!',
+                'memoryPC.computerWins': 'Computer Wins!',
+                'memoryPC.tie': "It's a Tie!",
+                'memoryPC.victory': 'Victory!',
+                'memoryPC.defeat': 'Defeat!',
+                'memoryPC.gameOver': 'Game Over!',
+                'memoryPC.finalScore': 'Final Score'
+            };
+            
+            return fallbackMessages[key] || key;
+        }
+
+        function showNotification(message, type) {
+            gameNotification.textContent = message;
+            gameNotification.className = `GH-game-notification ${type}`;
+            gameNotification.style.display = 'block';
+            gameNotification.classList.add('show');
+            
+            setTimeout(() => {
+                gameNotification.classList.remove('show');
+                setTimeout(() => {
+                    gameNotification.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+        
+        // Helper function to get translations
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let value = keys.reduce((obj, k) => {
+                return obj && obj[k] !== undefined ? obj[k] : undefined;
+            }, translations);
+            
+            return value && typeof value === 'string' ? value : fallback;
+        }
+    </script>
+    
+    <script>
+        // Object specific translations for GH-memory-challenge-pc.html
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                memoryPC: {
+                    title: "Memory Challenge (Player vs PC)",
+                    description: "Test your memory against the computer!",
+                    howToPlay: "How to Play",
+                    instruction1: "Play against the computer in a memory matching game",
+                    instruction2: "Take turns flipping two cards to find matching pairs",
+                    instruction3: "If you find a match, you get another turn",
+                    instruction4: "The player with the most pairs at the end wins",
+                    instruction5: "Choose difficulty level to adjust the computer's skill",
+                    pairsRemaining: "Pairs Remaining",
+                    moves: "Moves",
+                    player: "Player",
+                    computer: "Computer",
+                    yourTurn: "Your Turn",
+                    pcTurn: "Computer's Turn",
+                    startGame: "Start Game",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    playerMatch: "You found a match!",
+                    pcMatch: "Computer found a match!",
+                    noMatch: "No match found.",
+                    gameOver: "Game Over!",
+                    playerScore: "Player Score",
+                    computerScore: "Computer Score",
+                    totalMoves: "Total Moves",
+                    winner: "Winner",
+                    playerWins: "Player Wins!",
+                    computerWins: "Computer Wins!",
+                    tie: "It's a Tie!",
+                    victory: "Victory!",
+                    defeat: "Defeat!",
+                    finalScore: "Final Score",
+                    gameStarted: "Game started! Good luck!",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    normal: "Normal",
+                    hard: "Hard"
+                }
+            },
+            ar: {
+                memoryPC: {
+                    title: "تحدي الذاكرة (لاعب ضد الكمبيوتر)",
+                    description: "اختبر ذاكرتك ضد الكمبيوتر!",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "العب ضد الكمبيوتر في لعبة مطابقة الذاكرة",
+                    instruction2: "تبادل الأدوار في قلب بطاقتين للعثور على أزواج متطابقة",
+                    instruction3: "إذا وجدت تطابقاً، تحصل على دور آخر",
+                    instruction4: "الفائز هو من لديه أكبر عدد من الأزواج في النهاية",
+                    instruction5: "اختر مستوى الصعوبة لضبط مهارة الكمبيوتر",
+                    pairsRemaining: "الأزواج المتبقية",
+                    moves: "الحركات",
+                    player: "اللاعب",
+                    computer: "الكمبيوتر",
+                    yourTurn: "دورك",
+                    pcTurn: "دور الكمبيوتر",
+                    startGame: "ابدأ اللعبة",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    playerMatch: "لقد وجدت تطابقاً!",
+                    pcMatch: "الكمبيوتر وجد تطابقاً!",
+                    noMatch: "لم يتم العثور على تطابق.",
+                    gameOver: "انتهت اللعبة!",
+                    playerScore: "نتيجة اللاعب",
+                    computerScore: "نتيجة الكمبيوتر",
+                    totalMoves: "إجمالي الحركات",
+                    winner: "الفائز",
+                    playerWins: "اللاعب فاز!",
+                    computerWins: "الكمبيوتر فاز!",
+                    tie: "تعادل!",
+                    victory: "انتصار!",
+                    defeat: "هزيمة!",
+                    finalScore: "النتيجة النهائية",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    normal: "عادي",
+                    hard: "صعب"
+                }
+            },
+            fr: {
+                memoryPC: {
+                    title: "Défi de Mémoire (Joueur contre PC)",
+                    description: "Testez votre mémoire contre l'ordinateur !",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Jouez contre l'ordinateur dans un jeu de mémoire",
+                    instruction2: "À tour de rôle, retournez deux cartes pour trouver des paires identiques",
+                    instruction3: "Si vous trouvez une paire, vous jouez à nouveau",
+                    instruction4: "Le joueur avec le plus de paires à la fin gagne",
+                    instruction5: "Choisissez le niveau de difficulté pour ajuster la compétence de l'ordinateur",
+                    pairsRemaining: "Paires Restantes",
+                    moves: "Mouvements",
+                    player: "Joueur",
+                    computer: "Ordinateur",
+                    yourTurn: "Votre Tour",
+                    pcTurn: "Tour de l'Ordinateur",
+                    startGame: "Commencer le Jeu",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    playerMatch: "Vous avez trouvé une paire !",
+                    pcMatch: "L'ordinateur a trouvé une paire !",
+                    noMatch: "Aucune paire trouvée.",
+                    gameOver: "Jeu Terminé !",
+                    playerScore: "Score du Joueur",
+                    computerScore: "Score de l'Ordinateur",
+                    totalMoves: "Mouvements Totaux",
+                    winner: "Gagnant",
+                    playerWins: "Le Joueur Gagne !",
+                    computerWins: "L'Ordinateur Gagne !",
+                    tie: "Match Nul !",
+                    victory: "Victoire !",
+                    defeat: "Défaite !",
+                    finalScore: "Score Final",
+                    gameStarted: "Jeu commencé ! Bonne chance !",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    normal: "Normal",
+                    hard: "Difficile"
+                }
+            }
+        };
+    </script>
+</body>
+</html>
