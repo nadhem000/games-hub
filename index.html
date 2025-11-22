@@ -206,6 +206,15 @@
 			opacity: 0.7;
 			}
 			
+			/* Fourth card styles */
+			.GH-card-4 {
+			background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+			}
+			
+			.GH-dark-mode .GH-card-4 {
+			background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+			}
+			
 			/* Responsive adjustments */
 			@media (max-width: 768px) {
 			.GH-modal {
@@ -273,18 +282,27 @@
 		<!-- Main Content -->
 		<main class="GH-main">
 			<div class="GH-cards-container">
-				<div class="GH-card GH-card-1" id="action-games-card">
-					<h2 data-i18n="GH.index.card1Title">Action Games</h2>
+				<!-- Memory & Brain Games -->
+				<div class="GH-card GH-card-1" id="memory-brain-card">
+					<h2 data-i18n="GH.index.card1Title">Memory & Brain Games</h2>
 					<p data-i18n="GH.index.explore">Explore the games</p>
 				</div>
 				
-				<div class="GH-card GH-card-2">
-					<h2 data-i18n="GH.index.card2Title">Adventure Games</h2>
-					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
+				<!-- Puzzle & Logic Games -->
+				<div class="GH-card GH-card-2" id="puzzle-logic-card">
+					<h2 data-i18n="GH.index.card2Title">Puzzle & Logic Games</h2>
+					<p data-i18n="GH.index.explore">Explore the games</p>
 				</div>
 				
-				<div class="GH-card GH-card-3">
-					<h2 data-i18n="GH.index.card3Title">Puzzle Games</h2>
+				<!-- Action & Reflex Games -->
+				<div class="GH-card GH-card-3" id="action-reflex-card">
+					<h2 data-i18n="GH.index.card3Title">Action & Reflex Games</h2>
+					<p data-i18n="GH.index.explore">Explore the games</p>
+				</div>
+				
+				<!-- Coming Soon Card -->
+				<div class="GH-card GH-card-4">
+					<h2 data-i18n="GH.index.card4Title">More Games</h2>
 					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
 				</div>
 			</div>
@@ -315,7 +333,7 @@
 		<div class="GH-modal-overlay" id="games-modal">
 			<div class="GH-modal">
 				<div class="GH-modal-header">
-					<h2 class="GH-modal-title" data-i18n="GH.index.modalTitle">Action Games</h2>
+					<h2 class="GH-modal-title" id="modal-title" data-i18n="GH.index.modalTitle">Action Games</h2>
 					<button class="GH-modal-close" id="modal-close">&times;</button>
 				</div>
 				<div class="GH-modal-body">
@@ -331,64 +349,103 @@
 		<script src="global.js"></script>
 		<script src="main.js"></script>
 		<script>
-			// Games data with translation keys
-    const actionGames = [
-    {
-        id: 'color-match',
-        titleKey: 'GH.index.games.colorMatch.title',
-        descriptionKey: 'GH.index.games.colorMatch.description',
-        icon: '🎨',
-        url: '/GH-color-match'
-    },
-    {
-        id: 'memory-challenge',
-        titleKey: 'GH.index.games.memoryChallenge.title',
-        descriptionKey: 'GH.index.games.memoryChallenge.description',
-        icon: '🧠',
-        url: '/GH-memory-challenge'
-    },
-    {
-        id: 'logic-puzzle',
-        titleKey: 'GH.index.games.logicPuzzle.title',
-        descriptionKey: 'GH.index.games.logicPuzzle.description',
-        icon: '🧩',
-        url: '/GH-logic-puzzle'
-    },
-    {
-        id: 'memory-pc',
-        titleKey: 'GH.index.games.memoryPC.title',
-        descriptionKey: 'GH.index.games.memoryPC.description',
-        icon: '💻',
-        url: '/GH-memoryPC'
-    },
-    {
-        id: 'pattern-recognition',
-        titleKey: 'GH.index.games.patternRecognition.title',
-        descriptionKey: 'GH.index.games.patternRecognition.description',
-        icon: '🔍',
-        url: '/GH-pattern-recognition'
-    },
-    {
-        id: 'sequence-prediction',
-        titleKey: 'GH.index.games.sequencePrediction.title',
-        descriptionKey: 'GH.index.games.sequencePrediction.description',
-        icon: '🔢',
-        url: '/GH-sequence-prediction'
-    }
-];
+			// Games data organized by category
+			const gameCategories = {
+				memory: {
+					id: 'memory-brain-card',
+					titleKey: 'GH.index.card1Title',
+					modalTitleKey: 'GH.index.modalTitles.memoryBrain',
+					games: [
+						{
+							id: 'memory-challenge',
+							titleKey: 'GH.index.games.memoryChallenge.title',
+							descriptionKey: 'GH.index.games.memoryChallenge.description',
+							icon: '🧠',
+							url: '/GH-memory-challenge'
+						},
+						{
+							id: 'memory-pc',
+							titleKey: 'GH.index.games.memoryPC.title',
+							descriptionKey: 'GH.index.games.memoryPC.description',
+							icon: '💻',
+							url: '/GH-memoryPC'
+						},
+						{
+							id: 'pattern-recognition',
+							titleKey: 'GH.index.games.patternRecognition.title',
+							descriptionKey: 'GH.index.games.patternRecognition.description',
+							icon: '🔍',
+							url: '/GH-pattern-recognition'
+						}
+					]
+				},
+				puzzle: {
+					id: 'puzzle-logic-card',
+					titleKey: 'GH.index.card2Title',
+					modalTitleKey: 'GH.index.modalTitles.puzzleLogic',
+					games: [
+						{
+							id: 'logic-puzzle',
+							titleKey: 'GH.index.games.logicPuzzle.title',
+							descriptionKey: 'GH.index.games.logicPuzzle.description',
+							icon: '🧩',
+							url: '/GH-logic-puzzle'
+						},
+						{
+							id: 'color-match',
+							titleKey: 'GH.index.games.colorMatch.title',
+							descriptionKey: 'GH.index.games.colorMatch.description',
+							icon: '🎨',
+							url: '/GH-color-match'
+						},
+						{
+							id: 'sequence-prediction',
+							titleKey: 'GH.index.games.sequencePrediction.title',
+							descriptionKey: 'GH.index.games.sequencePrediction.description',
+							icon: '🔢',
+							url: '/GH-sequence-prediction'
+						}
+					]
+				},
+				action: {
+					id: 'action-reflex-card',
+					titleKey: 'GH.index.card3Title',
+					modalTitleKey: 'GH.index.modalTitles.actionReflex',
+					games: [
+						{
+							id: 'reflex-challenge',
+							titleKey: 'GH.index.games.reflexChallenge.title',
+							descriptionKey: 'GH.index.games.reflexChallenge.description',
+							icon: '⚡',
+							url: '/GH-reflex-challenge'
+						},
+						{
+							id: 'target-practice',
+							titleKey: 'GH.index.games.targetPractice.title',
+							descriptionKey: 'GH.index.games.targetPractice.description',
+							icon: '🎯',
+							url: '/GH-target-practice'
+						}
+					]
+				}
+			};
+
 			// Modal functionality
 			document.addEventListener('DOMContentLoaded', function() {
 				const modal = document.getElementById('games-modal');
-				const actionGamesCard = document.getElementById('action-games-card');
+				const modalTitle = document.getElementById('modal-title');
 				const modalClose = document.getElementById('modal-close');
 				const gamesList = document.getElementById('games-list');
 				
-				// Open modal when clicking on Action Games card
-				if (actionGamesCard) {
-					actionGamesCard.addEventListener('click', function() {
-						openModal();
-					});
-				}
+				// Add click events to all category cards
+				Object.values(gameCategories).forEach(category => {
+					const card = document.getElementById(category.id);
+					if (card) {
+						card.addEventListener('click', function() {
+							openModal(category);
+						});
+					}
+				});
 				
 				// Close modal when clicking close button
 				if (modalClose) {
@@ -413,11 +470,15 @@
 					}
 				});
 				
-				// Function to open modal and populate games list
-				function openModal() {
-					if (modal) {
+				// Function to open modal with specific category
+				function openModal(category) {
+					if (modal && modalTitle) {
+						// Set modal title
+						const title = getTranslation(category.modalTitleKey, category.modalTitleKey);
+						modalTitle.textContent = title;
+						
 						// Populate games list
-						populateGamesList();
+						populateGamesList(category.games);
 						
 						// Show modal
 						modal.classList.add('active');
@@ -434,35 +495,35 @@
 				}
 				
 				// Function to populate games list
-				function populateGamesList() {
+				function populateGamesList(games) {
 					if (!gamesList) return;
 					
 					// Clear previous content
 					gamesList.innerHTML = '';
 					
-					if (actionGames.length === 0) {
+					if (games.length === 0) {
 						// Show message if no games
 						const noGamesMessage = document.createElement('div');
 						noGamesMessage.className = 'GH-modal-no-games';
 						noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
 						gamesList.appendChild(noGamesMessage);
-						} else {
+					} else {
 						// Create game cards
-						actionGames.forEach(game => {
+						games.forEach(game => {
 							const gameElement = document.createElement('a');
 							gameElement.href = game.url;
 							gameElement.className = 'GH-modal-game';
 							
 							// Get translated title and description
-							const title = getTranslation(game.titleKey, game.titleKey); // Use key as fallback
-							const description = getTranslation(game.descriptionKey, game.descriptionKey); // Use key as fallback
+							const title = getTranslation(game.titleKey, game.titleKey);
+							const description = getTranslation(game.descriptionKey, game.descriptionKey);
 							
 							gameElement.innerHTML = `
-							<div class="GH-modal-game-icon">${game.icon}</div>
-							<div class="GH-modal-game-info">
-							<div class="GH-modal-game-title">${title}</div>
-							<div class="GH-modal-game-description">${description}</div>
-							</div>
+								<div class="GH-modal-game-icon">${game.icon}</div>
+								<div class="GH-modal-game-info">
+									<div class="GH-modal-game-title">${title}</div>
+									<div class="GH-modal-game-description">${description}</div>
+								</div>
 							`;
 							
 							gamesList.appendChild(gameElement);
@@ -482,7 +543,7 @@
 					for (const k of keys) {
 						if (value && value[k] !== undefined) {
 							value = value[k];
-							} else {
+						} else {
 							return fallback;
 						}
 					}
@@ -494,127 +555,173 @@
 				document.addEventListener('translationsUpdated', function() {
 					// If modal is open, refresh the games list with new translations
 					if (modal && modal.classList.contains('active')) {
-						populateGamesList();
+						// Refresh the modal title and games list with new translations
+						const activeCategory = Object.values(gameCategories).find(cat => 
+							getTranslation(cat.modalTitleKey, '') === modalTitle.textContent
+						);
+						if (activeCategory) {
+							modalTitle.textContent = getTranslation(activeCategory.modalTitleKey, activeCategory.modalTitleKey);
+							populateGamesList(activeCategory.games);
+						}
 					}
 				});
 			});
 		</script>
 					
 		<script>
-						// object specific translations for index.html
+			// object specific translations for index.html
 			window.GHObjectTranslations = window.GHObjectTranslations || {
-    en: {
-        index: {
-            card1Title: "Action Games",
-            card2Title: "Adventure Games",
-            card3Title: "Puzzle Games",
-            comingSoon: "Coming Soon",
-            explore: "Explore the games",
-            modalTitle: "Action Games",
-            noGames: "No games available yet",
-            games: {
-                colorMatch: {
-                    title: "Color Match Challenge",
-                    description: "Test your color perception skills by matching the target color"
-                },
-                memoryChallenge: {
-                    title: "Memory Challenge",
-                    description: "Train your memory by matching pairs of cards with increasing difficulty"
-                },
-                logicPuzzle: {
-                    title: "Logic Puzzle Challenge",
-                    description: "Test your logical reasoning with challenging puzzles"
-                },
-                memoryPC: {
-                    title: "Memory PC Challenge",
-                    description: "Test your memory with computer-themed cards and increasing difficulty levels"
-                },
-                patternRecognition: {
-                    title: "Pattern Recognition Challenge",
-                    description: "Test your memory by recreating complex patterns"
-                },
-                sequencePrediction: {
-                    title: "Sequence Prediction Challenge",
-                    description: "Test your logical reasoning with sequence patterns!"
-                }
-            }
-        }
-    },
-    ar: {
-        index: {
-            card1Title: "ألعاب الحركة",
-            card2Title: "ألعاب المغامرة",
-            card3Title: "ألعاب الألغاز",
-            comingSoon: "قريباً",
-            explore: "اكتشف الألعاب",
-            modalTitle: "ألعاب الحركة",
-            noGames: "لا توجد ألعاب متاحة بعد",
-            games: {
-                colorMatch: {
-                    title: "تحدي مطابقة الألوان",
-                    description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
-                },
-                memoryChallenge: {
-                    title: "تحدي الذاكرة",
-                    description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
-                },
-                logicPuzzle: {
-                    title: "تحدي الألغاز المنطقية",
-                    description: "اختبر تفكيرك المنطقي بألغاز صعبة"
-                },
-                memoryPC: {
-                    title: "تحدي الذاكرة الحاسوبي",
-                    description: "اختبر ذاكرتك ببطاقات ذات طابع حاسوبي ومستويات صعوبة متزايدة"
-                },
-                patternRecognition: {
-                    title: "تحدي التعرف على الأنماط",
-                    description: "اختبر ذاكرتك بإعادة إنشاء الأنماط المعقدة"
-                },
-                sequencePrediction: {
-                    title: "تحدي توقع التسلسل",
-                    description: "اختبر تفكيرك المنطقي بأنماط التسلسل!"
-                }
-            }
-        }
-    },
-    fr: {
-        index: {
-            card1Title: "Jeux d'Action",
-            card2Title: "Jeux d'Aventure",
-            card3Title: "Jeux de Réflexion",
-            comingSoon: "Bientôt Disponible",
-            explore: "Explorer les jeux",
-            modalTitle: "Jeux d'Action",
-            noGames: "Aucun jeu disponible pour le moment",
-            games: {
-                colorMatch: {
-                    title: "Défi de Correspondance de Couleurs",
-                    description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
-                },
-                memoryChallenge: {
-                    title: "Défi de Mémoire",
-                    description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
-                },
-                logicPuzzle: {
-                    title: "Défi de Puzzles Logiques",
-                    description: "Testez votre raisonnement logique avec des puzzles stimulants"
-                },
-                memoryPC: {
-                    title: "Défi Mémoire PC",
-                    description: "Testez votre mémoire avec des cartes à thème informatique et des niveaux de difficulté croissants"
-                },
-                patternRecognition: {
-                    title: "Défi de Reconnaissance de Motifs",
-                    description: "Testez votre mémoire en recréant des motifs complexes"
-                },
-                sequencePrediction: {
-                    title: "Défi de Prédiction de Séquence",
-                    description: "Testez votre raisonnement logique avec des motifs de séquence!"
-                }
-            }
-        }
-    }
-};
+				en: {
+					index: {
+						card1Title: "Memory & Brain Games",
+						card2Title: "Puzzle & Logic Games", 
+						card3Title: "Action & Reflex Games",
+						card4Title: "More Games",
+						comingSoon: "Coming Soon",
+						explore: "Explore the games",
+						modalTitles: {
+							memoryBrain: "Memory & Brain Games",
+							puzzleLogic: "Puzzle & Logic Games", 
+							actionReflex: "Action & Reflex Games"
+						},
+						noGames: "No games available yet",
+						games: {
+							colorMatch: {
+								title: "Color Match Challenge",
+								description: "Test your color perception skills by matching the target color"
+							},
+							memoryChallenge: {
+								title: "Memory Challenge",
+								description: "Train your memory by matching pairs of cards with increasing difficulty"
+							},
+							logicPuzzle: {
+								title: "Logic Puzzle Challenge",
+								description: "Test your logical reasoning with challenging puzzles"
+							},
+							memoryPC: {
+								title: "Memory PC Challenge",
+								description: "Test your memory with computer-themed cards and increasing difficulty levels"
+							},
+							patternRecognition: {
+								title: "Pattern Recognition Challenge",
+								description: "Test your memory by recreating complex patterns"
+							},
+							sequencePrediction: {
+								title: "Sequence Prediction Challenge",
+								description: "Test your logical reasoning with sequence patterns!"
+							},
+							reflexChallenge: {
+								title: "Quick Reflex Challenge",
+								description: "Test your reflexes by clicking targets as quickly as possible!"
+							},
+							targetPractice: {
+								title: "Target Practice",
+								description: "Test your accuracy by clicking targets as fast as you can!"
+							}
+						}
+					}
+				},
+				ar: {
+					index: {
+						card1Title: "ألعاب الذاكرة والعقل",
+						card2Title: "ألعاب الألغاز والمنطق",
+						card3Title: "ألعاب الحركة وسرعة رد الفعل", 
+						card4Title: "ألعاب إضافية",
+						comingSoon: "قريباً",
+						explore: "اكتشف الألعاب",
+						modalTitles: {
+							memoryBrain: "ألعاب الذاكرة والعقل",
+							puzzleLogic: "ألعاب الألغاز والمنطق",
+							actionReflex: "ألعاب الحركة وسرعة رد الفعل"
+						},
+						noGames: "لا توجد ألعاب متاحة بعد",
+						games: {
+							colorMatch: {
+								title: "تحدي مطابقة الألوان",
+								description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
+							},
+							memoryChallenge: {
+								title: "تحدي الذاكرة",
+								description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
+							},
+							logicPuzzle: {
+								title: "تحدي الألغاز المنطقية",
+								description: "اختبر تفكيرك المنطقي بألغاز صعبة"
+							},
+							memoryPC: {
+								title: "تحدي الذاكرة الحاسوبي",
+								description: "اختبر ذاكرتك ببطاقات ذات طابع حاسوبي ومستويات صعوبة متزايدة"
+							},
+							patternRecognition: {
+								title: "تحدي التعرف على الأنماط",
+								description: "اختبر ذاكرتك بإعادة إنشاء الأنماط المعقدة"
+							},
+							sequencePrediction: {
+								title: "تحدي توقع التسلسل",
+								description: "اختبر تفكيرك المنطقي بأنماط التسلسل!"
+							},
+							reflexChallenge: {
+								title: "تحدي سرعة رد الفعل",
+								description: "اختبر سرعة رد فعلك بالنقر على الأهداف بأسرع ما يمكن!"
+							},
+							targetPractice: {
+								title: "تدريب على التصويب",
+								description: "اختبر دقتك بالنقر على الأهداف بأسرع ما يمكن!"
+							}
+						}
+					}
+				},
+				fr: {
+					index: {
+						card1Title: "Jeux de Mémoire et Cérébraux",
+						card2Title: "Jeux de Puzzle et Logique",
+						card3Title: "Jeux d'Action et Réflexes",
+						card4Title: "Plus de Jeux", 
+						comingSoon: "Bientôt Disponible",
+						explore: "Explorer les jeux",
+						modalTitles: {
+							memoryBrain: "Jeux de Mémoire et Cérébraux",
+							puzzleLogic: "Jeux de Puzzle et Logique",
+							actionReflex: "Jeux d'Action et Réflexes"
+						},
+						noGames: "Aucun jeu disponible pour le moment",
+						games: {
+							colorMatch: {
+								title: "Défi de Correspondance de Couleurs",
+								description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
+							},
+							memoryChallenge: {
+								title: "Défi de Mémoire",
+								description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
+							},
+							logicPuzzle: {
+								title: "Défi de Puzzles Logiques",
+								description: "Testez votre raisonnement logique avec des puzzles stimulants"
+							},
+							memoryPC: {
+								title: "Défi Mémoire PC",
+								description: "Testez votre mémoire avec des cartes à thème informatique et des niveaux de difficulté croissants"
+							},
+							patternRecognition: {
+								title: "Défi de Reconnaissance de Motifs",
+								description: "Testez votre mémoire en recréant des motifs complexes"
+							},
+							sequencePrediction: {
+								title: "Défi de Prédiction de Séquence",
+								description: "Testez votre raisonnement logique avec des motifs de séquence!"
+							},
+							reflexChallenge: {
+								title: "Défi de Réflexes Rapides",
+								description: "Testez vos réflexes en cliquant sur les cibles le plus rapidement possible!"
+							},
+							targetPractice: {
+								title: "Entraînement à la Cible",
+								description: "Testez votre précision en cliquant sur les cibles le plus vite possible!"
+							}
+						}
+					}
+				}
+			};
 		</script>
 	</body>
-</html>									
+</html>

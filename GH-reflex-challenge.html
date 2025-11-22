@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Quick Reflex Challenge</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* New color palette - Electric Blue theme */
+        :root {
+            --game-primary: #3A86FF;
+            --game-secondary: #2667CC;
+            --game-accent: #FF006E;
+            --game-success: #38B000;
+            --game-error: #FF4D6D;
+            --game-warning: #FF9E00;
+            --game-light-bg: #F0F7FF;
+            --game-dark-bg: #0A192F;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(20, 40, 80, 0.95);
+            --game-target-bg: linear-gradient(135deg, #3A86FF, #2667CC);
+            --game-target-accent: #FF006E;
+            --game-glow: 0 0 20px rgba(58, 134, 255, 0.5);
+        }
+
+        .GH-game-container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-xl);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-game-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><circle cx="50" cy="50" r="2" fill="white"/></svg>') repeat;
+            z-index: 0;
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: var(--gh-space-md) var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            text-align: center;
+            min-width: 120px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-3xl);
+            font-weight: bold;
+            display: block;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: var(--gh-radius-xl);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-lg);
+            min-height: 500px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(58, 134, 255, 0.1);
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+        }
+
+        .GH-target {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: var(--game-glow);
+            background: var(--game-target-bg);
+            color: white;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .GH-target::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .GH-target:hover {
+            transform: scale(1.15);
+        }
+
+        .GH-target:hover::before {
+            opacity: 1;
+        }
+
+        .GH-target:active {
+            transform: scale(0.9);
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-lg);
+            margin-top: var(--gh-space-xl);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: var(--gh-font-size-lg);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-lg);
+            min-width: 180px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .GH-game-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(58, 134, 255, 0.4);
+        }
+
+        .GH-game-btn:hover::before {
+            left: 100%;
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(2px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+            box-shadow: none;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+            box-shadow: 0 10px 25px rgba(58, 134, 255, 0.3);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-btn:disabled::before {
+            display: none;
+        }
+
+        .GH-level-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-md);
+            width: 100%;
+            max-width: 600px;
+            padding: 15px 20px;
+            background: rgba(58, 134, 255, 0.05);
+            border-radius: var(--gh-radius-lg);
+            border: 1px solid rgba(58, 134, 255, 0.1);
+        }
+
+        .GH-level-text {
+            font-size: var(--gh-font-size-xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-level-text {
+            color: var(--game-accent);
+        }
+
+        .GH-level-progress {
+            width: 100%;
+            max-width: 600px;
+            height: 12px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin: var(--gh-space-lg) 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-dark-mode .GH-level-progress {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+            box-shadow: 0 0 10px rgba(58, 134, 255, 0.5);
+        }
+
+        .GH-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            margin-bottom: var(--gh-space-xl);
+            box-shadow: var(--gh-shadow-md);
+            border: 1px solid rgba(58, 134, 255, 0.1);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-md);
+            text-align: center;
+            color: var(--game-primary);
+            font-size: var(--gh-font-size-2xl);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 12px;
+            position: relative;
+            padding: 8px 0;
+        }
+
+        .GH-instructions li::before {
+            content: '⚡';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1.5em;
+            margin-left: -1.5em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-xl);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background: linear-gradient(135deg, var(--game-success), #2E8B57);
+        }
+
+        .GH-game-notification.error {
+            background: linear-gradient(135deg, var(--game-error), #D32F2F);
+        }
+
+        .GH-game-notification.info {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+        }
+
+        .GH-game-notification.warning {
+            background: linear-gradient(135deg, var(--game-warning), #FF8C00);
+            color: var(--gh-dark-text);
+        }
+
+        .GH-timer-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            z-index: 1;
+        }
+
+        .GH-timer-circle {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .GH-timer-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 8;
+        }
+
+        .GH-timer-progress {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 340;
+            stroke-dashoffset: 340;
+            transition: stroke-dashoffset 1s linear;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        }
+
+        .GH-timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(10, 25, 47, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-xl);
+            padding: var(--gh-space-xl);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-xl);
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-4xl);
+            margin-bottom: var(--gh-space-lg);
+            color: var(--game-primary);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-lg);
+            margin: var(--gh-space-xl) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background: rgba(58, 134, 255, 0.1);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-modal-stat:hover {
+            transform: translateY(-5px);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-3xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+            flex-wrap: wrap;
+        }
+
+        .GH-difficulty-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(58, 134, 255, 0.3);
+        }
+
+        .GH-dark-mode .GH-difficulty-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+            box-shadow: 0 5px 15px rgba(255, 0, 110, 0.3);
+        }
+
+        .GH-difficulty-btn:hover:not(.active) {
+            background: rgba(58, 134, 255, 0.1);
+        }
+
+        .GH-target-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            width: 100%;
+            max-width: 600px;
+            gap: 15px;
+        }
+
+        .GH-target-stat {
+            background-color: var(--game-card-bg);
+            padding: 15px 20px;
+            border-radius: var(--gh-radius-lg);
+            min-width: 140px;
+            text-align: center;
+            box-shadow: var(--gh-shadow-md);
+            border: 1px solid rgba(58, 134, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-target-stat:hover {
+            transform: translateY(-5px);
+        }
+
+        .GH-dark-mode .GH-target-stat {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+        }
+
+        .GH-target-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 8px;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-target-value {
+            color: var(--game-accent);
+        }
+
+        /* Target animations */
+        @keyframes targetPulse {
+            0% { transform: scale(1); box-shadow: var(--game-glow); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(58, 134, 255, 0.8); }
+            100% { transform: scale(1); box-shadow: var(--game-glow); }
+        }
+
+        .GH-pulse {
+            animation: targetPulse 1.5s infinite;
+        }
+
+        @keyframes targetAppear {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .GH-target-appear {
+            animation: targetAppear 0.3s ease-out;
+        }
+
+        @keyframes targetDisappear {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .GH-target-disappear {
+            animation: targetDisappear 0.2s ease-in;
+        }
+
+        /* Countdown animation */
+        @keyframes countdownPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .GH-countdown {
+            position: absolute;
+            font-size: 5rem;
+            font-weight: bold;
+            color: var(--game-primary);
+            z-index: 100;
+            animation: countdownPulse 1s ease-out;
+            text-shadow: 0 0 20px rgba(58, 134, 255, 0.7);
+        }
+
+        .GH-dark-mode .GH-countdown {
+            color: var(--game-accent);
+            text-shadow: 0 0 20px rgba(255, 0, 110, 0.7);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-lg);
+            }
+
+            .GH-game-stats {
+                order: 2;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .GH-timer-container {
+                order: 1;
+            }
+
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .GH-target-stats {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+                align-items: center;
+            }
+
+            .GH-instructions ul {
+                grid-template-columns: 1fr;
+            }
+
+            .GH-modal-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* RTL support */
+        [dir="rtl"] .GH-instructions li::before {
+            margin-left: 0;
+            margin-right: -1.5em;
+        }
+
+        [dir="rtl"] .GH-game-notification {
+            right: auto;
+            left: 30px;
+            transform: translateX(-150%);
+        }
+
+        [dir="rtl"] .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        /* Game background pattern */
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(58, 134, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        /* Combo indicator */
+        .GH-combo-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 0, 110, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.4);
+            transform: translateY(-100px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+
+        .GH-combo-indicator.show {
+            transform: translateY(0);
+        }
+
+        /* Performance indicator */
+        .GH-performance-meter {
+            width: 100%;
+            max-width: 600px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .GH-dark-mode .GH-performance-meter {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38B000, #FF9E00, #FF4D6D);
+            border-radius: 5px;
+            width: 100%;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s ease;
+        }
+
+        /* Start message styling */
+        #start-message {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--game-primary);
+            text-shadow: 0 2px 10px rgba(58, 134, 255, 0.3);
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--gh-radius-lg);
+            box-shadow: var(--gh-shadow-lg);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+        }
+
+        .GH-dark-mode #start-message {
+            color: var(--game-accent);
+            background: rgba(20, 40, 80, 0.9);
+            border: 1px solid rgba(255, 0, 110, 0.2);
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.reflex.title">Quick Reflex Challenge</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="timer">60</span>
+                        <span class="GH-stat-label" data-i18n="GH.reflex.time">Time</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="score">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.reflex.score">Score</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="lives">3</span>
+                        <span class="GH-stat-label" data-i18n="GH.reflex.lives">Lives</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="combo">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.reflex.combo">Combo</span>
+                    </div>
+                </div>
+                
+                <div class="GH-timer-container">
+                    <svg class="GH-timer-circle" viewBox="0 0 100 100">
+                        <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
+                        <circle class="GH-timer-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="GH-timer-text" id="timer-text">60</div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.reflex.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.reflex.instruction1">Click the targets as quickly as possible when they appear</li>
+                    <li data-i18n="GH.reflex.instruction2">Each target gives you points based on how fast you click</li>
+                    <li data-i18n="GH.reflex.instruction3">The game gets faster and targets get smaller as you progress</li>
+                    <li data-i18n="GH.reflex.instruction4">You have 3 lives - miss 3 targets and the game is over</li>
+                    <li data-i18n="GH.reflex.instruction5">Build combos for bonus points!</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span data-i18n="GH.reflex.difficulty">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-difficulty="easy" data-i18n="GH.reflex.easy">Easy</button>
+                <button class="GH-difficulty-btn" data-difficulty="medium" data-i18n="GH.reflex.medium">Medium</button>
+                <button class="GH-difficulty-btn" data-difficulty="hard" data-i18n="GH.reflex.hard">Hard</button>
+            </div>
+            
+            <div class="GH-level-indicator">
+                <span class="GH-level-text" data-i18n="GH.reflex.difficultyLevel">Difficulty Level:</span>
+                <span id="difficulty-level">1</span>
+            </div>
+            
+            <div class="GH-level-progress">
+                <div id="progress" class="GH-progress" style="width: 0%"></div>
+            </div>
+
+            <div class="GH-performance-meter">
+                <div id="performance-fill" class="GH-performance-fill"></div>
+            </div>
+            
+            <div class="GH-game-area" id="game-area">
+                <div id="start-message" data-i18n="GH.reflex.getReady">Get Ready!</div>
+                <div id="combo-indicator" class="GH-combo-indicator">COMBO x<span id="combo-count">0</span>!</div>
+            </div>
+            
+            <div class="GH-target-stats">
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.reflex.targetsHit">Targets Hit</span>
+                    <div class="GH-target-value" id="targets-hit">0</div>
+                </div>
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.reflex.bestTime">Best Time</span>
+                    <div class="GH-target-value" id="best-time">0.00s</div>
+                </div>
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.reflex.avgTime">Average Time</span>
+                    <div class="GH-target-value" id="avg-time">0.00s</div>
+                </div>
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.reflex.accuracy">Accuracy</span>
+                    <div class="GH-target-value" id="accuracy">100%</div>
+                </div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.reflex.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.reflex.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="game-result-title" data-i18n="GH.reflex.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.reflex.finalScore">Final Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-targets-hit">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.reflex.targetsHit">Targets Hit</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-best-time">0.00s</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.reflex.bestTime">Best Time</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-difficulty">1</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.reflex.difficultyReached">Difficulty Reached</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.reflex.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.reflex.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+        // Game state variables
+        let gameInterval;
+        let targetInterval;
+        let gameTime = 60;
+        let gameScore = 0;
+        let lives = 3;
+        let difficulty = 1;
+        let isGameActive = false;
+        let targetsHit = 0;
+        let targetsMissed = 0;
+        let totalReactionTime = 0;
+        let bestTime = 999;
+        let gameDifficulty = 'easy';
+        let combo = 0;
+        let maxCombo = 0;
+        
+        // DOM elements
+        const timerElement = document.getElementById('timer');
+        const timerTextElement = document.getElementById('timer-text');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const comboElement = document.getElementById('combo');
+        const difficultyLevelElement = document.getElementById('difficulty-level');
+        const gameArea = document.getElementById('game-area');
+        const startMessage = document.getElementById('start-message');
+        const progressBar = document.getElementById('progress');
+        const performanceFill = document.getElementById('performance-fill');
+        const targetsHitElement = document.getElementById('targets-hit');
+        const bestTimeElement = document.getElementById('best-time');
+        const avgTimeElement = document.getElementById('avg-time');
+        const accuracyElement = document.getElementById('accuracy');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const gameNotification = document.getElementById('game-notification');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalTargetsHitElement = document.getElementById('final-targets-hit');
+        const finalBestTimeElement = document.getElementById('final-best-time');
+        const finalDifficultyElement = document.getElementById('final-difficulty');
+        const gameResultTitle = document.getElementById('game-result-title');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+        const timerProgress = document.querySelector('.GH-timer-progress');
+        const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
+        const comboIndicator = document.getElementById('combo-indicator');
+        const comboCountElement = document.getElementById('combo-count');
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        playAgainBtn.addEventListener('click', playAgain);
+        mainMenuBtn.addEventListener('click', goToMainMenu);
+        
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameDifficulty = this.getAttribute('data-difficulty');
+                if (isGameActive) {
+                    restartGame();
+                }
+            });
+        });
+        
+        // Game functions
+        function startGame() {
+            isGameActive = true;
+            
+            // Reset game state
+            gameTime = 60;
+            gameScore = 0;
+            lives = 3;
+            difficulty = 1;
+            targetsHit = 0;
+            targetsMissed = 0;
+            totalReactionTime = 0;
+            bestTime = 999;
+            combo = 0;
+            maxCombo = 0;
+            
+            timerElement.textContent = gameTime;
+            timerTextElement.textContent = gameTime;
+            scoreElement.textContent = gameScore;
+            livesElement.textContent = lives;
+            comboElement.textContent = combo;
+            difficultyLevelElement.textContent = difficulty;
+            progressBar.style.width = '0%';
+            performanceFill.style.transform = 'scaleX(1)';
+            targetsHitElement.textContent = targetsHit;
+            bestTimeElement.textContent = '0.00s';
+            avgTimeElement.textContent = '0.00s';
+            accuracyElement.textContent = '100%';
+            
+            // Clear game area
+            gameArea.innerHTML = '';
+            startMessage.style.display = 'block';
+            
+            // Clear any existing intervals
+            clearInterval(gameInterval);
+            clearInterval(targetInterval);
+            
+            // Start countdown
+            let countdown = 3;
+            startMessage.textContent = getTranslation('GH.reflex.startingIn', 'Starting in') + ` ${countdown}...`;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    startMessage.textContent = getTranslation('GH.reflex.startingIn', 'Starting in') + ` ${countdown}...`;
+                    createCountdownAnimation(countdown);
+                } else {
+                    startMessage.textContent = getTranslation('GH.reflex.go', 'GO!');
+                    createCountdownAnimation('GO!');
+                    setTimeout(() => {
+                        startMessage.style.display = 'none';
+                        // Start the actual game
+                        startActualGame();
+                    }, 800);
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+            
+            startBtn.disabled = true;
+            
+            showTranslatableNotification('GH.reflex.gameStarted', 'info');
+        }
+        
+        function createCountdownAnimation(text) {
+            const countdownElement = document.createElement('div');
+            countdownElement.className = 'GH-countdown';
+            countdownElement.textContent = text;
+            gameArea.appendChild(countdownElement);
+            
+            setTimeout(() => {
+                countdownElement.remove();
+            }, 1000);
+        }
+        
+        function startActualGame() {
+            // Start timer
+            gameInterval = setInterval(() => {
+                if (isGameActive) {
+                    gameTime--;
+                    timerElement.textContent = gameTime;
+                    timerTextElement.textContent = gameTime;
+                    progressBar.style.width = `${((60 - gameTime) / 60) * 100}%`;
+                    
+                    // Update timer circle
+                    const progress = (gameTime / 60) * 340;
+                    timerProgress.style.strokeDashoffset = progress;
+                    
+                    // Change color based on time remaining
+                    if (gameTime <= 10) {
+                        timerProgress.style.stroke = 'var(--game-error)';
+                    } else if (gameTime <= 20) {
+                        timerProgress.style.stroke = 'var(--game-warning)';
+                    } else {
+                        timerProgress.style.stroke = 'white';
+                    }
+                    
+                    if (gameTime <= 0) {
+                        endGame();
+                    }
+                }
+            }, 1000);
+            
+            // Start generating targets
+            generateTarget();
+            
+            // Increase difficulty over time
+            const difficultyInterval = setInterval(() => {
+                if (isGameActive) {
+                    difficulty++;
+                    difficultyLevelElement.textContent = difficulty;
+                    
+                    // Adjust target generation based on difficulty
+                    clearInterval(targetInterval);
+                    const intervalTime = Math.max(300, 2000 - (difficulty * 120));
+                    targetInterval = setInterval(generateTarget, intervalTime);
+                } else {
+                    clearInterval(difficultyInterval);
+                }
+            }, 10000); // Increase difficulty every 10 seconds
+        }
+        
+        function generateTarget() {
+            if (!isGameActive) return;
+            
+            // Remove any existing targets
+            const existingTargets = document.querySelectorAll('.GH-target');
+            existingTargets.forEach(target => {
+                if (!target.clicked) {
+                    handleMissedTarget(target);
+                }
+                target.remove();
+            });
+            
+            // Create new target
+            const target = document.createElement('div');
+            target.className = 'GH-target GH-pulse GH-target-appear';
+            
+            // Set target size based on difficulty
+            const size = Math.max(25, 80 - (difficulty * 6));
+            target.style.width = `${size}px`;
+            target.style.height = `${size}px`;
+            
+            // Set random position
+            const maxX = gameArea.clientWidth - size;
+            const maxY = gameArea.clientHeight - size;
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+            
+            target.style.left = `${randomX}px`;
+            target.style.top = `${randomY}px`;
+            
+            // Set random color variation
+            const hue = Math.floor(Math.random() * 60) + 200; // Blue to purple range
+            target.style.background = `linear-gradient(135deg, hsl(${hue}, 80%, 60%), hsl(${hue}, 80%, 40%))`;
+            
+            // Add click event
+            target.clicked = false;
+            target.appearTime = Date.now();
+            
+            target.addEventListener('click', () => {
+                if (!target.clicked) {
+                    handleTargetClick(target);
+                }
+            });
+            
+            // Add to game area
+            gameArea.appendChild(target);
+            
+            // Set timeout for target to disappear
+            target.timeout = setTimeout(() => {
+                if (!target.clicked) {
+                    handleMissedTarget(target);
+                }
+                target.classList.add('GH-target-disappear');
+                setTimeout(() => {
+                    target.remove();
+                }, 200);
+            }, Math.max(400, 2000 - (difficulty * 120))); // Targets appear for less time as difficulty increases
+        }
+        
+        function handleTargetClick(target) {
+            if (!isGameActive) return;
+            
+            target.clicked = true;
+            clearTimeout(target.timeout);
+            
+            // Calculate reaction time
+            const reactionTime = Date.now() - target.appearTime;
+            totalReactionTime += reactionTime;
+            
+            // Update best time
+            if (reactionTime < bestTime) {
+                bestTime = reactionTime;
+                bestTimeElement.textContent = `${(bestTime / 1000).toFixed(2)}s`;
+            }
+            
+            // Update combo
+            combo++;
+            comboElement.textContent = combo;
+            maxCombo = Math.max(maxCombo, combo);
+            
+            // Show combo indicator for high combos
+            if (combo >= 5) {
+                comboCountElement.textContent = combo;
+                comboIndicator.classList.add('show');
+                
+                // Hide after a delay
+                setTimeout(() => {
+                    comboIndicator.classList.remove('show');
+                }, 1500);
+            }
+            
+            // Calculate points based on reaction time (faster = more points) and combo
+            let basePoints = Math.max(5, Math.floor(1500 / reactionTime) * difficulty);
+            let comboBonus = combo >= 5 ? Math.floor(combo / 5) * 10 : 0;
+            const points = basePoints + comboBonus;
+            
+            gameScore += points;
+            scoreElement.textContent = gameScore;
+            
+            // Update targets hit
+            targetsHit++;
+            targetsHitElement.textContent = targetsHit;
+            
+            // Update average time
+            const avgTime = totalReactionTime / targetsHit;
+            avgTimeElement.textContent = `${(avgTime / 1000).toFixed(2)}s`;
+            
+            // Update accuracy
+            const accuracy = Math.round((targetsHit / (targetsHit + targetsMissed)) * 100);
+            accuracyElement.textContent = `${accuracy}%`;
+            
+            // Update performance meter
+            performanceFill.style.transform = `scaleX(${accuracy / 100})`;
+            
+            // Visual feedback
+            target.style.transform = 'scale(1.3)';
+            target.style.opacity = '0.8';
+            
+            // Create points popup
+            createPointsPopup(target, points);
+            
+            // Remove target after animation
+            setTimeout(() => {
+                target.remove();
+            }, 300);
+        }
+        
+        function createPointsPopup(target, points) {
+            const popup = document.createElement('div');
+            popup.textContent = `+${points}`;
+            popup.style.position = 'absolute';
+            popup.style.left = `${target.offsetLeft + target.offsetWidth / 2}px`;
+            popup.style.top = `${target.offsetTop}px`;
+            popup.style.color = 'var(--game-success)';
+            popup.style.fontWeight = 'bold';
+            popup.style.fontSize = '1.5rem';
+            popup.style.pointerEvents = 'none';
+            popup.style.zIndex = '20';
+            popup.style.textShadow = '0 2px 4px rgba(0,0,0,0.3)';
+            popup.style.animation = 'floatUp 1s ease-out forwards';
+            
+            // Add CSS for floatUp animation
+            if (!document.querySelector('#floatUpAnimation')) {
+                const style = document.createElement('style');
+                style.id = 'floatUpAnimation';
+                style.textContent = `
+                    @keyframes floatUp {
+                        0% { transform: translateY(0); opacity: 1; }
+                        100% { transform: translateY(-50px); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            gameArea.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 1000);
+        }
+        
+        function handleMissedTarget(target) {
+            if (!isGameActive) return;
+            
+            targetsMissed++;
+            combo = 0;
+            comboElement.textContent = combo;
+            
+            lives--;
+            livesElement.textContent = lives;
+            
+            // Update accuracy
+            const accuracy = Math.round((targetsHit / (targetsHit + targetsMissed)) * 100);
+            accuracyElement.textContent = `${accuracy}%`;
+            
+            // Update performance meter
+            performanceFill.style.transform = `scaleX(${accuracy / 100})`;
+            
+            // Visual feedback for missed target
+            target.style.background = 'linear-gradient(135deg, #FF4D6D, #C9184A)';
+            target.style.transform = 'scale(0.7)';
+            target.style.opacity = '0.6';
+            
+            setTimeout(() => {
+                target.remove();
+            }, 500);
+            
+            if (lives <= 0) {
+                endGame();
+            }
+        }
+        
+        function endGame() {
+            isGameActive = false;
+            clearInterval(gameInterval);
+            clearInterval(targetInterval);
+            
+            // Remove any remaining targets
+            const targets = document.querySelectorAll('.GH-target');
+            targets.forEach(target => target.remove());
+            
+            // Determine result message
+            let message = '';
+            let title = '';
+            
+            if (gameScore >= 1500) {
+                message = `${getTranslation('GH.reflex.amazing', 'Amazing! Your reflexes are lightning fast!')} ${getTranslation('GH.reflex.score', 'Score')}: ${gameScore}`;
+                title = getTranslation('GH.reflex.victory', 'Victory!');
+            } else if (gameScore >= 800) {
+                message = `${getTranslation('GH.reflex.greatJob', 'Great job! Your reflexes are good!')} ${getTranslation('GH.reflex.score', 'Score')}: ${gameScore}`;
+                title = getTranslation('GH.reflex.wellDone', 'Well Done!');
+            } else {
+                message = `${getTranslation('GH.reflex.gameOver', 'Game Over!')} ${getTranslation('GH.reflex.score', 'Score')}: ${gameScore}. ${getTranslation('GH.reflex.keepPracticing', 'Keep practicing!')}`;
+                title = getTranslation('GH.reflex.gameOver', 'Game Over!');
+            }
+            
+            // Update modal with final stats
+            finalScoreElement.textContent = gameScore;
+            finalTargetsHitElement.textContent = targetsHit;
+            finalBestTimeElement.textContent = bestTime === 999 ? '0.00s' : `${(bestTime / 1000).toFixed(2)}s`;
+            finalDifficultyElement.textContent = difficulty;
+            gameResultTitle.textContent = title;
+            
+            // Show game over modal
+            setTimeout(() => {
+                gameOverModal.classList.add('active');
+            }, 800);
+            
+            // Reset buttons
+            startBtn.disabled = false;
+            
+            showNotification(message, 'info');
+        }
+        
+        function restartGame() {
+            if (isGameActive) {
+                showTranslatableNotification('GH.reflex.restartConfirm', 'warning');
+                clearInterval(gameInterval);
+                clearInterval(targetInterval);
+                startGame();
+            } else {
+                clearInterval(gameInterval);
+                clearInterval(targetInterval);
+                startGame();
+            }
+        }
+        
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+        
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+        
+        // Enhanced notification function that supports translation keys
+        function showTranslatableNotification(messageKey, type) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = messageKey.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let message = keys.reduce((obj, key) => {
+                return obj && obj[key] !== undefined ? obj[key] : undefined;
+            }, translations);
+            
+            // Fallback if translation not found
+            if (!message || typeof message !== 'string') {
+                console.warn(`Translation not found for key: ${messageKey}`);
+                message = getFallbackGameMessage(cleanKey);
+            }
+            
+            showNotification(message, type);
+        }
+
+        function getFallbackGameMessage(key) {
+            const fallbackMessages = {
+                'reflex.gameStarted': 'Game started! Good luck!',
+                'reflex.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
+                'reflex.amazing': 'Amazing! Your reflexes are lightning fast!',
+                'reflex.greatJob': 'Great job! Your reflexes are good!',
+                'reflex.gameOver': 'Game Over!',
+                'reflex.keepPracticing': 'Keep practicing!',
+                'reflex.victory': 'Victory!',
+                'reflex.wellDone': 'Well Done!'
+            };
+            
+            return fallbackMessages[key] || key;
+        }
+
+        function showNotification(message, type) {
+            gameNotification.textContent = message;
+            gameNotification.className = `GH-game-notification ${type}`;
+            gameNotification.style.display = 'block';
+            gameNotification.classList.add('show');
+            
+            setTimeout(() => {
+                gameNotification.classList.remove('show');
+                setTimeout(() => {
+                    gameNotification.style.display = 'none';
+                }, 300);
+            }, 3500);
+        }
+        
+        // Helper function to get translations
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            
+            // Remove 'GH.' prefix if present and split the key
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let value = keys.reduce((obj, k) => {
+                return obj && obj[k] !== undefined ? obj[k] : undefined;
+            }, translations);
+            
+            return value && typeof value === 'string' ? value : fallback;
+        }
+    </script>
+    
+    <script>
+        // Object specific translations for GH-reflex-challenge.html
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                reflex: {
+                    title: "Quick Reflex Challenge",
+                    description: "Test your reflexes by clicking targets as they appear!",
+                    howToPlay: "How to Play",
+                    instruction1: "Click the targets as quickly as possible when they appear",
+                    instruction2: "Each target gives you points based on how fast you click",
+                    instruction3: "The game gets faster and targets get smaller as you progress",
+                    instruction4: "You have 3 lives - miss 3 targets and the game is over",
+                    instruction5: "Build combos for bonus points!",
+                    time: "Time",
+                    score: "Score",
+                    lives: "Lives",
+                    combo: "Combo",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    medium: "Medium",
+                    hard: "Hard",
+                    difficultyLevel: "Difficulty Level:",
+                    getReady: "Get Ready!",
+                    targetsHit: "Targets Hit",
+                    bestTime: "Best Time",
+                    avgTime: "Average Time",
+                    accuracy: "Accuracy",
+                    startGame: "Start Game",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    gameOver: "Game Over!",
+                    finalScore: "Final Score",
+                    difficultyReached: "Difficulty Reached",
+                    amazing: "Amazing! Your reflexes are lightning fast!",
+                    greatJob: "Great job! Your reflexes are good!",
+                    keepPracticing: "Keep practicing!",
+                    victory: "Victory!",
+                    wellDone: "Well Done!",
+                    gameStarted: "Game started! Good luck!",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    startingIn: "Starting in",
+                    go: "GO!"
+                }
+            },
+            ar: {
+                reflex: {
+                    title: "تحدي سرعة رد الفعل",
+                    description: "اختبر سرعة رد فعلك بالنقر على الأهداف فور ظهورها!",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "انقر على الأهداف بأسرع ما يمكن عند ظهورها",
+                    instruction2: "يمنحك كل هدف نقاطاً بناءً على سرعة نقرك",
+                    instruction3: "تزداد اللعبة سرعة وتصغر الأهداف كلما تقدمت",
+                    instruction4: "لديك 3 محاولات - إذا فاتك 3 أهداف تنتهي اللعبة",
+                    instruction5: "ابنِ سلسلة متتالية للحصول على نقاط إضافية!",
+                    time: "الوقت",
+                    score: "النقاط",
+                    lives: "المحاولات",
+                    combo: "المتتالية",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    medium: "متوسط",
+                    hard: "صعب",
+                    difficultyLevel: "مستوى الصعوبة:",
+                    getReady: "استعد!",
+                    targetsHit: "الأهداف المصابة",
+                    bestTime: "أفضل وقت",
+                    avgTime: "متوسط الوقت",
+                    accuracy: "الدقة",
+                    startGame: "ابدأ اللعبة",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    gameOver: "انتهت اللعبة!",
+                    finalScore: "النتيجة النهائية",
+                    difficultyReached: "مستوى الصعوبة الذي تم الوصول إليه",
+                    amazing: "مذهل! سرعة رد فعلك مذهلة!",
+                    greatJob: "عمل رائع! سرعة رد فعلك جيدة!",
+                    keepPracticing: "استمر في التدريب!",
+                    victory: "انتصار!",
+                    wellDone: "أحسنت!",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    startingIn: "تبدأ خلال",
+                    go: "انطلق!"
+                }
+            },
+            fr: {
+                reflex: {
+                    title: "Défi de Réflexes Rapides",
+                    description: "Testez vos réflexes en cliquant sur les cibles dès qu'elles apparaissent!",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Cliquez sur les cibles le plus rapidement possible lorsqu'elles apparaissent",
+                    instruction2: "Chaque cible vous donne des points basés sur votre rapidité",
+                    instruction3: "Le jeu s'accélère et les cibles rétrécissent au fur et à mesure",
+                    instruction4: "Vous avez 3 vies - manquez 3 cibles et le jeu est terminé",
+                    instruction5: "Créez des combos pour des points bonus!",
+                    time: "Temps",
+                    score: "Score",
+                    lives: "Vies",
+                    combo: "Combo",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    medium: "Moyen",
+                    hard: "Difficile",
+                    difficultyLevel: "Niveau de Difficulté:",
+                    getReady: "Préparez-vous!",
+                    targetsHit: "Cibles Touchées",
+                    bestTime: "Meilleur Temps",
+                    avgTime: "Temps Moyen",
+                    accuracy: "Précision",
+                    startGame: "Commencer le Jeu",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    gameOver: "Jeu Terminé!",
+                    finalScore: "Score Final",
+                    difficultyReached: "Difficulté Atteinte",
+                    amazing: "Incroyable! Vos réflexes sont éclairs!",
+                    greatJob: "Excellent travail! Vos réflexes sont bons!",
+                    keepPracticing: "Continuez à vous entraîner!",
+                    victory: "Victoire!",
+                    wellDone: "Bien Joué!",
+                    gameStarted: "Jeu commencé! Bonne chance!",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer? Votre progression sera perdue.",
+                    startingIn: "Début dans",
+                    go: "ALLEZ!"
+                }
+            }
+        };
+    </script>
+</body>
+</html>
