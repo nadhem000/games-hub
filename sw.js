@@ -1,7 +1,7 @@
 // Service Worker for GameHub PWA
-const CACHE_NAME = 'gamehub-v0.0.7';
-const STATIC_CACHE = 'static-v0.0.7';
-const DYNAMIC_CACHE = 'dynamic-v0.0.7';
+const CACHE_NAME = 'gamehub-v0.0.8';
+const STATIC_CACHE = 'static-v0.0.8';
+const DYNAMIC_CACHE = 'dynamic-v0.0.8';
 
 // Assets to cache immediately on install
 const STATIC_ASSETS = [
@@ -224,4 +224,5 @@ async function updateContent() {
     } catch (error) {
         console.error('Service Worker: Content update failed', error);
     }
+
 }
