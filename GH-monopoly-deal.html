@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Monopoly Deal</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Modern Monopoly Deal color palette */
+        :root {
+            --primary-blue: #1a3a5f;
+            --secondary-blue: #2a5a8c;
+            --accent-gold: #d4af37;
+            --accent-light: #f5f5f5;
+            --accent-dark: #333333;
+            --success-green: #4caf50;
+            --warning-orange: #ff9800;
+            --error-red: #f44336;
+            --card-bg: #ffffff;
+            --card-border: #e0e0e0;
+            --player-1: #1a3a5f;
+            --player-2: #8b0000;
+            --player-3: #006400;
+            --property-brown: #8B4513;
+            --property-lightblue: #87CEEB;
+            --property-pink: #FF69B4;
+            --property-orange: #FFA500;
+            --property-red: #DC143C;
+            --property-yellow: #FFD700;
+            --property-green: #228B22;
+            --property-darkblue: #00008B;
+            --property-railroad: #2F4F4F;
+            --property-utility: #696969;
+        }
+
+        .GH-game-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-game-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><path d="M0,0 L100,100 M100,0 L0,100" stroke="white" stroke-width="2"/></svg>');
+            z-index: 0;
+        }
+
+        .GH-game-header > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .GH-stat-box:hover {
+            transform: translateY(-2px);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+            color: var(--accent-gold);
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-md);
+            min-height: 500px;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--accent-dark);
+            border-color: #555;
+        }
+
+        /* Player areas */
+        .GH-players-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .GH-player-area {
+            background: var(--accent-light);
+            border-radius: var(--gh-radius-md);
+            padding: 15px;
+            min-width: 200px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-sm);
+            position: relative;
+        }
+
+        .GH-dark-mode .GH-player-area {
+            background: #444;
+            color: white;
+        }
+
+        .GH-player-area.active {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .GH-player-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            text-align: center;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .GH-dark-mode .GH-player-name {
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+
+        .GH-player-money {
+            color: var(--success-green);
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 5px 0;
+        }
+
+        .GH-player-properties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .GH-property-set {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            margin: 5px;
+        }
+
+        .GH-property-chip {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .GH-property-count {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--accent-dark);
+        }
+
+        .GH-dark-mode .GH-property-count {
+            color: white;
+        }
+
+        .GH-property-complete {
+            color: var(--success-green);
+        }
+
+        /* Card styles */
+        .GH-cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            max-width: 800px;
+        }
+
+        .GH-card {
+            width: 110px;
+            height: 154px;
+            border-radius: 10px;
+            border: 2px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-sm);
+            overflow: hidden;
+        }
+
+        .GH-card:hover {
+            transform: translateY(-8px) rotate(2deg);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-card.playable {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .GH-card.property {
+            background: linear-gradient(135deg, var(--card-color), #FFFFFF);
+        }
+
+        .GH-card.money {
+            background: linear-gradient(135deg, #e8f5e9, #FFFFFF);
+            color: #2e7d32;
+        }
+
+        .GH-card.action {
+            background: linear-gradient(135deg, #ffe0b2, #FFFFFF);
+            color: #e65100;
+        }
+
+        .GH-card.rent {
+            background: linear-gradient(135deg, #ffcdd2, #FFFFFF);
+            color: #c62828;
+        }
+
+        .GH-card-value {
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .GH-card-title {
+            font-size: 0.8rem;
+            text-align: center;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .GH-card-color {
+            height: 15px;
+            border-radius: 3px;
+            margin: 5px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .GH-card-description {
+            font-size: 0.7rem;
+            text-align: center;
+            opacity: 0.8;
+            margin-top: auto;
+        }
+
+        .GH-card-corner {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        /* Game controls */
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-game-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:hover::before {
+            left: 100%;
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-btn.secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+
+        /* Property colors */
+        .GH-color-brown { background-color: var(--property-brown); }
+        .GH-color-lightblue { background-color: var(--property-lightblue); }
+        .GH-color-pink { background-color: var(--property-pink); }
+        .GH-color-orange { background-color: var(--property-orange); }
+        .GH-color-red { background-color: var(--property-red); }
+        .GH-color-yellow { background-color: var(--property-yellow); }
+        .GH-color-green { background-color: var(--property-green); }
+        .GH-color-darkblue { background-color: var(--property-darkblue); }
+        .GH-color-railroad { background-color: var(--property-railroad); }
+        .GH-color-utility { background-color: var(--property-utility); }
+
+        /* Instructions */
+        .GH-instructions {
+            background-color: var(--accent-light);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: #444;
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--primary-blue);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--accent-gold);
+        }
+
+        .GH-instructions ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--accent-gold);
+            font-weight: bold;
+            position: absolute;
+            left: -15px;
+        }
+
+        /* Game log */
+        .GH-game-log {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: var(--gh-radius-md);
+            padding: 10px;
+            margin-top: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            width: 100%;
+            max-width: 800px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .GH-dark-mode .GH-game-log {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .GH-log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .GH-dark-mode .GH-log-entry {
+            border-bottom-color: rgba(255,255,255,0.05);
+        }
+
+        .GH-log-entry:last-child {
+            border-bottom: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .GH-card {
+                width: 90px;
+                height: 126px;
+            }
+
+            .GH-players-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-player-area {
+                min-width: 150px;
+            }
+
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+
+            .GH-instructions ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes cardDraw {
+            0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .GH-card {
+            animation: cardDraw 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .GH-player-area.active {
+            animation: pulse 2s infinite;
+        }
+
+        /* Game background */
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(26, 58, 95, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        /* Game Notification */
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.info {
+            background: var(--primary-blue);
+        }
+
+        .GH-game-notification.warning {
+            background: var(--warning-orange);
+        }
+
+        .GH-game-notification.success {
+            background: var(--success-green);
+        }
+
+        .GH-game-notification.error {
+            background: var(--error-red);
+        }
+
+        /* Game Over Modal */
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-lg);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--accent-dark);
+            color: white;
+        }
+
+        .GH-modal-title {
+            color: var(--primary-blue);
+            margin-bottom: var(--gh-space-lg);
+            font-size: 2rem;
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--accent-gold);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin-bottom: var(--gh-space-lg);
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: var(--accent-light);
+        }
+
+        .GH-dark-mode .GH-modal-stat {
+            background: #555;
+        }
+
+        .GH-modal-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--accent-gold);
+        }
+
+        .GH-modal-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Turn indicator */
+        .GH-turn-indicator {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gold);
+            color: var(--primary-blue);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.monopoly.title">Monopoly Deal</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="round">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.monopoly.round">Round</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="deck-count">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.monopoly.cardsLeft">Cards Left</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="sets-completed">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.monopoly.setsCompleted">Sets Completed</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.monopoly.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.monopoly.instruction1">Collect 3 complete property sets to win</li>
+                    <li data-i18n="GH.monopoly.instruction2">Play property cards to build sets</li>
+                    <li data-i18n="GH.monopoly.instruction3">Use action cards to charge rent or steal properties</li>
+                    <li data-i18n="GH.monopoly.instruction4">Manage your money to pay rent and buy properties</li>
+                    <li data-i18n="GH.monopoly.instruction5">First to 3 complete sets wins the game!</li>
+                </ul>
+            </div>
+
+            <div class="GH-players-container" id="players-container">
+                <!-- Player areas will be populated by JavaScript -->
+            </div>
+            
+            <div class="GH-game-area">
+                <div class="GH-cards-container" id="player-hand">
+                    <!-- Player's cards will be displayed here -->
+                </div>
+                
+                <div class="GH-game-log" id="game-log">
+                    <!-- Game events will be logged here -->
+                </div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="draw-btn" class="GH-game-btn" data-i18n="GH.monopoly.drawCards">
+                    <span>🎴</span> Draw Cards (2)
+                </button>
+                <button id="end-turn-btn" class="GH-game-btn secondary" data-i18n="GH.monopoly.endTurn" disabled>
+                    <span>⏭️</span> End Turn
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.monopoly.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="game-result-title" data-i18n="GH.monopoly.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="winner-name">-</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.monopoly.winner">Winner</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="total-rounds">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.monopoly.totalRounds">Total Rounds</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-sets">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.monopoly.setsCompleted">Sets Completed</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="game-duration">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.monopoly.gameDuration">Game Duration</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.monopoly.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.monopoly.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script src="monopoly-data.js"></script>
+    <script>
+        // DOM elements
+        const playersContainer = document.getElementById('players-container');
+        const playerHand = document.getElementById('player-hand');
+        const gameLog = document.getElementById('game-log');
+        const drawBtn = document.getElementById('draw-btn');
+        const endTurnBtn = document.getElementById('end-turn-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const roundElement = document.getElementById('round');
+        const deckCountElement = document.getElementById('deck-count');
+        const setsCompletedElement = document.getElementById('sets-completed');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const winnerNameElement = document.getElementById('winner-name');
+        const totalRoundsElement = document.getElementById('total-rounds');
+        const finalSetsElement = document.getElementById('final-sets');
+        const gameDurationElement = document.getElementById('game-duration');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+        const gameNotification = document.getElementById('game-notification');
+
+        // Game state
+        let gameState = {
+            players: [],
+            currentPlayer: 0,
+            deck: [],
+            discardPile: [],
+            round: 1,
+            gameStarted: false,
+            gameOver: false,
+            startTime: null
+        };
+
+        // Event listeners
+        drawBtn.addEventListener('click', drawCards);
+        endTurnBtn.addEventListener('click', endTurn);
+        restartBtn.addEventListener('click', restartGame);
+        playAgainBtn.addEventListener('click', playAgain);
+        mainMenuBtn.addEventListener('click', goToMainMenu);
+
+        // Initialize game
+        function initGame() {
+            gameState = {
+                players: [],
+                currentPlayer: 0,
+                deck: [],
+                discardPile: [],
+                round: 1,
+                gameStarted: false,
+                gameOver: false,
+                startTime: new Date()
+            };
+
+            createDeck();
+            createPlayers();
+            dealInitialCards();
+            updateUI();
+            
+            logGameEvent(getTranslation('GH.monopoly.gameStarted', 'Game started!'));
+            showTranslatableNotification('GH.monopoly.gameStarted', 'info');
+        }
+
+        function createDeck() {
+            gameState.deck = [];
+            
+            // Add property cards
+            propertySets.forEach(set => {
+                for (let i = 0; i < 6; i++) { // 6 of each property
+                    gameState.deck.push({
+                        type: cardTypes.PROPERTY,
+                        color: set.color,
+                        name: set.name,
+                        value: 0,
+                        set: set
+                    });
+                }
+            });
+            
+            // Add money cards
+            const moneyValues = [1, 2, 3, 5, 10];
+            moneyValues.forEach(value => {
+                const count = value <= 3 ? 8 : value === 5 ? 4 : 2;
+                for (let i = 0; i < count; i++) {
+                    gameState.deck.push({
+                        type: cardTypes.MONEY,
+                        value: value,
+                        name: `$${value}M`
+                    });
+                }
+            });
+            
+            // Add rent cards
+            propertySets.forEach(set => {
+                for (let i = 0; i < 3; i++) {
+                    gameState.deck.push({
+                        type: cardTypes.RENT,
+                        color: set.color,
+                        value: 1,
+                        name: 'Rent'
+                    });
+                }
+            });
+            
+            // Add wild rent cards
+            for (let i = 0; i < 4; i++) {
+                gameState.deck.push({
+                    type: cardTypes.RENT,
+                    color: 'wild',
+                    value: 3,
+                    name: 'Wild Rent'
+                });
+            }
+            
+            // Shuffle deck
+            shuffleDeck();
+        }
+
+        function shuffleDeck() {
+            for (let i = gameState.deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gameState.deck[i], gameState.deck[j]] = [gameState.deck[j], gameState.deck[i]];
+            }
+        }
+
+        function createPlayers() {
+            gameState.players = [
+                {
+                    id: 0,
+                    name: getTranslation('GH.monopoly.player', 'Player'),
+                    hand: [],
+                    properties: {},
+                    money: 0,
+                    isAI: false,
+                    setsCompleted: 0,
+                    color: 'var(--player-1)'
+                },
+                {
+                    id: 1,
+                    name: getTranslation('GH.monopoly.ai1', 'AI 1'),
+                    hand: [],
+                    properties: {},
+                    money: 0,
+                    isAI: true,
+                    setsCompleted: 0,
+                    color: 'var(--player-2)'
+                },
+                {
+                    id: 2,
+                    name: getTranslation('GH.monopoly.ai2', 'AI 2'),
+                    hand: [],
+                    properties: {},
+                    money: 0,
+                    isAI: true,
+                    setsCompleted: 0,
+                    color: 'var(--player-3)'
+                }
+            ];
+        }
+
+        function dealInitialCards() {
+            gameState.players.forEach(player => {
+                for (let i = 0; i < 5; i++) {
+                    if (gameState.deck.length > 0) {
+                        player.hand.push(gameState.deck.pop());
+                    }
+                }
+            });
+        }
+
+        function drawCards() {
+            if (!gameState.gameStarted) {
+                gameState.gameStarted = true;
+            }
+
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            
+            // Draw 2 cards
+            for (let i = 0; i < 2; i++) {
+                if (gameState.deck.length > 0) {
+                    currentPlayer.hand.push(gameState.deck.pop());
+                } else if (gameState.discardPile.length > 0) {
+                    // Reshuffle discard pile if deck is empty
+                    gameState.deck = [...gameState.discardPile];
+                    gameState.discardPile = [];
+                    shuffleDeck();
+                    currentPlayer.hand.push(gameState.deck.pop());
+                }
+            }
+
+            drawBtn.disabled = true;
+            endTurnBtn.disabled = false;
+            
+            logGameEvent(`${currentPlayer.name} ${getTranslation('GH.monopoly.drewCards', 'drew 2 cards')}`);
+            updateUI();
+        }
+
+        function playCard(cardIndex) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const card = currentPlayer.hand[cardIndex];
+
+            if (!card) return;
+
+            switch (card.type) {
+                case cardTypes.PROPERTY:
+                    playPropertyCard(card, cardIndex);
+                    break;
+                case cardTypes.MONEY:
+                    playMoneyCard(card, cardIndex);
+                    break;
+                case cardTypes.RENT:
+                    playRentCard(card, cardIndex);
+                    break;
+            }
+        }
+
+        function playPropertyCard(card, cardIndex) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            
+            if (!currentPlayer.properties[card.color]) {
+                currentPlayer.properties[card.color] = [];
+            }
+            
+            currentPlayer.properties[card.color].push(card);
+            currentPlayer.hand.splice(cardIndex, 1);
+            
+            // Check for completed sets
+            checkForCompletedSets(currentPlayer);
+            
+            logGameEvent(`${currentPlayer.name} ${getTranslation('GH.monopoly.playedProperty', 'played a')} ${card.name} ${getTranslation('GH.monopoly.property', 'property')}`);
+            updateUI();
+        }
+
+        function playMoneyCard(card, cardIndex) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            
+            currentPlayer.money += card.value;
+            currentPlayer.hand.splice(cardIndex, 1);
+            
+            logGameEvent(`${currentPlayer.name} ${getTranslation('GH.monopoly.playedMoney', 'played')} ${card.name}`);
+            updateUI();
+        }
+
+        function playRentCard(card, cardIndex) {
+            // Simplified rent - just discard for now
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            
+            gameState.discardPile.push(card);
+            currentPlayer.hand.splice(cardIndex, 1);
+            
+            logGameEvent(`${currentPlayer.name} ${getTranslation('GH.monopoly.playedRent', 'played a rent card')}`);
+            updateUI();
+        }
+
+        function checkForCompletedSets(player) {
+            propertySets.forEach(set => {
+                if (player.properties[set.color] && player.properties[set.color].length >= set.cardsNeeded) {
+                    if (!player.properties[set.color].completed) {
+                        player.properties[set.color].completed = true;
+                        player.setsCompleted++;
+                        logGameEvent(`🎉 ${player.name} ${getTranslation('GH.monopoly.completedSet', 'completed the')} ${set.name} ${getTranslation('GH.monopoly.set', 'set!')}`);
+                        
+                        if (player.setsCompleted >= 3) {
+                            endGame(player);
+                        }
+                    }
+                }
+            });
+        }
+
+        function endTurn() {
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+            
+            if (gameState.currentPlayer === 0) {
+                gameState.round++;
+            }
+
+            drawBtn.disabled = false;
+            endTurnBtn.disabled = true;
+
+            logGameEvent(`${getTranslation('GH.monopoly.nowPlaying', 'Now playing:')} ${gameState.players[gameState.currentPlayer].name}`);
+            
+            // AI turn
+            if (gameState.players[gameState.currentPlayer].isAI) {
+                setTimeout(playAITurn, 1000);
+            }
+
+            updateUI();
+        }
+
+        function playAITurn() {
+            const aiPlayer = gameState.players[gameState.currentPlayer];
+            
+            // AI draws cards first
+            drawCards();
+            
+            // AI plays cards (simplified logic)
+            setTimeout(() => {
+                let cardsPlayed = 0;
+                const maxCardsToPlay = 3;
+                
+                // Play properties first
+                aiPlayer.hand.forEach((card, index) => {
+                    if (cardsPlayed < maxCardsToPlay && card.type === cardTypes.PROPERTY) {
+                        playPropertyCard(card, index - (aiPlayer.hand.length - gameState.players[gameState.currentPlayer].hand.length));
+                        cardsPlayed++;
+                    }
+                });
+                
+                // Then play money
+                aiPlayer.hand.forEach((card, index) => {
+                    if (cardsPlayed < maxCardsToPlay && card.type === cardTypes.MONEY) {
+                        playMoneyCard(card, index - (aiPlayer.hand.length - gameState.players[gameState.currentPlayer].hand.length));
+                        cardsPlayed++;
+                    }
+                });
+                
+                // End AI turn
+                setTimeout(endTurn, 1000);
+            }, 1000);
+        }
+
+        function endGame(winner) {
+            gameState.gameOver = true;
+            const endTime = new Date();
+            const duration = Math.round((endTime - gameState.startTime) / 1000);
+            
+            winnerNameElement.textContent = winner.name;
+            totalRoundsElement.textContent = gameState.round;
+            finalSetsElement.textContent = winner.setsCompleted;
+            gameDurationElement.textContent = `${duration}s`;
+            
+            setTimeout(() => {
+                gameOverModal.classList.add('active');
+            }, 1000);
+            
+            logGameEvent(`🎊 ${winner.name} ${getTranslation('GH.monopoly.winsGame', 'wins the game!')}`);
+        }
+
+        function updateUI() {
+            // Update game stats
+            roundElement.textContent = gameState.round;
+            deckCountElement.textContent = gameState.deck.length;
+            setsCompletedElement.textContent = gameState.players[0].setsCompleted;
+            
+            // Update players display
+            playersContainer.innerHTML = '';
+            gameState.players.forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = `GH-player-area ${index === gameState.currentPlayer ? 'active' : ''}`;
+                
+                let propertiesHTML = '';
+                Object.keys(player.properties).forEach(color => {
+                    const propertyCount = player.properties[color].length;
+                    const set = propertySets.find(s => s.color === color);
+                    const isComplete = propertyCount >= set.cardsNeeded;
+                    
+                    propertiesHTML += `
+                        <div class="GH-property-set">
+                            <div class="GH-property-chip GH-color-${color}" title="${set.name}: ${propertyCount}/${set.cardsNeeded}"></div>
+                            <div class="GH-property-count ${isComplete ? 'GH-property-complete' : ''}">
+                                ${isComplete ? '✓' : propertyCount}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                playerElement.innerHTML = `
+                    ${index === gameState.currentPlayer ? '<div class="GH-turn-indicator">Current Turn</div>' : ''}
+                    <div class="GH-player-name">${player.name}</div>
+                    <div class="GH-player-money">$${player.money}M</div>
+                    <div class="GH-player-properties">${propertiesHTML}</div>
+                    <div>${getTranslation('GH.monopoly.sets', 'Sets')}: ${player.setsCompleted}</div>
+                `;
+                
+                playersContainer.appendChild(playerElement);
+            });
+            
+            // Update player hand
+            playerHand.innerHTML = '';
+            if (gameState.currentPlayer === 0 && !gameState.gameOver) {
+                gameState.players[0].hand.forEach((card, index) => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = `GH-card ${card.type} ${card.type === cardTypes.PROPERTY ? 'property' : ''} playable`;
+                    cardElement.onclick = () => playCard(index);
+                    
+                    let cardHTML = '';
+                    switch (card.type) {
+                        case cardTypes.PROPERTY:
+                            cardHTML = `
+                                <div class="GH-card-corner">P</div>
+                                <div class="GH-card-color GH-color-${card.color}"></div>
+                                <div class="GH-card-title">${card.name}</div>
+                                <div class="GH-card-description">${getTranslation('GH.monopoly.property', 'Property')}</div>
+                            `;
+                            break;
+                        case cardTypes.MONEY:
+                            cardHTML = `
+                                <div class="GH-card-corner">$</div>
+                                <div class="GH-card-value">$${card.value}M</div>
+                                <div class="GH-card-title">${getTranslation('GH.monopoly.money', 'Money')}</div>
+                            `;
+                            break;
+                        case cardTypes.RENT:
+                            cardHTML = `
+                                <div class="GH-card-corner">R</div>
+                                <div class="GH-card-value">💰</div>
+                                <div class="GH-card-title">${card.name}</div>
+                                <div class="GH-card-description">${getTranslation('GH.monopoly.rent', 'Rent')}</div>
+                            `;
+                            break;
+                    }
+                    
+                    cardElement.innerHTML = cardHTML;
+                    playerHand.appendChild(cardElement);
+                });
+            }
+        }
+
+        function logGameEvent(message) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'GH-log-entry';
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            gameLog.appendChild(logEntry);
+            gameLog.scrollTop = gameLog.scrollHeight;
+        }
+
+        function restartGame() {
+            if (gameState.gameStarted && !gameState.gameOver) {
+                showTranslatableNotification('GH.monopoly.restartConfirm', 'warning');
+            }
+            initGame();
+        }
+
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            initGame();
+        }
+
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+
+        // Enhanced notification function
+        function showTranslatableNotification(messageKey, type) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            const cleanKey = messageKey.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let message = keys.reduce((obj, key) => {
+                return obj && obj[key] !== undefined ? obj[key] : undefined;
+            }, translations);
+            
+            if (!message || typeof message !== 'string') {
+                message = getFallbackGameMessage(cleanKey);
+            }
+            
+            showNotification(message, type);
+        }
+
+        function getFallbackGameMessage(key) {
+            const fallbackMessages = {
+                'monopoly.gameStarted': 'Game started! Good luck!',
+                'monopoly.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
+                'monopoly.drewCards': 'drew 2 cards',
+                'monopoly.playedProperty': 'played a',
+                'monopoly.property': 'property',
+                'monopoly.playedMoney': 'played',
+                'monopoly.playedRent': 'played a rent card',
+                'monopoly.completedSet': 'completed the',
+                'monopoly.set': 'set!',
+                'monopoly.nowPlaying': 'Now playing:',
+                'monopoly.winsGame': 'wins the game!'
+            };
+            
+            return fallbackMessages[key] || key;
+        }
+
+        function showNotification(message, type) {
+            gameNotification.textContent = message;
+            gameNotification.className = `GH-game-notification ${type}`;
+            gameNotification.style.display = 'block';
+            gameNotification.classList.add('show');
+            
+            setTimeout(() => {
+                gameNotification.classList.remove('show');
+                setTimeout(() => {
+                    gameNotification.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+
+        // Helper function to get translations
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            
+            let value = keys.reduce((obj, k) => {
+                return obj && obj[k] !== undefined ? obj[k] : undefined;
+            }, translations);
+            
+            return value && typeof value === 'string' ? value : fallback;
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+    
+    <script>
+        // Object specific translations for GH-monopoly-deal.html
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                monopoly: {
+                    title: "Monopoly Deal",
+                    description: "Fast-paced card game version of Monopoly",
+                    howToPlay: "How to Play",
+                    instruction1: "Collect 3 complete property sets to win",
+                    instruction2: "Play property cards to build sets",
+                    instruction3: "Use action cards to charge rent or steal properties",
+                    instruction4: "Manage your money to pay rent and buy properties",
+                    instruction5: "First to 3 complete sets wins the game!",
+                    round: "Round",
+                    cardsLeft: "Cards Left",
+                    setsCompleted: "Sets Completed",
+                    player: "Player",
+                    ai1: "AI 1",
+                    ai2: "AI 2",
+                    drawCards: "Draw Cards (2)",
+                    endTurn: "End Turn",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    gameOver: "Game Over!",
+                    winner: "Winner",
+                    totalRounds: "Total Rounds",
+                    gameDuration: "Game Duration",
+                    property: "Property",
+                    money: "Money",
+                    rent: "Rent",
+                    sets: "Sets",
+                    gameStarted: "Game started! Good luck!",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    drewCards: "drew 2 cards",
+                    playedProperty: "played a",
+                    playedMoney: "played",
+                    playedRent: "played a rent card",
+                    completedSet: "completed the",
+                    set: "set!",
+                    nowPlaying: "Now playing:",
+                    winsGame: "wins the game!"
+                }
+            },
+            ar: {
+                monopoly: {
+                    title: "مونوبولي ديل",
+                    description: "نسخة سريعة من لعبة مونوبولي باستخدام البطاقات",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "اجمع 3 مجموعات عقارات كاملة للفوز",
+                    instruction2: "العب بطاقات العقارات لبناء المجموعات",
+                    instruction3: "استخدم بطاقات الإجراءات لتحصيل الإيجار أو سرقة العقارات",
+                    instruction4: "ادّر أموالك لدفع الإيجار وشراء العقارات",
+                    instruction5: "أول من يكمل 3 مجموعات يفوز باللعبة!",
+                    round: "الجولة",
+                    cardsLeft: "البطاقات المتبقية",
+                    setsCompleted: "المجموعات المكتملة",
+                    player: "اللاعب",
+                    ai1: "الكمبيوتر 1",
+                    ai2: "الكمبيوتر 2",
+                    drawCards: "اسحب البطاقات (2)",
+                    endTurn: "انهي الدور",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    gameOver: "انتهت اللعبة!",
+                    winner: "الفائز",
+                    totalRounds: "إجمالي الجولات",
+                    gameDuration: "مدة اللعبة",
+                    property: "عقار",
+                    money: "مال",
+                    rent: "إيجار",
+                    sets: "المجموعات",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    drewCards: "سحب بطاقتين",
+                    playedProperty: "لعب",
+                    playedMoney: "لعب",
+                    playedRent: "لعب بطاقة إيجار",
+                    completedSet: "أكمل",
+                    set: "مجموعة!",
+                    nowPlaying: "يلعب الآن:",
+                    winsGame: "يفوز باللعبة!"
+                }
+            },
+            fr: {
+                monopoly: {
+                    title: "Monopoly Deal",
+                    description: "Version rapide du Monopoly avec des cartes",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Collectionnez 3 ensembles de propriétés complets pour gagner",
+                    instruction2: "Jouez des cartes propriété pour construire des ensembles",
+                    instruction3: "Utilisez des cartes action pour percevoir un loyer ou voler des propriétés",
+                    instruction4: "Gérez votre argent pour payer le loyer et acheter des propriétés",
+                    instruction5: "Le premier à compléter 3 ensembles gagne la partie!",
+                    round: "Tour",
+                    cardsLeft: "Cartes Restantes",
+                    setsCompleted: "Ensembles Complétés",
+                    player: "Joueur",
+                    ai1: "IA 1",
+                    ai2: "IA 2",
+                    drawCards: "Piocher Cartes (2)",
+                    endTurn: "Fin du Tour",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    gameOver: "Jeu Terminé!",
+                    winner: "Gagnant",
+                    totalRounds: "Tours Totaux",
+                    gameDuration: "Durée du Jeu",
+                    property: "Propriété",
+                    money: "Argent",
+                    rent: "Loyer",
+                    sets: "Ensembles",
+                    gameStarted: "Jeu commencé! Bonne chance!",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer? Votre progression sera perdue.",
+                    drewCards: "a pioché 2 cartes",
+                    playedProperty: "a joué une",
+                    playedMoney: "a joué",
+                    playedRent: "a joué une carte loyer",
+                    completedSet: "a complété l'",
+                    set: "ensemble!",
+                    nowPlaying: "Joue maintenant:",
+                    winsGame: "gagne la partie!"
+                }
+            }
+        };
+    </script>
+</body>
+</html>
