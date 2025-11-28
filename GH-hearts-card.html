@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Hearts Card Game</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Game-specific styles - Hearts theme */
+        :root {
+            /* Hearts color palette - Red/Black theme */
+            --game-primary: #8B0000;
+            --game-secondary: #B22222;
+            --game-accent: #000000;
+            --game-success: #006400;
+            --game-error: #DC143C;
+            --game-warning: #FF8C00;
+            --game-info: #1E90FF;
+            --game-light-bg: #FFF5F5;
+            --game-dark-bg: #2C0A0A;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(70, 20, 20, 0.95);
+            --game-player-area: rgba(139, 0, 0, 0.1);
+            --game-dark-player-area: rgba(139, 0, 0, 0.2);
+        }
+
+        .GH-game-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-md);
+            min-height: 600px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-hearts-table {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .GH-player-area {
+            position: absolute;
+            width: 200px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border-radius: var(--gh-radius-md);
+            background-color: var(--game-player-area);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-player-area {
+            background-color: var(--game-dark-player-area);
+        }
+
+        .GH-player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: var(--gh-font-size-sm);
+        }
+
+        .GH-player-score {
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+        }
+
+        .GH-player-area.player {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 100, 0, 0.2);
+        }
+
+        .GH-player-area.left {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .GH-player-area.right {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .GH-player-area.top {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .GH-trick-area {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .GH-card-slot {
+            position: absolute;
+            width: 80px;
+            height: 120px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .GH-dark-mode .GH-card-slot {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .GH-card-slot.player-slot {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .GH-card-slot.left-slot {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .GH-card-slot.right-slot {
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .GH-card-slot.top-slot {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .GH-player-hand {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            max-width: 800px;
+        }
+
+        .GH-card {
+            width: 80px;
+            height: 120px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-sm);
+            position: relative;
+            user-select: none;
+        }
+
+        .GH-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-card.heart, .GH-card.diamond {
+            background-color: white;
+            color: var(--game-error);
+            border: 1px solid #ffcccc;
+        }
+
+        .GH-card.spade, .GH-card.club {
+            background-color: white;
+            color: var(--game-accent);
+            border: 1px solid #cccccc;
+        }
+
+        .GH-card.queen.spade {
+            box-shadow: 0 0 10px rgba(220, 20, 60, 0.5);
+        }
+
+        .GH-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .GH-card.selected {
+            transform: translateY(-20px);
+            box-shadow: 0 0 15px var(--game-primary);
+        }
+
+        .GH-card-top, .GH-card-bottom {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+        }
+
+        .GH-card-center {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .GH-card-bottom {
+            transform: rotate(180deg);
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-lg);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background-color: var(--game-success);
+        }
+
+        .GH-game-notification.error {
+            background-color: var(--game-error);
+        }
+
+        .GH-game-notification.info {
+            background-color: var(--game-primary);
+        }
+
+        .GH-game-notification.warning {
+            background-color: var(--game-warning);
+            color: var(--gh-dark-text);
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-3xl);
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(139, 0, 0, 0.1);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        .GH-turn-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: var(--gh-space-md);
+            padding: var(--gh-space-sm) var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-sm);
+            font-weight: bold;
+            font-size: var(--gh-font-size-lg);
+            gap: var(--gh-space-sm);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-turn-indicator {
+            background-color: var(--game-dark-card-bg);
+            color: var(--game-accent);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+
+            .GH-game-stats {
+                order: 2;
+            }
+
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .GH-player-hand {
+                max-width: 100%;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 10px;
+            }
+
+            .GH-card {
+                width: 60px;
+                height: 90px;
+                font-size: 0.8rem;
+            }
+
+            .GH-card-center {
+                font-size: 1.8rem;
+            }
+
+            .GH-trick-area {
+                width: 250px;
+                height: 180px;
+            }
+
+            .GH-card-slot {
+                width: 60px;
+                height: 90px;
+            }
+        }
+
+        /* Game background pattern */
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        /* Card animations */
+        @keyframes cardPlay {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .GH-card.played {
+            animation: cardPlay 0.5s ease;
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.hearts.title">Hearts Card Game</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="round">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.hearts.round">Round</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="trick">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.hearts.trick">Trick</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="player-score">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.hearts.yourScore">Your Score</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.hearts.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.hearts.instruction1">Avoid taking hearts (1 point each) and the Queen of Spades (13 points)</li>
+                    <li data-i18n="GH.hearts.instruction2">The player with the 2 of Clubs starts the first trick</li>
+                    <li data-i18n="GH.hearts.instruction3">You must follow suit if possible</li>
+                    <li data-i18n="GH.hearts.instruction4">Hearts cannot be led until they have been "broken"</li>
+                    <li data-i18n="GH.hearts.instruction5">The game ends when a player reaches 100 points</li>
+                    <li data-i18n="GH.hearts.instruction6">The player with the lowest score wins</li>
+                </ul>
+            </div>
+            
+            <div class="GH-turn-indicator" id="turn-indicator">
+                <span data-i18n="GH.hearts.yourTurn">Your Turn</span>
+            </div>
+            
+            <div class="GH-game-area">
+                <div class="GH-hearts-table">
+                    <!-- Player areas -->
+                    <div class="GH-player-area top">
+                        <div class="GH-player-name" data-i18n="GH.hearts.north">North</div>
+                        <div class="GH-player-score" id="north-score">0</div>
+                    </div>
+                    
+                    <div class="GH-player-area left">
+                        <div class="GH-player-name" data-i18n="GH.hearts.west">West</div>
+                        <div class="GH-player-score" id="west-score">0</div>
+                    </div>
+                    
+                    <div class="GH-player-area right">
+                        <div class="GH-player-name" data-i18n="GH.hearts.east">East</div>
+                        <div class="GH-player-score" id="east-score">0</div>
+                    </div>
+                    
+                    <div class="GH-player-area player">
+                        <div class="GH-player-name" data-i18n="GH.hearts.you">You</div>
+                        <div class="GH-player-score" id="player-score-display">0</div>
+                    </div>
+                    
+                    <!-- Trick area -->
+                    <div class="GH-trick-area">
+                        <div class="GH-card-slot top-slot" id="top-slot"></div>
+                        <div class="GH-card-slot left-slot" id="left-slot"></div>
+                        <div class="GH-card-slot right-slot" id="right-slot"></div>
+                        <div class="GH-card-slot player-slot" id="player-slot"></div>
+                    </div>
+                </div>
+                
+                <!-- Player's hand -->
+                <div class="GH-player-hand" id="player-hand">
+                    <!-- Cards will be inserted here -->
+                </div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.hearts.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="pass-btn" class="GH-game-btn secondary" data-i18n="GH.hearts.passCards" disabled>
+                    <span>➡️</span> Pass Cards
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.hearts.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="game-result-title" data-i18n="GH.hearts.gameOver">Game Over!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-player-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.hearts.yourScore">Your Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-north-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.hearts.north">North</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-east-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.hearts.east">East</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-west-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.hearts.west">West</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.hearts.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.hearts.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <script src="translation.js"></script>
+<script src="global.js"></script>
+<script src="data_hearts.js"></script>
+<script>
+    // DOM elements
+    const roundElement = document.getElementById('round');
+    const trickElement = document.getElementById('trick');
+    const playerScoreElement = document.getElementById('player-score');
+    const northScoreElement = document.getElementById('north-score');
+    const eastScoreElement = document.getElementById('east-score');
+    const westScoreElement = document.getElementById('west-score');
+    const playerScoreDisplay = document.getElementById('player-score-display');
+    const turnIndicator = document.getElementById('turn-indicator');
+    const playerHandElement = document.getElementById('player-hand');
+    const topSlot = document.getElementById('top-slot');
+    const leftSlot = document.getElementById('left-slot');
+    const rightSlot = document.getElementById('right-slot');
+    const playerSlot = document.getElementById('player-slot');
+    const startBtn = document.getElementById('start-btn');
+    const passBtn = document.getElementById('pass-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const gameNotification = document.getElementById('game-notification');
+    const gameOverModal = document.getElementById('game-over-modal');
+    const finalPlayerScoreElement = document.getElementById('final-player-score');
+    const finalNorthScoreElement = document.getElementById('final-north-score');
+    const finalEastScoreElement = document.getElementById('final-east-score');
+    const finalWestScoreElement = document.getElementById('final-west-score');
+    const gameResultTitle = document.getElementById('game-result-title');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const mainMenuBtn = document.getElementById('main-menu-btn');
+    
+    // Event listeners
+    startBtn.addEventListener('click', startGame);
+    passBtn.addEventListener('click', completePass);
+    restartBtn.addEventListener('click', restartGame);
+    playAgainBtn.addEventListener('click', playAgain);
+    mainMenuBtn.addEventListener('click', goToMainMenu);
+    
+    console.log('Hearts game DOM elements and event listeners initialized');
+</script>
+    
+<script>
+    // Object specific translations for GH-hearts.html
+    window.GHObjectTranslations = window.GHObjectTranslations || {
+        en: {
+            hearts: {
+                title: "Hearts Card Game",
+                description: "Avoid taking hearts and the Queen of Spades!",
+                howToPlay: "How to Play",
+                instruction1: "Avoid taking hearts (1 point each) and the Queen of Spades (13 points)",
+                instruction2: "The player with the 2 of Clubs starts the first trick",
+                instruction3: "You must follow suit if possible",
+                instruction4: "Hearts cannot be led until they have been 'broken'",
+                instruction5: "The game ends when a player reaches 100 points",
+                instruction6: "The player with the lowest score wins",
+                round: "Round",
+                trick: "Trick",
+                yourScore: "Your Score",
+                north: "North",
+                east: "East",
+                west: "West",
+                you: "You",
+                yourTurn: "Your Turn",
+                opponentTurn: "Opponent's Turn",
+                startGame: "Start Game",
+                passCards: "Pass Cards",
+                restart: "Restart",
+                playAgain: "Play Again",
+                mainMenu: "Main Menu",
+                gameOver: "Game Over!",
+                youWin: "You Win!",
+                youLose: "Game Over",
+                congratulations: "Congratulations! You won with the lowest score.",
+                betterLuck: "Better luck next time!",
+                gameStarted: "Game started! Good luck!",
+                passPhase: "Select 3 cards to pass",
+                youStart: "You start the first trick with the 2 of Clubs",
+                opponentStarts: "Opponent starts the first trick",
+                youTakeTrick: "You take the trick",
+                opponentTakesTrick: "Opponent takes the trick",
+                youTakeTrickNoPoints: "You take the trick (no points)",
+                opponentTakesTrickNoPoints: "Opponent takes the trick (no points)",
+                newRound: "Starting new round",
+                restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                onePoint: "1 point",
+                points: "points"
+            }
+        },
+        ar: {
+            hearts: {
+                title: "لعبة الورق هارتس",
+                description: "تجنب أخذ القلوب وملكة البستوني!",
+                howToPlay: "كيفية اللعب",
+                instruction1: "تجنب أخذ القلوب (نقطة واحدة لكل قلب) وملكة البستوني (13 نقطة)",
+                instruction2: "اللاعب الذي لديه 2 من الإسبات يبدأ الجولة الأولى",
+                instruction3: "يجب أن تلعب نفس اللون إذا كان ذلك ممكناً",
+                instruction4: "لا يمكن بدء الجولة بقلب حتى يتم كسر القلوب",
+                instruction5: "تنتهي اللعبة عندما يصل أي لاعب إلى 100 نقطة",
+                instruction6: "اللاعب ذو أقل عدد من النقاط يفوز",
+                round: "الجولة",
+                trick: "اليد",
+                yourScore: "نقاطك",
+                north: "الشمال",
+                east: "الشرق",
+                west: "الغرب",
+                you: "أنت",
+                yourTurn: "دورك",
+                opponentTurn: "دور الخصم",
+                startGame: "ابدأ اللعبة",
+                passCards: "تمرير البطاقات",
+                restart: "إعادة التشغيل",
+                playAgain: "العب مرة أخرى",
+                mainMenu: "القائمة الرئيسية",
+                gameOver: "انتهت اللعبة!",
+                youWin: "لقد فزت!",
+                youLose: "انتهت اللعبة",
+                congratulations: "مبروك! لقد فزت بأقل عدد من النقاط.",
+                betterLuck: "حظاً أوفر في المرة القادمة!",
+                gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                passPhase: "اختر 3 بطاقات لتمريرها",
+                youStart: "تبدأ الجولة الأولى ب 2 من الإسبات",
+                opponentStarts: "الخصم يبدأ الجولة الأولى",
+                youTakeTrick: "لقد أخذت اليد",
+                opponentTakesTrick: "الخصم يأخذ اليد",
+                youTakeTrickNoPoints: "لقد أخذت اليد (بدون نقاط)",
+                opponentTakesTrickNoPoints: "الخصم يأخذ اليد (بدون نقاط)",
+                newRound: "بداية جولة جديدة",
+                restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                onePoint: "نقطة واحدة",
+                points: "نقاط"
+            }
+        },
+        fr: {
+            hearts: {
+                title: "Jeu de Carte Cœurs",
+                description: "Évitez de prendre les cœurs et la Dame de Pique !",
+                howToPlay: "Comment Jouer",
+                instruction1: "Évitez de prendre les cœurs (1 point chacun) et la Dame de Pique (13 points)",
+                instruction2: "Le joueur avec le 2 de Trèfle commence le premier pli",
+                instruction3: "Vous devez fournir la couleur si possible",
+                instruction4: "Les cœurs ne peuvent pas être menés tant qu'ils n'ont pas été 'cassés'",
+                instruction5: "Le jeu se termine lorsqu'un joueur atteint 100 points",
+                instruction6: "Le joueur avec le score le plus bas gagne",
+                round: "Tour",
+                trick: "Pli",
+                yourScore: "Votre Score",
+                north: "Nord",
+                east: "Est",
+                west: "Ouest",
+                you: "Vous",
+                yourTurn: "Votre Tour",
+                opponentTurn: "Tour de l'Adversaire",
+                startGame: "Commencer le Jeu",
+                passCards: "Passer les Cartes",
+                restart: "Redémarrer",
+                playAgain: "Rejouer",
+                mainMenu: "Menu Principal",
+                gameOver: "Jeu Terminé !",
+                youWin: "Vous Gagnez !",
+                youLose: "Jeu Terminé",
+                congratulations: "Félicitations ! Vous avez gagné avec le score le plus bas.",
+                betterLuck: "Bonne chance la prochaine fois !",
+                gameStarted: "Jeu commencé ! Bonne chance !",
+                passPhase: "Sélectionnez 3 cartes à passer",
+                youStart: "Vous commencez le premier pli avec le 2 de Trèfle",
+                opponentStarts: "L'adversaire commence le premier pli",
+                youTakeTrick: "Vous prenez le pli",
+                opponentTakesTrick: "L'adversaire prend le pli",
+                youTakeTrickNoPoints: "Vous prenez le pli (aucun point)",
+                opponentTakesTrickNoPoints: "L'adversaire prend le pli (aucun point)",
+                newRound: "Début d'un nouveau tour",
+                restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
+                onePoint: "1 point",
+                points: "points"
+            }
+        }
+    };
+</script>
+</body>
+</html>

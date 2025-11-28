@@ -224,5 +224,4 @@ async function updateContent() {
     } catch (error) {
         console.error('Service Worker: Content update failed', error);
     }
-
 }
