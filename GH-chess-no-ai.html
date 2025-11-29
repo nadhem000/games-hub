@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Chess Challenge</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Chess-specific styles */
+        :root {
+            /* Chess color palette - Royal theme */
+            --game-primary: #8B4513;
+            --game-secondary: #D2B48C;
+            --game-accent: #C19A6B;
+            --game-success: #32CD32;
+            --game-error: #FF6B6B;
+            --game-warning: #FFD700;
+            --game-light-bg: #F5F5DC;
+            --game-dark-bg: #2F2F2F;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(50, 50, 50, 0.95);
+            --chess-light: #F0D9B5;
+            --chess-dark: #B58863;
+            --chess-highlight: rgba(144, 238, 144, 0.5);
+            --chess-check: rgba(255, 0, 0, 0.5);
+        }
+
+        .GH-game-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-lg);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            text-align: center;
+            min-width: 100px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+        }
+
+        .GH-game-area {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--gh-space-lg);
+            margin-bottom: var(--gh-space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .GH-game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .GH-chess-board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-dark-mode .GH-chess-board-container {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1 / 1;
+            border: 5px solid var(--game-primary);
+            border-radius: var(--gh-radius-md);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .GH-chess-square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .GH-chess-square.light {
+            background-color: var(--chess-light);
+        }
+
+        .GH-chess-square.dark {
+            background-color: var(--chess-dark);
+        }
+
+        .GH-chess-square.highlight {
+            background-color: var(--chess-highlight);
+        }
+
+        .GH-chess-square.check {
+            background-color: var(--chess-check);
+        }
+
+        .GH-chess-square.selected {
+            box-shadow: inset 0 0 0 3px var(--game-accent);
+        }
+
+        .GH-chess-square.possible-move::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .GH-chess-square.possible-capture::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+
+        .GH-chess-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-chess-controls {
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-dark-mode .GH-chess-controls {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-chess-status {
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-md);
+            text-align: center;
+        }
+
+        .GH-dark-mode .GH-chess-status {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-status-text {
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-status-text {
+            color: var(--game-accent);
+        }
+
+        .GH-move-history {
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background-color: var(--game-card-bg);
+            box-shadow: var(--gh-shadow-md);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .GH-dark-mode .GH-move-history {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-move-history h3 {
+            margin-bottom: var(--gh-space-md);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-move-history h3 {
+            color: var(--game-accent);
+        }
+
+        .GH-moves-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .GH-move {
+            padding: 5px 10px;
+            border-radius: var(--gh-radius-sm);
+            background-color: rgba(0, 0, 0, 0.05);
+            font-family: monospace;
+        }
+
+        .GH-dark-mode .GH-move {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .GH-game-btn {
+            background: var(--gh-gradient-primary);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: var(--gh-font-size-base);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-md);
+            min-width: 150px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-btn:active {
+            transform: translateY(1px);
+        }
+
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .GH-game-btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-sm);
+        }
+
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+        }
+
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-sm);
+            text-align: center;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+
+        .GH-instructions ul {
+            padding-left: 20px;
+        }
+
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .GH-instructions li::before {
+            content: '•';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .GH-dark-mode .GH-instructions li::before {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-lg);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        .GH-game-notification.success {
+            background-color: var(--game-success);
+        }
+
+        .GH-game-notification.error {
+            background-color: var(--game-error);
+        }
+
+        .GH-game-notification.info {
+            background-color: var(--game-primary);
+        }
+
+        .GH-game-notification.warning {
+            background-color: var(--game-warning);
+            color: var(--gh-dark-text);
+        }
+
+        .GH-timer-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .GH-timer-circle {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .GH-timer-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 8;
+        }
+
+        .GH-timer-progress {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .GH-timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: var(--gh-font-size-xl);
+            font-weight: bold;
+            color: white;
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-3xl);
+            margin-bottom: var(--gh-space-md);
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-title {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+        }
+
+        .GH-modal-stat {
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(139, 69, 19, 0.1);
+        }
+
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-sm);
+            margin: var(--gh-space-md) 0;
+        }
+
+        .GH-difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: white;
+        }
+
+        .GH-dark-mode .GH-difficulty-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--gh-space-sm) var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background-color: rgba(0, 0, 0, 0.05);
+            margin-bottom: var(--gh-space-sm);
+        }
+
+        .GH-dark-mode .GH-player-info {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .GH-player-info.active {
+            background-color: rgba(139, 69, 19, 0.2);
+            border: 2px solid var(--game-primary);
+        }
+
+        .GH-dark-mode .GH-player-info.active {
+            background-color: rgba(193, 154, 107, 0.2);
+            border: 2px solid var(--game-accent);
+        }
+
+        .GH-player-name {
+            font-weight: bold;
+            font-size: var(--gh-font-size-lg);
+        }
+
+        .GH-player-time {
+            font-family: monospace;
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+
+            .GH-game-stats {
+                order: 2;
+            }
+
+            .GH-timer-container {
+                order: 1;
+            }
+
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .GH-chess-board {
+                max-width: 350px;
+            }
+
+            .GH-chess-square {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .GH-chess-board {
+                max-width: 300px;
+            }
+
+            .GH-chess-square {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Piece animations */
+        @keyframes movePiece {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .GH-chess-piece.moving {
+            animation: movePiece 0.3s ease;
+        }
+
+        /* Check animation */
+        @keyframes pulseCheck {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+
+        .GH-chess-square.check {
+            animation: pulseCheck 2s infinite;
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <!-- Header -->
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            
+            <h1 class="GH-title" data-i18n="GH.chess.title">Chess Challenge</h1>
+            
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="moves">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.chess.moves">Moves</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="level">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.chess.level">Level</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="score">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.chess.score">Score</span>
+                    </div>
+                </div>
+                
+                <div class="GH-timer-container">
+                    <svg class="GH-timer-circle" viewBox="0 0 100 100">
+                        <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
+                        <circle class="GH-timer-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="GH-timer-text" id="timer">60</div>
+                </div>
+            </div>
+            
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.chess.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.chess.instruction1">Move pieces by clicking on them and then on a valid destination</li>
+                    <li data-i18n="GH.chess.instruction2">Capture your opponent's pieces by moving onto their squares</li>
+                    <li data-i18n="GH.chess.instruction3">Checkmate the opponent's king to win the game</li>
+                    <li data-i18n="GH.chess.instruction4">Use strategy to control the board and protect your pieces</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span data-i18n="GH.chess.difficulty">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-difficulty="easy" data-i18n="GH.chess.easy">Easy</button>
+                <button class="GH-difficulty-btn" data-difficulty="medium" data-i18n="GH.chess.medium">Medium</button>
+                <button class="GH-difficulty-btn" data-difficulty="hard" data-i18n="GH.chess.hard">Hard</button>
+            </div>
+            
+            <div class="GH-game-area">
+                <div class="GH-chess-board-container">
+                    <div class="GH-chess-board" id="chess-board">
+                        <!-- Chess board will be generated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="GH-chess-info">
+                    <div class="GH-chess-status">
+                        <div class="GH-status-text" id="status-text" data-i18n="GH.chess.whiteToMove">White to move</div>
+                        <div class="GH-player-info" id="white-player">
+                            <span class="GH-player-name" data-i18n="GH.chess.white">White</span>
+                            <span class="GH-player-time" id="white-time">10:00</span>
+                        </div>
+                        <div class="GH-player-info" id="black-player">
+                            <span class="GH-player-name" data-i18n="GH.chess.black">Black</span>
+                            <span class="GH-player-time" id="black-time">10:00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="GH-move-history">
+                        <h3 data-i18n="GH.chess.moveHistory">Move History</h3>
+                        <div class="GH-moves-list" id="moves-list">
+                            <!-- Move history will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="GH-chess-controls">
+                        <h3 data-i18n="GH.chess.gameControls">Game Controls</h3>
+                        <div class="GH-game-controls">
+                            <button id="new-game-btn" class="GH-game-btn" data-i18n="GH.chess.newGame">
+                                <span>🆕</span> New Game
+                            </button>
+                            <button id="undo-btn" class="GH-game-btn secondary" data-i18n="GH.chess.undo" disabled>
+                                <span>↩️</span> Undo
+                            </button>
+                            <button id="hint-btn" class="GH-game-btn secondary" data-i18n="GH.chess.hint">
+                                <span>💡</span> Hint
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="GH-game-controls">
+                <button id="start-btn" class="GH-game-btn" data-i18n="GH.chess.startGame">
+                    <span>▶️</span> Start Game
+                </button>
+                <button id="pause-btn" class="GH-game-btn secondary" data-i18n="GH.chess.pause" disabled>
+                    <span>⏸️</span> Pause
+                </button>
+                <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.chess.restart">
+                    <span>🔄</span> Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.0.1</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Game Notification -->
+    <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="GH-game-modal" id="game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="game-result-title" data-i18n="GH.chess.checkmate">Checkmate!</h2>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-score">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.chess.finalScore">Final Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-level">1</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.chess.levelReached">Level Reached</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="total-moves">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.chess.totalMoves">Total Moves</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="game-time">0:00</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.chess.gameTime">Game Time</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="play-again-btn" class="GH-game-btn" data-i18n="GH.chess.playAgain">Play Again</button>
+                <button id="main-menu-btn" class="GH-game-btn secondary" data-i18n="GH.chess.mainMenu">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include JavaScript files -->
+    <!-- Include JavaScript files -->
+<script src="translation.js"></script>
+<script src="global.js"></script>
+<script src="data-chess.js"></script>
+<script>
+    // Object specific translations for GH-chess.html
+    window.GHObjectTranslations = window.GHObjectTranslations || {
+        en: {
+            chess: {
+                title: "Chess Challenge",
+                description: "Test your strategic thinking in this classic game of chess!",
+                howToPlay: "How to Play",
+                instruction1: "Move pieces by clicking on them and then on a valid destination",
+                instruction2: "Capture your opponent's pieces by moving onto their squares",
+                instruction3: "Checkmate the opponent's king to win the game",
+                instruction4: "Use strategy to control the board and protect your pieces",
+                time: "Time",
+                score: "Score",
+                level: "Level",
+                moves: "Moves",
+                white: "White",
+                black: "Black",
+                whiteToMove: "White to move",
+                blackToMove: "Black to move",
+                moveHistory: "Move History",
+                gameControls: "Game Controls",
+                newGame: "New Game",
+                undo: "Undo",
+                hint: "Hint",
+                startGame: "Start Game",
+                pause: "Pause",
+                resume: "Resume",
+                restart: "Restart",
+                playAgain: "Play Again",
+                mainMenu: "Main Menu",
+                checkmate: "Checkmate!",
+                stalemate: "Stalemate!",
+                draw: "Draw!",
+                winsOnTime: "wins on time!",
+                finalScore: "Final Score",
+                levelReached: "Level Reached",
+                totalMoves: "Total Moves",
+                gameTime: "Game Time",
+                gameStarted: "Game started! Good luck!",
+                gamePaused: "Game paused",
+                gameResumed: "Game resumed",
+                restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                moveUndone: "Move undone!",
+                noMovesToUndo: "No moves to undo!",
+                hintShown: "Hint shown!",
+                selectPieceFirst: "Select a piece first to get a hint.",
+                gameOver: "Game Over!",
+                difficulty: "Difficulty:",
+                easy: "Easy",
+                medium: "Medium",
+                hard: "Hard"
+            }
+        },
+        ar: {
+            chess: {
+                title: "تحدي الشطرنج",
+                description: "اختبر تفكيرك الاستراتيجي في هذه اللعبة الكلاسيكية للشطرنج!",
+                howToPlay: "كيفية اللعب",
+                instruction1: "انقل القطع بالنقر عليها ثم على الوجهة الصالحة",
+                instruction2: "احترف قطع الخصم بالانتقال إلى مربعاتهم",
+                instruction3: "كش ملك الخصم للفوز في اللعبة",
+                instruction4: "استخدم الإستراتيجية للسيطرة على اللوحة وحماية قطعك",
+                time: "الوقت",
+                score: "النقاط",
+                level: "المستوى",
+                moves: "الحركات",
+                white: "الأبيض",
+                black: "الأسود",
+                whiteToMove: "دور الأبيض",
+                blackToMove: "دور الأسود",
+                moveHistory: "سجل الحركات",
+                gameControls: "عناصر تحكم اللعبة",
+                newGame: "لعبة جديدة",
+                undo: "تراجع",
+                hint: "تلميح",
+                startGame: "ابدأ اللعبة",
+                pause: "إيقاف مؤقت",
+                resume: "استئناف",
+                restart: "إعادة التشغيل",
+                playAgain: "العب مرة أخرى",
+                mainMenu: "القائمة الرئيسية",
+                checkmate: "كش ملك!",
+                stalemate: "مأزق!",
+                draw: "تعادل!",
+                winsOnTime: "يفوز بالوقت!",
+                finalScore: "النتيجة النهائية",
+                levelReached: "المستوى الذي تم الوصول إليه",
+                totalMoves: "إجمالي الحركات",
+                gameTime: "وقت اللعبة",
+                gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                gamePaused: "تم إيقاف اللعبة مؤقتاً",
+                gameResumed: "تم استئناف اللعبة",
+                restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                moveUndone: "تم التراجع عن الحركة!",
+                noMovesToUndo: "لا توجد حركات للتراجع عنها!",
+                hintShown: "تم عرض التلميح!",
+                selectPieceFirst: "حدد قطعة أولاً للحصول على تلميح.",
+                gameOver: "انتهت اللعبة!",
+                difficulty: "الصعوبة:",
+                easy: "سهل",
+                medium: "متوسط",
+                hard: "صعب"
+            }
+        },
+        fr: {
+            chess: {
+                title: "Défi d'Échecs",
+                description: "Testez votre pensée stratégique dans ce jeu classique d'échecs !",
+                howToPlay: "Comment Jouer",
+                instruction1: "Déplacez les pièces en cliquant dessus puis sur une destination valide",
+                instruction2: "Capturez les pièces de l'adversaire en vous déplaçant sur leurs cases",
+                instruction3: "Faites échec et mat au roi adverse pour gagner la partie",
+                instruction4: "Utilisez la stratégie pour contrôler l'échiquier et protéger vos pièces",
+                time: "Temps",
+                score: "Score",
+                level: "Niveau",
+                moves: "Mouvements",
+                white: "Blanc",
+                black: "Noir",
+                whiteToMove: "Aux blancs de jouer",
+                blackToMove: "Aux noirs de jouer",
+                moveHistory: "Historique des Coups",
+                gameControls: "Contrôles du Jeu",
+                newGame: "Nouvelle Partie",
+                undo: "Annuler",
+                hint: "Indice",
+                startGame: "Commencer le Jeu",
+                pause: "Pause",
+                resume: "Reprendre",
+                restart: "Redémarrer",
+                playAgain: "Rejouer",
+                mainMenu: "Menu Principal",
+                checkmate: "Échec et Mat !",
+                stalemate: "Pat !",
+                draw: "Match Nul !",
+                winsOnTime: "gagne au temps !",
+                finalScore: "Score Final",
+                levelReached: "Niveau Atteint",
+                totalMoves: "Total des Mouvements",
+                gameTime: "Temps de Jeu",
+                gameStarted: "Jeu commencé ! Bonne chance !",
+                gamePaused: "Jeu en pause",
+                gameResumed: "Jeu repris",
+                restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
+                moveUndone: "Coup annulé !",
+                noMovesToUndo: "Aucun coup à annuler !",
+                hintShown: "Indice affiché !",
+                selectPieceFirst: "Sélectionnez d'abord une pièce pour obtenir un indice.",
+                gameOver: "Jeu Terminé !",
+                difficulty: "Difficulté:",
+                easy: "Facile",
+                medium: "Moyen",
+                hard: "Difficile"
+            }
+        }
+    };
+</script>
+</body>
+</html>
