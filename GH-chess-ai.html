@@ -1417,30 +1417,64 @@
 
       initStockfish();
 
-      function getAIMove() {
-        if (useFallback || !stockfishReady) {
-          aiThoughtDiv.innerText = 'Fallback AI thinking...';
-          return new Promise((resolve, reject) => {
-            const move = getFallbackMove();
-            if (move) resolve(move);
-            else reject('No moves');
-          });
-        }
-        return new Promise((resolve, reject) => {
-          if (isAIThinking) { reject('AI already thinking'); return; }
-          if (stockfishWorker) stockfishWorker.postMessage('stop');
-          isAIThinking = true; aiMoveResolve = resolve; aiMoveReject = reject;
-          const cfg = levelConfig[currentLevel];
-          const fen = game.fen();
-          aiMoveTimeout = setTimeout(() => {
-            if (isAIThinking) { isAIThinking = false; aiMoveResolve = null; aiMoveReject = null; reject('AI move timeout'); }
-          }, cfg.time + 2000);
-          stockfishWorker.postMessage('ucinewgame');
-          stockfishWorker.postMessage(`setoption name Skill Level value ${cfg.skill}`);
-          stockfishWorker.postMessage(`position fen ${fen}`);
-          stockfishWorker.postMessage(`go movetime ${cfg.time}`);
-        });
+      
+function applyAIMove(moveString) {
+  const move = game.move(moveString, { sloppy: true });
+  if (move) {
+    if (move.captured) addToCaptured({ color: move.color === 'w' ? 'b' : 'w', type: move.captured });
+    renderBoard();
+    updateStatus();
+    updateMoveCount();
+    appendMoveToLog();
+    if (game.game_over()) { 
+      gameOver = true; 
+      showGameOverModal();
+      if (game.in_checkmate()) {
+        showChessNotification(game.turn() === 'w' ? 'chess.blackWins' : 'chess.whiteWins', 'success');
+      } else if (game.in_draw()) {
+        showChessNotification('chess.draw', 'info');
       }
+    }
+    if (soundEnabled) playSound('move');
+  } else {
+    aiThoughtDiv.innerText = 'AI suggested illegal move.';
+    showChessNotification('chess.illegalMove', 'error');
+  }
+}
+
+// Updated getAIMove with larger timeout (cfg.time + 5000)
+function getAIMove() {
+  if (useFallback || !stockfishReady) {
+    aiThoughtDiv.innerText = 'Fallback AI thinking...';
+    return new Promise((resolve, reject) => {
+      const move = getFallbackMove();
+      if (move) resolve(move);
+      else reject('No moves');
+    });
+  }
+  return new Promise((resolve, reject) => {
+    if (isAIThinking) { reject('AI already thinking'); return; }
+    if (stockfishWorker) stockfishWorker.postMessage('stop');
+    isAIThinking = true;
+    aiMoveResolve = resolve;
+    aiMoveReject = reject;
+    const cfg = levelConfig[currentLevel];
+    const fen = game.fen();
+    // 🔥 INCREASED TIMEOUT: cfg.time + 5000 ms
+    aiMoveTimeout = setTimeout(() => {
+      if (isAIThinking) {
+        isAIThinking = false;
+        aiMoveResolve = null;
+        aiMoveReject = null;
+        reject('AI move timeout');
+      }
+    }, cfg.time + 5000);
+    stockfishWorker.postMessage('ucinewgame');
+    stockfishWorker.postMessage(`setoption name Skill Level value ${cfg.skill}`);
+    stockfishWorker.postMessage(`position fen ${fen}`);
+    stockfishWorker.postMessage(`go movetime ${cfg.time}`);
+  });
+}
 
       // New helper functions
       function updateCapturedDisplay() {
@@ -1530,42 +1564,31 @@
 
       // Modified makeAIMove
       function makeAIMove() {
-        if (game.game_over() || game.turn() !== aiColor) return;
-        showAISpinner(true);
-        aiThoughtDiv.innerText = '';
-        getAIMove()
-          .then(moveString => {
-            showAISpinner(false);
-            const move = game.move(moveString, { sloppy: true });
-            if (move) {
-              if (move.captured) addToCaptured({ color: move.color === 'w' ? 'b' : 'w', type: move.captured });
-              renderBoard();
-              updateStatus();
-              updateMoveCount();
-              appendMoveToLog();
-              if (game.game_over()) { 
-                gameOver = true; 
-                showGameOverModal();
-                // Show notification based on result
-                if (game.in_checkmate()) {
-                  showChessNotification(game.turn() === 'w' ? 'chess.blackWins' : 'chess.whiteWins', 'success');
-                } else if (game.in_draw()) {
-                  showChessNotification('chess.draw', 'info');
-                }
-              }
-              if (soundEnabled) playSound('move');
-            } else {
-              aiThoughtDiv.innerText = 'AI suggested illegal move.';
-              showChessNotification('chess.illegalMove', 'error');
-            }
-          })
-          .catch(err => {
-            showAISpinner(false);
-            console.error('AI move error:', err);
-            aiThoughtDiv.innerText = 'AI move failed.';
-            showChessNotification('chess.aiFailed', 'error');
-          });
+  if (game.game_over() || game.turn() !== aiColor) return;
+  showAISpinner(true);
+  aiThoughtDiv.innerText = '';
+
+  // First attempt with Stockfish
+  getAIMove()
+    .then(moveString => {
+      showAISpinner(false);
+      applyAIMove(moveString);
+    })
+    .catch(err => {
+      console.warn('Stockfish failed, trying fallback AI', err);
+      // Fallback: use the built‑in engine
+      const fallbackMove = getFallbackMove();
+      showAISpinner(false);
+      if (fallbackMove) {
+        applyAIMove(fallbackMove);
+        // Optionally notify the user that fallback was used
+        aiThoughtDiv.innerText = 'Using fallback AI (Stockfish timeout)';
+      } else {
+        aiThoughtDiv.innerText = 'No moves available';
+        showChessNotification('chess.aiFailed', 'error');
       }
+    });
+}
 
       // Renders board + coordinates inside the grid container
       function renderBoard() {
