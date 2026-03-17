@@ -1460,7 +1460,7 @@ function getAIMove() {
     aiMoveReject = reject;
     const cfg = levelConfig[currentLevel];
     const fen = game.fen();
-    // 🔥 INCREASED TIMEOUT: cfg.time + 5000 ms
+    // 🔥 INCREASED TIMEOUT: cfg.time + 10000 ms
     aiMoveTimeout = setTimeout(() => {
       if (isAIThinking) {
         isAIThinking = false;
@@ -1468,7 +1468,7 @@ function getAIMove() {
         aiMoveReject = null;
         reject('AI move timeout');
       }
-    }, cfg.time + 5000);
+    }, cfg.time + 10000);
     stockfishWorker.postMessage('ucinewgame');
     stockfishWorker.postMessage(`setoption name Skill Level value ${cfg.skill}`);
     stockfishWorker.postMessage(`position fen ${fen}`);
@@ -1575,13 +1575,21 @@ function getAIMove() {
       applyAIMove(moveString);
     })
     .catch(err => {
-      console.warn('Stockfish failed, trying fallback AI', err);
-      // Fallback: use the built‑in engine
+      console.warn('Stockfish failed, switching to fallback AI', err);
+      // Permanently switch to fallback for the rest of the game
+      useFallback = true;
+      // Terminate Stockfish worker to save resources
+      if (stockfishWorker) {
+        stockfishWorker.terminate();
+        stockfishWorker = null;
+      }
+      stockfishReady = false;
+      
+      // Use fallback for this move
       const fallbackMove = getFallbackMove();
       showAISpinner(false);
       if (fallbackMove) {
         applyAIMove(fallbackMove);
-        // Optionally notify the user that fallback was used
         aiThoughtDiv.innerText = 'Using fallback AI (Stockfish timeout)';
       } else {
         aiThoughtDiv.innerText = 'No moves available';
