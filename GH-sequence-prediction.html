@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHub - Sequence Prediction Challenge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=1.5">
+    <title>GameHub - Sequence Prediction Challenge (Enhanced)</title>
     <link rel="stylesheet" href="main.css">
     <style>
-        /* Game-specific styles - Cosmic theme */
+        /* Keep the original cosmic theme completely */
         :root {
-            /* Sequence Prediction color palette - Cosmic theme */
             --game-primary: #8A2BE2;
             --game-secondary: #4B0082;
             --game-accent: #00CED1;
@@ -152,11 +151,6 @@
             box-shadow: var(--gh-shadow-md);
         }
 
-        .GH-option.selected {
-            border-color: var(--game-accent);
-            box-shadow: 0 0 0 3px var(--game-accent);
-        }
-
         .GH-option.correct {
             border-color: var(--game-success);
             box-shadow: 0 0 0 3px var(--game-success), 0 0 20px rgba(50, 205, 50, 0.5);
@@ -212,10 +206,6 @@
             box-shadow: var(--gh-shadow-lg);
         }
 
-        .GH-game-btn:active {
-            transform: translateY(1px);
-        }
-
         .GH-game-btn.secondary {
             background: transparent;
             border: 2px solid var(--game-primary);
@@ -227,25 +217,10 @@
             border-color: var(--game-accent);
         }
 
-        .GH-game-btn.secondary:hover {
-            background: var(--game-primary);
-            color: white;
-        }
-
-        .GH-dark-mode .GH-game-btn.secondary:hover {
-            background: var(--game-accent);
-            color: var(--game-dark-bg);
-        }
-
         .GH-game-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
-        }
-
-        .GH-game-btn:disabled:hover {
-            transform: none;
-            box-shadow: var(--gh-shadow-md);
         }
 
         .GH-level-indicator {
@@ -368,18 +343,9 @@
             transform: translateX(0);
         }
 
-        .GH-game-notification.success {
-            background-color: var(--game-success);
-        }
-
-        .GH-game-notification.error {
-            background-color: var(--game-error);
-        }
-
-        .GH-game-notification.info {
-            background-color: var(--game-primary);
-        }
-
+        .GH-game-notification.success { background-color: var(--game-success); }
+        .GH-game-notification.error { background-color: var(--game-error); }
+        .GH-game-notification.info { background-color: var(--game-primary); }
         .GH-game-notification.warning {
             background-color: var(--game-warning);
             color: var(--gh-dark-text);
@@ -558,95 +524,59 @@
             color: var(--game-accent);
         }
 
-        .GH-pattern-explanation p {
-            margin-bottom: var(--gh-space-sm);
+        /* New per‑sequence timer styling, consistent with existing design */
+        .GH-per-seq-timer {
+            font-size: var(--gh-font-size-lg);
+            font-weight: bold;
+            color: var(--game-primary);
+            margin-bottom: 10px;
         }
 
-        /* Sequence animations */
-        @keyframes sequenceReveal {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .GH-dark-mode .GH-per-seq-timer {
+            color: var(--game-accent);
         }
 
-        .GH-sequence-item, .GH-option {
-            animation: sequenceReveal 0.5s ease;
+        /* Level‑up overlay – mimics existing modal style */
+        .GH-level-up-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .GH-game-header {
-                flex-direction: column;
-                gap: var(--gh-space-md);
-            }
-
-            .GH-game-stats {
-                order: 2;
-            }
-
-            .GH-timer-container {
-                order: 1;
-            }
-
-            .GH-game-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .GH-game-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-
-            .GH-sequence-display {
-                gap: 10px;
-            }
-
-            .GH-sequence-item {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
-            }
-
-            .GH-option {
-                height: 70px;
-                font-size: 1.5rem;
-            }
+        .GH-level-up-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
-        @media (max-width: 480px) {
-            .GH-sequence-display {
-                gap: 8px;
-            }
-
-            .GH-sequence-item {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
-            }
-
-            .GH-option {
-                height: 60px;
-                font-size: 1.2rem;
-            }
+        .GH-level-up-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-lg);
+            padding: var(--gh-space-xl);
+            text-align: center;
+            box-shadow: var(--gh-shadow-lg);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
         }
 
-        /* RTL support */
-        [dir="rtl"] .GH-instructions li::before {
-            margin-left: 0;
-            margin-right: -1em;
+        .GH-level-up-overlay.active .GH-level-up-content {
+            transform: scale(1);
         }
 
-        [dir="rtl"] .GH-game-notification {
-            right: auto;
-            left: 20px;
-            transform: translateX(-150%);
+        .GH-dark-mode .GH-level-up-content {
+            background: var(--game-dark-card-bg);
         }
 
-        [dir="rtl"] .GH-game-notification.show {
-            transform: translateX(0);
-        }
-
-        /* Game background pattern */
+        /* Background pattern for game area */
         .GH-game-area::before {
             content: '';
             position: absolute;
@@ -658,6 +588,39 @@
                 radial-gradient(circle at 25% 25%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 75% 75%, rgba(0, 206, 209, 0.1) 0%, transparent 50%);
             z-index: -1;
+        }
+
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+            .GH-game-stats {
+                order: 2;
+            }
+            .GH-timer-container {
+                order: 1;
+            }
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .GH-game-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            .GH-sequence-display {
+                gap: 10px;
+            }
+            .GH-sequence-item {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            .GH-option {
+                height: 70px;
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -708,6 +671,10 @@
                         <span class="GH-stat-value" id="streak">0</span>
                         <span class="GH-stat-label" data-i18n="GH.sequence.streak">Streak</span>
                     </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="accuracy">0%</span>
+                        <span class="GH-stat-label" data-i18n="GH.sequence.accuracy">Accuracy</span>
+                    </div>
                 </div>
                 
                 <div class="GH-timer-container">
@@ -715,18 +682,17 @@
                         <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
                         <circle class="GH-timer-progress" cx="50" cy="50" r="45"></circle>
                     </svg>
-                    <div class="GH-timer-text" id="timer">60</div>
+                    <div class="GH-timer-text" id="globalTimer">60</div>
                 </div>
             </div>
             
             <div class="GH-instructions">
                 <h2 data-i18n="GH.sequence.howToPlay">How to Play</h2>
                 <ul>
-                    <li data-i18n="GH.sequence.instruction1">Observe the sequence of shapes, numbers, or patterns</li>
-                    <li data-i18n="GH.sequence.instruction2">Identify the pattern and predict what comes next</li>
-                    <li data-i18n="GH.sequence.instruction3">Select the correct option from the choices below</li>
-                    <li data-i18n="GH.sequence.instruction4">Each level increases the complexity of patterns</li>
-                    <li data-i18n="GH.sequence.instruction5">Complete sequences to earn points and progress</li>
+                    <li data-i18n="GH.sequence.instruction1">Observe the sequence and find the logical pattern</li>
+                    <li data-i18n="GH.sequence.instruction2">Answer each question before the per‑sequence timer runs out</li>
+                    <li data-i18n="GH.sequence.instruction3">Complete the target number of sequences with at least 90% accuracy to win</li>
+                    <li data-i18n="GH.sequence.instruction4">Every 5 sequences you level up – the global timer pauses briefly</li>
                 </ul>
             </div>
 
@@ -752,17 +718,14 @@
             </div>
             
             <div class="GH-game-area">
+                <div class="GH-per-seq-timer" id="perSeqTimer">⏳ 10s</div>
                 <div id="sequence-display" class="GH-sequence-display"></div>
-                
                 <div id="options-container" class="GH-options-container"></div>
             </div>
             
             <div class="GH-game-controls">
                 <button id="start-btn" class="GH-game-btn" data-i18n="GH.sequence.startGame">
                     <span>▶️</span> Start Game
-                </button>
-                <button id="pause-btn" class="GH-game-btn secondary" data-i18n="GH.sequence.pause" disabled>
-                    <span>⏸️</span> Pause
                 </button>
                 <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.sequence.restart">
                     <span>🔄</span> Restart
@@ -776,14 +739,12 @@
         <div class="GH-footer-content">
             <div class="GH-footer-column">
                 <span data-i18n="GH.general.version">Version:</span>
-                <span>v0.0.1</span>
+                <span>v0.1.0</span>
             </div>
-            
             <div class="GH-footer-column">
                 <span data-i18n="GH.general.developer">Developer:</span>
                 <span>Mejri Ziad</span>
             </div>
-            
             <div class="GH-footer-column">
                 <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
                 <span> | </span>
@@ -798,7 +759,7 @@
     <!-- Game Over Modal -->
     <div class="GH-game-modal" id="game-over-modal">
         <div class="GH-modal-content">
-            <h2 class="GH-modal-title" data-i18n="GH.sequence.gameOver">Game Over!</h2>
+            <h2 class="GH-modal-title" id="endTitle" data-i18n="GH.sequence.gameOver">Game Over</h2>
             <div class="GH-modal-stats">
                 <div class="GH-modal-stat">
                     <div class="GH-modal-stat-value" id="final-score">0</div>
@@ -809,11 +770,11 @@
                     <div class="GH-modal-stat-label" data-i18n="GH.sequence.levelReached">Level Reached</div>
                 </div>
                 <div class="GH-modal-stat">
-                    <div class="GH-modal-stat-value" id="sequences-completed">0</div>
-                    <div class="GH-modal-stat-label" data-i18n="GH.sequence.sequencesCompleted">Sequences Completed</div>
+                    <div class="GH-modal-stat-value" id="final-sequences">0/0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.sequence.sequencesCompleted">Sequences</div>
                 </div>
                 <div class="GH-modal-stat">
-                    <div class="GH-modal-stat-value" id="accuracy">0%</div>
+                    <div class="GH-modal-stat-value" id="final-accuracy">0%</div>
                     <div class="GH-modal-stat-label" data-i18n="GH.sequence.accuracy">Accuracy</div>
                 </div>
             </div>
@@ -824,670 +785,504 @@
         </div>
     </div>
     
-    <!-- Include JavaScript files -->
+    <!-- Level‑Up Overlay -->
+    <div class="GH-level-up-overlay" id="levelUpOverlay">
+        <div class="GH-level-up-content">
+            <h2 style="font-size:2rem; margin-bottom:0.5rem;">🎉</h2>
+            <p id="levelUpMessage" data-i18n="GH.sequence.levelUpMessage">Level Up! Keep going!</p>
+        </div>
+    </div>
+    
     <script src="translation.js"></script>
     <script src="global.js"></script>
     <script>
-        // Game state variables
-        let gameInterval;
-        let gameTime = 60;
-        let gameScore = 0;
-        let gameLevel = 1;
-        let isGameActive = false;
-        let isGamePaused = false;
-        let currentSequence = [];
-        let correctAnswer = '';
-        let sequencesCompleted = 0;
-        let totalAttempts = 0;
-        let correctAttempts = 0;
-        let currentStreak = 0;
-        let maxStreak = 0;
-        let gameDifficulty = 'easy';
-        
-        // Pattern types and descriptions
-        const patternTypes = [
-            {
-                name: 'numeric',
-                description: 'GH.sequence.numericDescription',
-                defaultDescription: 'Numeric sequence with arithmetic progression'
-            },
-            {
-                name: 'geometric',
-                description: 'GH.sequence.geometricDescription',
-                defaultDescription: 'Geometric shapes following a pattern'
-            },
-            {
-                name: 'alternating',
-                description: 'GH.sequence.alternatingDescription',
-                defaultDescription: 'Alternating between different elements'
-            },
-            {
-                name: 'rotation',
-                description: 'GH.sequence.rotationDescription',
-                defaultDescription: 'Elements rotating in a specific direction'
-            },
-            {
-                name: 'progression',
-                description: 'GH.sequence.progressionDescription',
-                defaultDescription: 'Elements changing in size or complexity'
-            }
-        ];
-        
-        // Shape sets for different pattern types
-        const shapeSets = {
-            geometric: ['▲', '●', '■', '◆', '★', '♥'],
-            rotation: ['▲', '▶', '▼', '◀'],
-            progression: ['●', '●●', '●●●', '●●●●']
-        };
-        
-        // Difficulty settings
-        const difficultySettings = {
-            easy: { sequenceLength: 3, optionsCount: 3, time: 60 },
-            medium: { sequenceLength: 4, optionsCount: 4, time: 60 },
-            hard: { sequenceLength: 5, optionsCount: 5, time: 60 }
-        };
-        
-        // DOM elements
-        const timerElement = document.getElementById('timer');
-        const scoreElement = document.getElementById('score');
-        const levelElement = document.getElementById('level');
-        const streakElement = document.getElementById('streak');
-        const sequenceDisplay = document.getElementById('sequence-display');
-        const optionsContainer = document.getElementById('options-container');
-        const patternDescription = document.getElementById('pattern-description');
-        const startBtn = document.getElementById('start-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const gameNotification = document.getElementById('game-notification');
-        const gameOverModal = document.getElementById('game-over-modal');
-        const finalScoreElement = document.getElementById('final-score');
-        const finalLevelElement = document.getElementById('final-level');
-        const sequencesCompletedElement = document.getElementById('sequences-completed');
-        const accuracyElement = document.getElementById('accuracy');
-        const playAgainBtn = document.getElementById('play-again-btn');
-        const mainMenuBtn = document.getElementById('main-menu-btn');
-        const timerProgress = document.querySelector('.GH-timer-progress');
-        const progressBar = document.getElementById('progress');
-        const progressText = document.getElementById('progress-text');
-        const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
-        
-        // Event listeners
-        startBtn.addEventListener('click', startGame);
-        pauseBtn.addEventListener('click', togglePause);
-        restartBtn.addEventListener('click', restartGame);
-        playAgainBtn.addEventListener('click', playAgain);
-        mainMenuBtn.addEventListener('click', goToMainMenu);
-        
-        difficultyButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                difficultyButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                gameDifficulty = this.getAttribute('data-difficulty');
-                if (isGameActive) {
-                    restartGame();
-                }
-            });
-        });
-        
-        // Game functions
-        function startGame() {
-            isGameActive = true;
-            isGamePaused = false;
-            
-            // Reset game state
-            const settings = difficultySettings[gameDifficulty];
-            gameTime = settings.time;
-            gameScore = 0;
-            gameLevel = 1;
-            sequencesCompleted = 0;
-            totalAttempts = 0;
-            correctAttempts = 0;
-            currentStreak = 0;
-            maxStreak = 0;
-            
-            updateUI();
-            startBtn.disabled = true;
-            pauseBtn.disabled = false;
-            
-            // Create first sequence
-            generateSequence();
-            
-            // Start timer
-            clearInterval(gameInterval);
-            gameInterval = setInterval(updateGame, 1000);
-            
-            showTranslatableNotification('GH.sequence.gameStarted', 'info');
-        }
-        
-        function updateGame() {
-            if (!isGameActive || isGamePaused) return;
-            
-            gameTime--;
-            updateTimer();
-            
-            if (gameTime <= 0) {
-                endGame();
-            }
-        }
-        
-        function updateTimer() {
-            timerElement.textContent = gameTime;
-            const progress = (gameTime / 60) * 283;
-            timerProgress.style.strokeDashoffset = progress;
-            
-            // Change color based on time remaining
-            if (gameTime <= 10) {
-                timerProgress.style.stroke = 'var(--game-error)';
-            } else if (gameTime <= 20) {
-                timerProgress.style.stroke = 'var(--game-warning)';
-            } else {
-                timerProgress.style.stroke = 'white';
-            }
-        }
-        
-        function togglePause() {
-            isGamePaused = !isGamePaused;
-            const pauseIcon = isGamePaused ? '▶️' : '⏸️';
-            const pauseText = isGamePaused ? 
-                getTranslation('GH.sequence.resume', 'Resume') : 
-                getTranslation('GH.sequence.pause', 'Pause');
-            pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
-            
-            const messageKey = isGamePaused ? 'GH.sequence.gamePaused' : 'GH.sequence.gameResumed';
-            showTranslatableNotification(messageKey, 'info');
-        }
+        (function() {
+            // --------------------------------------------------------------------
+            // Enhanced Game Logic – same visual shell, new target‑based mechanics
+            // --------------------------------------------------------------------
+            const difficultySettings = {
+                easy:   { globalTime: 60, perSeqTime: 10, targetSequences: 10, seqLen: 3, optCount: 3 },
+                medium: { globalTime: 60, perSeqTime: 7,  targetSequences: 15, seqLen: 4, optCount: 4 },
+                hard:   { globalTime: 60, perSeqTime: 5,  targetSequences: 20, seqLen: 5, optCount: 5 }
+            };
 
-        function restartGame() {
-            if (isGameActive) {
-                showTranslatableNotification('GH.sequence.restartConfirm', 'warning');
-                clearInterval(gameInterval);
-                startGame();
-            } else {
-                clearInterval(gameInterval);
-                startGame();
-            }
-        }
-        
-        function playAgain() {
-            gameOverModal.classList.remove('active');
-            startGame();
-        }
-        
-        function goToMainMenu() {
-            gameOverModal.classList.remove('active');
-            window.location.href = 'index.html';
-        }
-        
-        function generateSequence() {
-            // Clear previous sequence and options
-            sequenceDisplay.innerHTML = '';
-            optionsContainer.innerHTML = '';
-            
-            // Get settings for current difficulty
-            const settings = difficultySettings[gameDifficulty];
-            const sequenceLength = settings.sequenceLength;
-            const optionsCount = settings.optionsCount;
-            
-            // Generate pattern based on type
-            const patternType = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-            updatePatternDescription(patternType);
-            
-            switch(patternType.name) {
-                case 'numeric':
-                    generateNumericSequence(sequenceLength, optionsCount);
-                    break;
-                case 'geometric':
-                    generateGeometricSequence(sequenceLength, optionsCount);
-                    break;
-                case 'alternating':
-                    generateAlternatingSequence(sequenceLength, optionsCount);
-                    break;
-                case 'rotation':
-                    generateRotationSequence(sequenceLength, optionsCount);
-                    break;
-                case 'progression':
-                    generateProgressionSequence(sequenceLength, optionsCount);
-                    break;
-                default:
-                    generateNumericSequence(sequenceLength, optionsCount);
-            }
-        }
-        
-        function generateNumericSequence(length, optionsCount) {
-            // Generate a numeric sequence with arithmetic progression
-            const start = Math.floor(Math.random() * 10) + 1;
-            const difference = Math.floor(Math.random() * 5) + 1;
-            
-            currentSequence = [];
-            for (let i = 0; i < length; i++) {
-                currentSequence.push(start + (i * difference));
-            }
-            
-            // The next item in the sequence
-            correctAnswer = start + (length * difference);
-            
-            // Generate options including the correct one
-            const options = [correctAnswer];
-            
-            // Add wrong options
-            while (options.length < optionsCount) {
-                const wrongOption = correctAnswer + (Math.floor(Math.random() * 10) - 5);
-                if (wrongOption !== correctAnswer && !options.includes(wrongOption)) {
-                    options.push(wrongOption);
+            let difficulty = 'easy';
+            let gameActive = false;
+            let levelUpActive = false;
+            let globalTimer = 60;
+            let perSeqTimer = 10;
+            let globalInterval = null;
+            let perSeqInterval = null;
+            let feedbackTimer = null;
+            let totalSequences = 0;
+            let correctAnswers = 0;
+            let streakCount = 0;
+            let level = 1;
+            let currentCorrect = null;
+            let targetCount = 10;
+
+            // DOM
+            const globalTimerEl = document.getElementById('globalTimer');
+            const timerProgressCircle = document.querySelector('.GH-timer-progress');
+            const perSeqTimerEl = document.getElementById('perSeqTimer');
+            const scoreEl = document.getElementById('score');
+            const levelEl = document.getElementById('level');
+            const streakEl = document.getElementById('streak');
+            const accuracyEl = document.getElementById('accuracy');
+            const progressBar = document.getElementById('progress');
+            const progressText = document.getElementById('progress-text');
+            const patternDesc = document.getElementById('pattern-description');
+            const seqDisplay = document.getElementById('sequence-display');
+            const optContainer = document.getElementById('options-container');
+            const notification = document.getElementById('game-notification');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const levelUpOverlay = document.getElementById('levelUpOverlay');
+            const startBtn = document.getElementById('start-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const mainMenuBtn = document.getElementById('main-menu-btn');
+            const difficultyBtns = document.querySelectorAll('.GH-difficulty-btn');
+
+            // ----- CORRECTED Translation helper -----
+            // Strips "GH." prefix and traverses the merged translations object
+            function t(key, fallback = '') {
+                const translations = window.getTranslations ? window.getTranslations() : {};
+                const cleanKey = key.startsWith('GH.') ? key.slice(3) : key;
+                const parts = cleanKey.split('.');
+                let val = translations;
+                for (let p of parts) {
+                    if (val && typeof val === 'object') {
+                        val = val[p];
+                    } else {
+                        val = undefined;
+                        break;
+                    }
                 }
+                return (typeof val === 'string') ? val : fallback;
             }
-            
-            // Shuffle options
-            shuffleArray(options);
-            
-            displaySequence(currentSequence, 'number');
-            displayOptions(options, 'number');
-        }
-        
-        function generateGeometricSequence(length, optionsCount) {
-            // Generate a sequence with geometric shapes
-            const shapes = [...shapeSets.geometric];
-            const pattern = [];
-            
-            // Create a repeating pattern
-            for (let i = 0; i < length; i++) {
-                pattern.push(shapes[i % shapes.length]);
+
+            // ----- Notifications -----
+            function notify(msg, type = 'info') {
+                notification.textContent = msg;
+                notification.className = `GH-game-notification ${type}`;
+                notification.style.display = 'block';
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => { notification.style.display = 'none'; }, 300);
+                }, 2500);
             }
-            
-            currentSequence = pattern;
-            
-            // The next item in the sequence
-            correctAnswer = shapes[length % shapes.length];
-            
-            // Generate options including the correct one
-            const options = [correctAnswer];
-            
-            // Add wrong options from the shape set
-            while (options.length < optionsCount) {
-                const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-                if (randomShape !== correctAnswer && !options.includes(randomShape)) {
-                    options.push(randomShape);
-                }
+
+            // ----- UI Update -----
+            function updateUI() {
+                const accuracy = totalSequences ? Math.round((correctAnswers / totalSequences) * 100) : 0;
+                scoreEl.textContent = correctAnswers * 10;
+                levelEl.textContent = level;
+                streakEl.textContent = streakCount;
+                accuracyEl.textContent = accuracy + '%';
+
+                const progressInLevel = (totalSequences % 5) * 20;
+                progressBar.style.width = progressInLevel + '%';
+                progressText.textContent = `${totalSequences % 5}/5`;
             }
-            
-            // Shuffle options
-            shuffleArray(options);
-            
-            displaySequence(currentSequence, 'shape');
-            displayOptions(options, 'shape');
-        }
-        
-        function generateAlternatingSequence(length, optionsCount) {
-            // Generate an alternating sequence between two sets
-            const set1 = ['▲', '●', '■'];
-            const set2 = ['◆', '★', '♥'];
-            
-            currentSequence = [];
-            for (let i = 0; i < length; i++) {
-                if (i % 2 === 0) {
-                    currentSequence.push(set1[i % set1.length]);
+
+            // ----- Timer management -----
+            function startGlobalTimer() {
+                stopGlobalTimer();
+                globalInterval = setInterval(() => {
+                    if (gameActive && !levelUpActive) {
+                        globalTimer--;
+                        globalTimerEl.textContent = globalTimer;
+                        const offset = ((60 - globalTimer) / 60) * 283;
+                        timerProgressCircle.style.strokeDashoffset = 283 - offset;
+                        if (globalTimer <= 0) {
+                            endGame('timeout');
+                        }
+                    }
+                }, 1000);
+            }
+
+            function stopGlobalTimer() {
+                if (globalInterval) { clearInterval(globalInterval); globalInterval = null; }
+            }
+
+            function startPerSeqTimer() {
+                stopPerSeqTimer();
+                perSeqTimer = difficultySettings[difficulty].perSeqTime;
+                updatePerSeqDisplay();
+                perSeqInterval = setInterval(() => {
+                    if (gameActive && !levelUpActive) {
+                        perSeqTimer--;
+                        updatePerSeqDisplay();
+                        if (perSeqTimer <= 0) {
+                            handleTimeout();
+                        }
+                    }
+                }, 1000);
+            }
+
+            function stopPerSeqTimer() {
+                if (perSeqInterval) { clearInterval(perSeqInterval); perSeqInterval = null; }
+            }
+
+            function updatePerSeqDisplay() {
+                perSeqTimerEl.textContent = `⏳ ${perSeqTimer}s`;
+                perSeqTimerEl.style.color = perSeqTimer <= 3 ? 'var(--game-error)' : '';
+            }
+
+            function stopAllTimers() {
+                stopGlobalTimer();
+                stopPerSeqTimer();
+                if (feedbackTimer) clearTimeout(feedbackTimer);
+            }
+
+            // ----- Level‑up pause (timers stop, overlay shown) -----
+            function triggerLevelUp() {
+                levelUpActive = true;
+                stopAllTimers();
+                levelUpOverlay.classList.add('active');
+                document.getElementById('levelUpMessage').textContent = t('GH.sequence.levelUpMessage', 'Level Up! Keep going!');
+                setTimeout(() => {
+                    levelUpOverlay.classList.remove('active');
+                    levelUpActive = false;
+                    if (gameActive) {
+                        startGlobalTimer();
+                        if (totalSequences < targetCount) {
+                            generateSequence();
+                        } else {
+                            checkWinCondition();
+                        }
+                    }
+                }, 2000);
+            }
+
+            // ----- Handling answers / timeout -----
+            function handleTimeout() {
+                if (!gameActive || levelUpActive) return;
+                stopAllTimers();
+                totalSequences++;
+                streakCount = 0;
+                updateUI();
+                notify(t('GH.sequence.timeOut', 'Time out!'), 'error');
+                proceedAfterAnswer();
+            }
+
+            function handleOptionClick(optionEl, value) {
+                if (!gameActive || levelUpActive) return;
+                stopAllTimers();
+                const allOpts = document.querySelectorAll('.GH-option');
+                allOpts.forEach(o => o.style.pointerEvents = 'none');
+
+                totalSequences++;
+                if (value == currentCorrect) {
+                    correctAnswers++;
+                    streakCount++;
+                    optionEl.classList.add('correct');
+                    notify(t('GH.sequence.correct', 'Correct!'), 'success');
                 } else {
-                    currentSequence.push(set2[i % set2.length]);
+                    streakCount = 0;
+                    optionEl.classList.add('incorrect');
+                    allOpts.forEach(o => { if (o.dataset.value == currentCorrect) o.classList.add('correct'); });
+                    notify(t('GH.sequence.wrong', 'Wrong!'), 'error');
+                }
+                updateUI();
+                proceedAfterAnswer();
+            }
+
+            function proceedAfterAnswer() {
+                if (totalSequences > 0 && totalSequences % 5 === 0 && totalSequences < targetCount) {
+                    level++;
+                    triggerLevelUp();
+                    return;
+                }
+                if (totalSequences >= targetCount) {
+                    checkWinCondition();
+                    return;
+                }
+                feedbackTimer = setTimeout(() => {
+                    if (gameActive && !levelUpActive) generateSequence();
+                }, 1200);
+            }
+
+            function checkWinCondition() {
+                const finalAccuracy = totalSequences > 0 ? correctAnswers / totalSequences : 0;
+                if (finalAccuracy >= 0.9) {
+                    endGame('win');
+                } else {
+                    endGame('lose');
                 }
             }
-            
-            // The next item in the sequence
-            if (length % 2 === 0) {
-                correctAnswer = set1[length % set1.length];
-            } else {
-                correctAnswer = set2[length % set2.length];
-            }
-            
-            // Generate options including the correct one
-            const options = [correctAnswer];
-            const allShapes = [...set1, ...set2];
-            
-            // Add wrong options
-            while (options.length < optionsCount) {
-                const randomShape = allShapes[Math.floor(Math.random() * allShapes.length)];
-                if (randomShape !== correctAnswer && !options.includes(randomShape)) {
-                    options.push(randomShape);
+
+            function endGame(reason) {
+                gameActive = false;
+                stopAllTimers();
+                const accuracy = totalSequences ? Math.round((correctAnswers / totalSequences) * 100) : 0;
+                document.getElementById('final-score').textContent = correctAnswers * 10;
+                document.getElementById('final-level').textContent = level;
+                document.getElementById('final-sequences').textContent = `${totalSequences}/${targetCount}`;
+                document.getElementById('final-accuracy').textContent = accuracy + '%';
+
+                const endTitle = document.getElementById('endTitle');
+                if (reason === 'win') {
+                    endTitle.textContent = t('GH.sequence.youWin', 'You Win!');
+                } else if (reason === 'timeout') {
+                    endTitle.textContent = t('GH.sequence.timeUp', 'Time\'s Up!');
+                } else {
+                    endTitle.textContent = t('GH.sequence.gameOver', 'Game Over');
                 }
+                gameOverModal.classList.add('active');
             }
-            
-            // Shuffle options
-            shuffleArray(options);
-            
-            displaySequence(currentSequence, 'shape');
-            displayOptions(options, 'shape');
-        }
-        
-        function generateRotationSequence(length, optionsCount) {
-            // Generate a rotation sequence
-            const rotations = [...shapeSets.rotation];
-            
-            currentSequence = [];
-            for (let i = 0; i < length; i++) {
-                currentSequence.push(rotations[i % rotations.length]);
-            }
-            
-            // The next item in the sequence
-            correctAnswer = rotations[length % rotations.length];
-            
-            // Generate options including the correct one
-            const options = [correctAnswer];
-            
-            // Add wrong options from the rotation set
-            while (options.length < optionsCount) {
-                const randomRotation = rotations[Math.floor(Math.random() * rotations.length)];
-                if (randomRotation !== correctAnswer && !options.includes(randomRotation)) {
-                    options.push(randomRotation);
+
+            // ----- Pattern generators (expanded while keeping logic) -----
+            function shuffle(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
                 }
+                return arr;
             }
-            
-            // Shuffle options
-            shuffleArray(options);
-            
-            displaySequence(currentSequence, 'shape');
-            displayOptions(options, 'shape');
-        }
-        
-        function generateProgressionSequence(length, optionsCount) {
-            // Generate a progression sequence (increasing/decreasing complexity)
-            const progressions = [...shapeSets.progression];
-            
-            currentSequence = [];
-            for (let i = 0; i < length; i++) {
-                currentSequence.push(progressions[i % progressions.length]);
-            }
-            
-            // The next item in the sequence
-            correctAnswer = progressions[length % progressions.length];
-            
-            // Generate options including the correct one
-            const options = [correctAnswer];
-            
-            // Add wrong options from the progression set
-            while (options.length < optionsCount) {
-                const randomProgression = progressions[Math.floor(Math.random() * progressions.length)];
-                if (randomProgression !== correctAnswer && !options.includes(randomProgression)) {
-                    options.push(randomProgression);
+
+            const generators = [
+                {
+                    name: 'arithmetic',
+                    descKey: 'GH.sequence.arithmeticDesc',
+                    generate(len, opts) {
+                        const start = Math.floor(Math.random() * 20) + 1;
+                        const step = Math.floor(Math.random() * 5) + 1;
+                        const seq = Array.from({length: len}, (_, i) => start + i * step);
+                        const correct = start + len * step;
+                        const wrongs = new Set();
+                        while(wrongs.size < opts - 1) {
+                            let w = correct + (Math.floor(Math.random() * 10) - 5);
+                            if (w !== correct && !seq.includes(w)) wrongs.add(w);
+                        }
+                        return { seq: seq.map(String), correct: String(correct), options: shuffle([String(correct), ...Array.from(wrongs).map(String)]) };
+                    }
+                },
+                {
+                    name: 'geometric',
+                    descKey: 'GH.sequence.geometricDesc',
+                    generate(len, opts) {
+                        const shapes = ['▲','●','■','◆','★','♥'];
+                        const seq = Array.from({length: len}, (_, i) => shapes[i % shapes.length]);
+                        const correct = shapes[len % shapes.length];
+                        const others = shapes.filter(s => s !== correct).slice(0, opts-1);
+                        return { seq, correct, options: shuffle([correct, ...others]) };
+                    }
+                },
+                {
+                    name: 'rotation',
+                    descKey: 'GH.sequence.rotationDesc',
+                    generate(len, opts) {
+                        const arrows = ['▲','▶','▼','◀'];
+                        const seq = Array.from({length: len}, (_, i) => arrows[i % arrows.length]);
+                        const correct = arrows[len % arrows.length];
+                        const others = arrows.filter(a => a !== correct).slice(0, opts-1);
+                        return { seq, correct, options: shuffle([correct, ...others]) };
+                    }
+                },
+                {
+                    name: 'progression',
+                    descKey: 'GH.sequence.progressionDesc',
+                    generate(len, opts) {
+                        const sizes = ['●','●●','●●●','●●●●'];
+                        const seq = Array.from({length: len}, (_, i) => sizes[i % sizes.length]);
+                        const correct = sizes[len % sizes.length];
+                        const others = sizes.filter(s => s !== correct).slice(0, opts-1);
+                        return { seq, correct, options: shuffle([correct, ...others]) };
+                    }
+                },
+                {
+                    name: 'alternating',
+                    descKey: 'GH.sequence.alternatingDesc',
+                    generate(len, opts) {
+                        const A = ['▲','●','■']; const B = ['◆','★','♥'];
+                        const seq = Array.from({length: len}, (_, i) => i%2===0 ? A[Math.floor(i/2)%A.length] : B[Math.floor(i/2)%B.length]);
+                        const correct = len%2===0 ? A[Math.floor(len/2)%A.length] : B[Math.floor(len/2)%B.length];
+                        const all = [...A,...B].filter(s => s!==correct);
+                        return { seq, correct, options: shuffle([correct, ...all.slice(0,opts-1)]) };
+                    }
+                },
+                {
+                    name: 'fibonacci',
+                    descKey: 'GH.sequence.fibonacciDesc',
+                    generate(len, opts) {
+                        const fib = [1,1]; for(let i=2; i<len+2; i++) fib.push(fib[i-1]+fib[i-2]);
+                        const seq = fib.slice(0,len); const correct = fib[len];
+                        const wrongs = new Set();
+                        while(wrongs.size < opts-1){ let w = correct + (Math.floor(Math.random()*10)-5); if(w!==correct && !seq.includes(w)) wrongs.add(w); }
+                        return { seq: seq.map(String), correct: String(correct), options: shuffle([String(correct), ...Array.from(wrongs).map(String)]) };
+                    }
+                },
+                {
+                    name: 'squares',
+                    descKey: 'GH.sequence.squaresDesc',
+                    generate(len, opts) {
+                        const start = Math.floor(Math.random()*5)+1;
+                        const seq = Array.from({length: len}, (_, i) => Math.pow(start+i,2));
+                        const correct = Math.pow(start+len,2);
+                        const wrongs = new Set();
+                        while(wrongs.size < opts-1){ let w = correct + (Math.floor(Math.random()*20)-10); if(w!==correct && !seq.includes(w)) wrongs.add(w); }
+                        return { seq: seq.map(String), correct: String(correct), options: shuffle([String(correct), ...Array.from(wrongs).map(String)]) };
+                    }
+                },
+                {
+                    name: 'letters',
+                    descKey: 'GH.sequence.lettersDesc',
+                    generate(len, opts) {
+                        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                        const start = Math.floor(Math.random()*20);
+                        const seq = Array.from({length: len}, (_, i) => letters[(start+i)%26]);
+                        const correct = letters[(start+len)%26];
+                        const wrongs = new Set();
+                        while(wrongs.size < opts-1){ let r = Math.floor(Math.random()*26); if(r !== (start+len)%26) wrongs.add(letters[r]); }
+                        return { seq, correct, options: shuffle([correct, ...Array.from(wrongs)]) };
+                    }
+                },
+                {
+                    name: 'colors',
+                    descKey: 'GH.sequence.colorsDesc',
+                    generate(len, opts) {
+                        const colors = ['🔴','🔵','🟢','🟡','🟣','🟠'];
+                        const seq = Array.from({length: len}, (_, i) => colors[i % colors.length]);
+                        const correct = colors[len % colors.length];
+                        const others = colors.filter(c => c !== correct).slice(0, opts-1);
+                        return { seq, correct, options: shuffle([correct, ...others]) };
+                    }
                 }
-            }
-            
-            // Shuffle options
-            shuffleArray(options);
-            
-            displaySequence(currentSequence, 'shape');
-            displayOptions(options, 'shape');
-        }
-        
-        function displaySequence(sequence, type) {
-            sequence.forEach((item, index) => {
-                const sequenceItem = document.createElement('div');
-                sequenceItem.className = 'GH-sequence-item';
-                sequenceItem.textContent = item;
-                sequenceDisplay.appendChild(sequenceItem);
-            });
-            
-            // Add question mark for the next item
-            const questionItem = document.createElement('div');
-            questionItem.className = 'GH-sequence-item question';
-            questionItem.textContent = '?';
-            sequenceDisplay.appendChild(questionItem);
-        }
-        
-        function displayOptions(options, type) {
-            options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'GH-option';
-                optionElement.textContent = option;
-                optionElement.dataset.value = option;
-                
-                optionElement.addEventListener('click', () => {
-                    if (!isGameActive || isGamePaused) return;
-                    
-                    handleOptionSelection(optionElement, option);
+            ];
+
+            function generateSequence() {
+                seqDisplay.innerHTML = '';
+                optContainer.innerHTML = '';
+                const cfg = difficultySettings[difficulty];
+                const gen = generators[Math.floor(Math.random() * generators.length)];
+                const result = gen.generate(cfg.seqLen, cfg.optCount);
+                currentCorrect = result.correct;
+
+                result.seq.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'GH-sequence-item';
+                    el.textContent = item;
+                    seqDisplay.appendChild(el);
                 });
-                
-                optionsContainer.appendChild(optionElement);
-            });
-        }
-        
-        function handleOptionSelection(optionElement, selectedValue) {
-            totalAttempts++;
-            
-            // Disable all options during feedback
-            const allOptions = document.querySelectorAll('.GH-option');
-            allOptions.forEach(opt => {
-                opt.style.pointerEvents = 'none';
-            });
-            
-            if (selectedValue === correctAnswer) {
-                // Correct answer
-                optionElement.classList.add('correct');
-                handleCorrectAnswer();
-            } else {
-                // Wrong answer
-                optionElement.classList.add('incorrect');
-                // Highlight the correct option
-                allOptions.forEach(opt => {
-                    if (opt.dataset.value === correctAnswer) {
-                        opt.classList.add('correct');
+                const qMark = document.createElement('div');
+                qMark.className = 'GH-sequence-item question';
+                qMark.textContent = '?';
+                seqDisplay.appendChild(qMark);
+
+                result.options.forEach(opt => {
+                    const btn = document.createElement('div');
+                    btn.className = 'GH-option';
+                    btn.textContent = opt;
+                    btn.dataset.value = opt;
+                    btn.addEventListener('click', () => handleOptionClick(btn, opt));
+                    optContainer.appendChild(btn);
+                });
+
+                patternDesc.textContent = t(gen.descKey, gen.name.charAt(0).toUpperCase() + gen.name.slice(1));
+                startPerSeqTimer();
+            }
+
+            // ----- Start / Restart -----
+            function startGame() {
+                stopAllTimers();
+                const cfg = difficultySettings[difficulty];
+                globalTimer = cfg.globalTime;
+                targetCount = cfg.targetSequences;
+                totalSequences = 0;
+                correctAnswers = 0;
+                streakCount = 0;
+                level = 1;
+                gameActive = true;
+                levelUpActive = false;
+
+                globalTimerEl.textContent = globalTimer;
+                timerProgressCircle.style.strokeDashoffset = 283;
+                updateUI();
+                startGlobalTimer();
+                generateSequence();
+                startBtn.disabled = true;
+                notify(t('GH.sequence.gameStarted', 'Game started! Good luck!'), 'info');
+            }
+
+            function restartGame() {
+                if (gameActive) {
+                    stopAllTimers();
+                    gameActive = false;
+                }
+                startBtn.disabled = false;
+                gameOverModal.classList.remove('active');
+                startGame();
+            }
+
+            startBtn.addEventListener('click', startGame);
+            restartBtn.addEventListener('click', restartGame);
+            playAgainBtn.addEventListener('click', restartGame);
+            mainMenuBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
+
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    difficultyBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    difficulty = this.dataset.difficulty;
+                    if (gameActive) {
+                        stopAllTimers();
+                        gameActive = false;
+                        startBtn.disabled = false;
+                        startGame();
                     }
                 });
-                handleWrongAnswer();
-            }
-            
-            // Re-enable options after a delay and generate new sequence
-            setTimeout(() => {
-                if (isGameActive && !isGamePaused) {
-                    generateSequence();
-                }
-            }, 1500);
-        }
-        
-        function handleCorrectAnswer() {
-            currentStreak++;
-            maxStreak = Math.max(maxStreak, currentStreak);
-            
-            // Calculate score based on level, streak, and difficulty
-            let points = gameLevel * 10;
-            if (currentStreak >= 3) points += Math.floor(currentStreak / 3) * 5;
-            
-            switch(gameDifficulty) {
-                case 'medium': points *= 1.5; break;
-                case 'hard': points *= 2; break;
-            }
-            
-            gameScore += Math.round(points);
-            correctAttempts++;
-            sequencesCompleted++;
-            
-            // Check for level up
-            if (sequencesCompleted % 5 === 0) {
-                gameLevel++;
-                const levelUpMessage = `${getTranslation('GH.sequence.levelUp', 'Level Up!')} ${getTranslation('GH.sequence.nowAtLevel', 'Now at Level')} ${gameLevel}`;
-                showNotification(levelUpMessage, 'success');
-            }
-            
-            updateUI();
-            
-            const pointsMessage = `${getTranslation('GH.sequence.correct', 'Correct!')} +${Math.round(points)} ${getTranslation('GH.sequence.points', 'points')}`;
-            showNotification(pointsMessage, 'success');
-        }
-        
-        function handleWrongAnswer() {
-            currentStreak = 0;
-            sequencesCompleted++;
-            
-            updateUI();
-            showTranslatableNotification('GH.sequence.wrong', 'error');
-        }
-        
-        function updatePatternDescription(patternType) {
-            // Try to get translation first, then fallback to default
-            const translatedDescription = getTranslation(patternType.description, patternType.defaultDescription);
-            patternDescription.textContent = translatedDescription;
-        }
-        
-        function updateUI() {
-            scoreElement.textContent = gameScore;
-            levelElement.textContent = gameLevel;
-            streakElement.textContent = currentStreak;
-            updateProgress();
-        }
-        
-        function updateProgress() {
-            const progress = (sequencesCompleted % 5) * 20;
-            progressBar.style.width = `${progress}%`;
-            progressText.textContent = `${sequencesCompleted % 5}/5`;
-        }
-        
-        function endGame() {
-            isGameActive = false;
-            clearInterval(gameInterval);
-            
-            // Calculate accuracy
-            const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
-            
-            // Update modal with final stats
-            finalScoreElement.textContent = gameScore;
-            finalLevelElement.textContent = gameLevel;
-            sequencesCompletedElement.textContent = sequencesCompleted;
-            accuracyElement.textContent = accuracy + '%';
-            
-            // Show game over modal
-            setTimeout(() => {
-                gameOverModal.classList.add('active');
-            }, 500);
-            
-            // Reset buttons
-            startBtn.disabled = false;
-            pauseBtn.disabled = true;
-            
-            const gameOverMessage = `${getTranslation('GH.sequence.gameOver', 'Game Over!')} ${getTranslation('GH.sequence.finalScore', 'Final Score')}: ${gameScore}`;
-            showNotification(gameOverMessage, 'info');
-        }
-        
-        // Utility functions
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-        
-        // Enhanced notification function that supports translation keys
-        function showTranslatableNotification(messageKey, type) {
-            const translations = window.getTranslations ? window.getTranslations() : {};
-            
-            // Remove 'GH.' prefix if present and split the key
-            const cleanKey = messageKey.replace(/^GH\./, '');
-            const keys = cleanKey.split('.');
-            
-            let message = keys.reduce((obj, key) => {
-                return obj && obj[key] !== undefined ? obj[key] : undefined;
-            }, translations);
-            
-            // Fallback if translation not found
-            if (!message || typeof message !== 'string') {
-                console.warn(`Translation not found for key: ${messageKey}`);
-                message = getFallbackGameMessage(cleanKey);
-            }
-            
-            showNotification(message, type);
-        }
+            });
 
-        function getFallbackGameMessage(key) {
-            const fallbackMessages = {
-                'sequence.gameStarted': 'Game started! Good luck!',
-                'sequence.gamePaused': 'Game paused',
-                'sequence.gameResumed': 'Game resumed',
-                'sequence.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
-                'sequence.correct': 'Correct!',
-                'sequence.wrong': 'Wrong! Try again.',
-                'sequence.levelUp': 'Level Up!',
-                'sequence.gameOver': 'Game Over!'
-            };
-            
-            return fallbackMessages[key] || key;
-        }
-
-        function showNotification(message, type) {
-            gameNotification.textContent = message;
-            gameNotification.className = `GH-game-notification ${type}`;
-            gameNotification.style.display = 'block';
-            gameNotification.classList.add('show');
-            
-            setTimeout(() => {
-                gameNotification.classList.remove('show');
-                setTimeout(() => {
-                    gameNotification.style.display = 'none';
-                }, 300);
-            }, 3000);
-        }
-        
-        // Helper function to get translations
-        function getTranslation(key, fallback) {
-            const translations = window.getTranslations ? window.getTranslations() : {};
-            
-            // Remove 'GH.' prefix if present and split the key
-            const cleanKey = key.replace(/^GH\./, '');
-            const keys = cleanKey.split('.');
-            
-            let value = keys.reduce((obj, k) => {
-                return obj && obj[k] !== undefined ? obj[k] : undefined;
-            }, translations);
-            
-            return value && typeof value === 'string' ? value : fallback;
-        }
-        
-        // Initialize timer display
-        updateTimer();
+            updateUI();
+        })();
     </script>
-    
     <script>
-        // Object specific translations for GH-sequence-prediction.html
+        // ----------------------------------------------------------------------
+        // Page‑specific translations (unchanged structure, added new keys)
+        // ----------------------------------------------------------------------
         window.GHObjectTranslations = window.GHObjectTranslations || {
             en: {
                 sequence: {
                     title: "Sequence Prediction Challenge",
                     description: "Test your logical reasoning with sequence patterns!",
                     howToPlay: "How to Play",
-                    instruction1: "Observe the sequence of shapes, numbers, or patterns",
-                    instruction2: "Identify the pattern and predict what comes next",
-                    instruction3: "Select the correct option from the choices below",
-                    instruction4: "Each level increases the complexity of patterns",
-                    instruction5: "Complete sequences to earn points and progress",
-                    time: "Time",
+                    instruction1: "Observe the sequence and find the logical pattern",
+                    instruction2: "Answer each question before the per‑sequence timer runs out",
+                    instruction3: "Complete the target number of sequences with at least 90% accuracy to win",
+                    instruction4: "Every 5 sequences you level up – the global timer pauses briefly",
                     score: "Score",
                     level: "Level",
                     streak: "Streak",
+                    accuracy: "Accuracy",
                     predictNext: "Predict what comes next!",
                     patternType: "Pattern Type",
                     defaultDescription: "Identify the pattern and select the next item!",
-                    numericDescription: "Numeric sequence with arithmetic progression",
-                    geometricDescription: "Geometric shapes following a pattern",
-                    alternatingDescription: "Alternating between different elements",
-                    rotationDescription: "Elements rotating in a specific direction",
-                    progressionDescription: "Elements changing in size or complexity",
+                    arithmeticDesc: "Arithmetic progression",
+                    geometricDesc: "Repeating shapes",
+                    rotationDesc: "Directional rotation",
+                    progressionDesc: "Size progression",
+                    alternatingDesc: "Alternating sets",
+                    fibonacciDesc: "Fibonacci sequence",
+                    squaresDesc: "Square numbers",
+                    lettersDesc: "Alphabetical order",
+                    colorsDesc: "Color cycle",
                     startGame: "Start Game",
-                    pause: "Pause",
-                    resume: "Resume",
                     restart: "Restart",
                     playAgain: "Play Again",
                     mainMenu: "Main Menu",
                     correct: "Correct!",
-                    wrong: "Wrong! Try again.",
-                    levelUp: "Level Up!",
-                    nowAtLevel: "Now at Level",
-                    points: "points",
-                    gameOver: "Game Over!",
+                    wrong: "Wrong!",
+                    timeOut: "Time out!",
+                    levelUpMessage: "Level Up! Keep going!",
+                    youWin: "You Win!",
+                    timeUp: "Time's Up!",
+                    gameOver: "Game Over",
                     finalScore: "Final Score",
                     levelReached: "Level Reached",
-                    sequencesCompleted: "Sequences Completed",
-                    accuracy: "Accuracy",
+                    sequencesCompleted: "Sequences",
                     gameStarted: "Game started! Good luck!",
-                    gamePaused: "Game paused",
-                    gameResumed: "Game resumed",
-                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
                     difficulty: "Difficulty:",
                     easy: "Easy",
                     medium: "Medium",
@@ -1499,43 +1294,41 @@
                     title: "تحدي توقع التسلسل",
                     description: "اختبر تفكيرك المنطقي بأنماط التسلسل!",
                     howToPlay: "كيفية اللعب",
-                    instruction1: "راقب تسلسل الأشكال أو الأرقام أو الأنماط",
-                    instruction2: "حدد النمط وتوقع ما سيأتي بعد ذلك",
-                    instruction3: "اختر الخيار الصحيح من الخيارات أدناه",
-                    instruction4: "كل مستوى يزيد من تعقيد الأنماط",
-                    instruction5: "أكمل التسلسلات لتحقيق النقاط والتقدم",
-                    time: "الوقت",
+                    instruction1: "لاحظ التسلسل واكتشف النمط المنطقي",
+                    instruction2: "أجب عن كل سؤال قبل نفاد المؤقت الفردي",
+                    instruction3: "أكمل العدد المطلوب من التسلسلات بدقة 90% على الأقل للفوز",
+                    instruction4: "كل 5 تسلسلات تنتقل إلى مستوى جديد – يتوقف المؤقت العام مؤقتاً",
                     score: "النقاط",
                     level: "المستوى",
                     streak: "التتابع",
+                    accuracy: "الدقة",
                     predictNext: "توقع ما سيأتي بعد ذلك!",
                     patternType: "نوع النمط",
                     defaultDescription: "حدد النمط واختر العنصر التالي!",
-                    numericDescription: "تسلسل رقمي بتقدم حسابي",
-                    geometricDescription: "أشكال هندسية تتبع نمطاً",
-                    alternatingDescription: "التناوب بين عناصر مختلفة",
-                    rotationDescription: "عناصر تدور في اتجاه محدد",
-                    progressionDescription: "عناصر تتغير في الحجم أو التعقيد",
+                    arithmeticDesc: "تقدم حسابي",
+                    geometricDesc: "أشكال متكررة",
+                    rotationDesc: "دوران اتجاهي",
+                    progressionDesc: "تقدم في الحجم",
+                    alternatingDesc: "مجموعات متناوبة",
+                    fibonacciDesc: "متتالية فيبوناتشي",
+                    squaresDesc: "أعداد مربعة",
+                    lettersDesc: "ترتيب أبجدي",
+                    colorsDesc: "دورة ألوان",
                     startGame: "ابدأ اللعبة",
-                    pause: "إيقاف مؤقت",
-                    resume: "استئناف",
                     restart: "إعادة التشغيل",
                     playAgain: "العب مرة أخرى",
                     mainMenu: "القائمة الرئيسية",
                     correct: "صحيح!",
-                    wrong: "خطأ! حاول مرة أخرى.",
-                    levelUp: "تمت ترقية المستوى!",
-                    nowAtLevel: "الآن في المستوى",
-                    points: "نقاط",
-                    gameOver: "انتهت اللعبة!",
+                    wrong: "خطأ!",
+                    timeOut: "انتهى الوقت!",
+                    levelUpMessage: "مستوى جديد! استمر!",
+                    youWin: "فزت!",
+                    timeUp: "انتهى الوقت!",
+                    gameOver: "انتهت اللعبة",
                     finalScore: "النتيجة النهائية",
                     levelReached: "المستوى الذي تم الوصول إليه",
-                    sequencesCompleted: "التسلسلات المكتملة",
-                    accuracy: "الدقة",
+                    sequencesCompleted: "التسلسلات",
                     gameStarted: "بدأت اللعبة! حظاً طيباً!",
-                    gamePaused: "تم إيقاف اللعبة مؤقتاً",
-                    gameResumed: "تم استئناف اللعبة",
-                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
                     difficulty: "الصعوبة:",
                     easy: "سهل",
                     medium: "متوسط",
@@ -1547,43 +1340,41 @@
                     title: "Défi de Prédiction de Séquence",
                     description: "Testez votre raisonnement logique avec des motifs de séquence!",
                     howToPlay: "Comment Jouer",
-                    instruction1: "Observez la séquence de formes, de nombres ou de motifs",
-                    instruction2: "Identifiez le motif et prédisez ce qui vient ensuite",
-                    instruction3: "Sélectionnez la bonne option parmi les choix ci-dessous",
-                    instruction4: "Chaque niveau augmente la complexité des motifs",
-                    instruction5: "Terminez les séquences pour gagner des points et progresser",
-                    time: "Temps",
+                    instruction1: "Observez la séquence et trouvez le modèle logique",
+                    instruction2: "Répondez à chaque question avant la fin du chronomètre par séquence",
+                    instruction3: "Complétez le nombre cible de séquences avec au moins 90% de précision pour gagner",
+                    instruction4: "Tous les 5 séquences, vous montez de niveau – le chronomètre global se met en pause",
                     score: "Score",
                     level: "Niveau",
                     streak: "Série",
+                    accuracy: "Précision",
                     predictNext: "Prédisez ce qui vient ensuite!",
-                    patternType: "Type de Motif",
+                    patternType: "Type de motif",
                     defaultDescription: "Identifiez le motif et sélectionnez l'élément suivant!",
-                    numericDescription: "Séquence numérique avec progression arithmétique",
-                    geometricDescription: "Formes géométriques suivant un motif",
-                    alternatingDescription: "Alternance entre différents éléments",
-                    rotationDescription: "Éléments tournant dans une direction spécifique",
-                    progressionDescription: "Éléments changeant en taille ou en complexité",
-                    startGame: "Commencer le Jeu",
-                    pause: "Pause",
-                    resume: "Reprendre",
+                    arithmeticDesc: "Progression arithmétique",
+                    geometricDesc: "Formes répétées",
+                    rotationDesc: "Rotation directionnelle",
+                    progressionDesc: "Progression de taille",
+                    alternatingDesc: "Ensembles alternés",
+                    fibonacciDesc: "Suite de Fibonacci",
+                    squaresDesc: "Nombres carrés",
+                    lettersDesc: "Ordre alphabétique",
+                    colorsDesc: "Cycle de couleurs",
+                    startGame: "Commencer",
                     restart: "Redémarrer",
                     playAgain: "Rejouer",
                     mainMenu: "Menu Principal",
                     correct: "Correct!",
-                    wrong: "Faux! Réessayez.",
-                    levelUp: "Niveau Supérieur!",
-                    nowAtLevel: "Maintenant au Niveau",
-                    points: "points",
-                    gameOver: "Jeu Terminé!",
+                    wrong: "Faux!",
+                    timeOut: "Temps écoulé!",
+                    levelUpMessage: "Niveau supérieur! Continuez!",
+                    youWin: "Vous avez gagné!",
+                    timeUp: "Temps écoulé!",
+                    gameOver: "Partie terminée",
                     finalScore: "Score Final",
                     levelReached: "Niveau Atteint",
-                    sequencesCompleted: "Séquences Terminées",
-                    accuracy: "Précision",
+                    sequencesCompleted: "Séquences",
                     gameStarted: "Jeu commencé! Bonne chance!",
-                    gamePaused: "Jeu en pause",
-                    gameResumed: "Jeu repris",
-                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer? Votre progression sera perdue.",
                     difficulty: "Difficulté:",
                     easy: "Facile",
                     medium: "Moyen",

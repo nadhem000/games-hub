@@ -8,7 +8,7 @@ let gameScore = 0;
 let gameLevel = 1;
 let isGameActive = false;
 let isGamePaused = false;
-let gameDifficulty = 'easy';
+let gameDifficulty = 'easy'; // kept but unused (no AI)
 let currentPlayer = 'white';
 let selectedPiece = null;
 let possibleMoves = [];
@@ -63,7 +63,7 @@ let timerElement, scoreElement, levelElement, movesElement, chessBoard, statusTe
 let whiteTimeElement, blackTimeElement, whitePlayerElement, blackPlayerElement, movesList;
 let startBtn, pauseBtn, restartBtn, newGameBtn, undoBtn, hintBtn;
 let gameNotification, gameOverModal, gameResultTitle, finalScoreElement, finalLevelElement;
-let totalMovesElement, gameTimeElement, playAgainBtn, mainMenuBtn, timerProgress, difficultyButtons;
+let totalMovesElement, gameTimeElement, playAgainBtn, mainMenuBtn, timerProgress;
 
 // Initialize DOM elements
 function initializeDOMElements() {
@@ -97,7 +97,6 @@ function initializeDOMElements() {
         playAgainBtn = document.getElementById('play-again-btn');
         mainMenuBtn = document.getElementById('main-menu-btn');
         timerProgress = document.querySelector('.GH-timer-progress');
-        difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
         
         console.log('DOM elements initialized successfully');
     } catch (error) {
@@ -118,20 +117,6 @@ function setupEventListeners() {
         if (hintBtn) hintBtn.addEventListener('click', showHint);
         if (playAgainBtn) playAgainBtn.addEventListener('click', playAgain);
         if (mainMenuBtn) mainMenuBtn.addEventListener('click', goToMainMenu);
-        
-        if (difficultyButtons) {
-            difficultyButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    difficultyButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    gameDifficulty = this.getAttribute('data-difficulty');
-                    console.log(`Difficulty changed to: ${gameDifficulty}`);
-                    if (isGameActive) {
-                        restartGame();
-                    }
-                });
-            });
-        }
         
         console.log('Event listeners set up successfully');
     } catch (error) {
@@ -664,6 +649,9 @@ function movePiece(fromRow, fromCol, toRow, toCol) {
         // Update the visual representation of both squares
         updateSquare(fromRow, fromCol);
         updateSquare(toRow, toCol);
+        
+        // Force reflow to eliminate any rendering glitches
+        void chessBoard.offsetHeight;
         
         // Check for check after the move
         const opponentColor = currentPlayer === 'white' ? 'black' : 'white';

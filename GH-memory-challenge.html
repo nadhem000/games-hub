@@ -80,7 +80,9 @@
             min-height: 500px;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden; /* juste pour garder le contrôle vertical */
+    -webkit-overflow-scrolling: touch; /* défilement fluide sur iOS */
         }
 
         .GH-dark-mode .GH-game-area {
@@ -610,7 +612,24 @@
                 max-width: 300px;
             }
         }
-
+@media (max-width: 400px) {
+    .GH-memory-grid {
+        gap: 10px;
+        margin: 10px auto;
+    }
+    .GH-memory-card {
+        width: 60px;
+        height: 80px;
+    }
+}
+@media (max-width: 340px) {
+    .GH-memory-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+body, .GH-main, .GH-game-container {
+    overflow-x: auto;
+}
         /* Score animation */
         .GH-score-animation {
             position: absolute;

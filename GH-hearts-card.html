@@ -7,626 +7,583 @@
     <link rel="stylesheet" href="main.css">
     <style>
         /* Game-specific styles - Hearts theme */
-        :root {
-            /* Hearts color palette - Red/Black theme */
-            --game-primary: #8B0000;
-            --game-secondary: #B22222;
-            --game-accent: #000000;
-            --game-success: #006400;
-            --game-error: #DC143C;
-            --game-warning: #FF8C00;
-            --game-info: #1E90FF;
-            --game-light-bg: #FFF5F5;
-            --game-dark-bg: #2C0A0A;
-            --game-card-bg: rgba(255, 255, 255, 0.95);
-            --game-dark-card-bg: rgba(70, 20, 20, 0.95);
-            --game-player-area: rgba(139, 0, 0, 0.1);
-            --game-dark-player-area: rgba(139, 0, 0, 0.2);
-        }
-
-        .GH-game-container {
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-            padding: var(--gh-space-lg);
-        }
-
-        .GH-game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--gh-space-lg);
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-lg);
-            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
-            color: white;
-            box-shadow: var(--gh-shadow-md);
-        }
-
-        .GH-game-stats {
-            display: flex;
-            gap: var(--gh-space-md);
-        }
-
-        .GH-stat-box {
-            background: rgba(255, 255, 255, 0.2);
-            padding: var(--gh-space-sm) var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            text-align: center;
-            min-width: 100px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .GH-stat-value {
-            font-size: var(--gh-font-size-2xl);
-            font-weight: bold;
-            display: block;
-        }
-
-        .GH-stat-label {
-            font-size: var(--gh-font-size-sm);
-            opacity: 0.9;
-        }
-
-        .GH-game-area {
-            margin: 30px 0;
-            padding: 20px;
-            border-radius: var(--gh-radius-lg);
-            background-color: var(--game-card-bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: var(--gh-shadow-md);
-            min-height: 600px;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .GH-dark-mode .GH-game-area {
-            background-color: var(--game-dark-card-bg);
-        }
-
-        .GH-hearts-table {
-            width: 100%;
-            height: 500px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .GH-player-area {
-            position: absolute;
-            width: 200px;
-            height: 120px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            border-radius: var(--gh-radius-md);
-            background-color: var(--game-player-area);
-            box-shadow: var(--gh-shadow-sm);
-        }
-
-        .GH-dark-mode .GH-player-area {
-            background-color: var(--game-dark-player-area);
-        }
-
-        .GH-player-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: var(--gh-font-size-sm);
-        }
-
-        .GH-player-score {
-            font-size: var(--gh-font-size-lg);
-            font-weight: bold;
-        }
-
-        .GH-player-area.player {
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 100, 0, 0.2);
-        }
-
-        .GH-player-area.left {
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .GH-player-area.right {
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .GH-player-area.top {
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .GH-trick-area {
-            width: 300px;
-            height: 200px;
-            position: relative;
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .GH-card-slot {
-            position: absolute;
-            width: 80px;
-            height: 120px;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-
-        .GH-dark-mode .GH-card-slot {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .GH-card-slot.player-slot {
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .GH-card-slot.left-slot {
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .GH-card-slot.right-slot {
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .GH-card-slot.top-slot {
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .GH-player-hand {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            max-width: 800px;
-        }
-
-        .GH-card {
-            width: 80px;
-            height: 120px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--gh-shadow-sm);
-            position: relative;
-            user-select: none;
-        }
-
-        .GH-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--gh-shadow-md);
-        }
-
-        .GH-card.heart, .GH-card.diamond {
-            background-color: white;
-            color: var(--game-error);
-            border: 1px solid #ffcccc;
-        }
-
-        .GH-card.spade, .GH-card.club {
-            background-color: white;
-            color: var(--game-accent);
-            border: 1px solid #cccccc;
-        }
-
-        .GH-card.queen.spade {
-            box-shadow: 0 0 10px rgba(220, 20, 60, 0.5);
-        }
-
-        .GH-card.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .GH-card.selected {
-            transform: translateY(-20px);
-            box-shadow: 0 0 15px var(--game-primary);
-        }
-
-        .GH-card-top, .GH-card-bottom {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.2rem;
-        }
-
-        .GH-card-center {
-            font-size: 2.5rem;
-            line-height: 1;
-        }
-
-        .GH-card-bottom {
-            transform: rotate(180deg);
-        }
-
-        .GH-game-controls {
-            display: flex;
-            justify-content: center;
-            gap: var(--gh-space-md);
-            margin-top: var(--gh-space-lg);
-            flex-wrap: wrap;
-        }
-
-        .GH-game-btn {
-            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            font-size: var(--gh-font-size-base);
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--gh-shadow-md);
-            min-width: 150px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .GH-game-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--gh-shadow-lg);
-        }
-
-        .GH-game-btn:active {
-            transform: translateY(1px);
-        }
-
-        .GH-game-btn.secondary {
-            background: transparent;
-            border: 2px solid var(--game-primary);
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-game-btn.secondary {
-            color: var(--game-accent);
-            border-color: var(--game-accent);
-        }
-
-        .GH-game-btn.secondary:hover {
-            background: var(--game-primary);
-            color: white;
-        }
-
-        .GH-dark-mode .GH-game-btn.secondary:hover {
-            background: var(--game-accent);
-            color: var(--game-dark-bg);
-        }
-
-        .GH-game-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .GH-game-btn:disabled:hover {
-            transform: none;
-            box-shadow: var(--gh-shadow-md);
-        }
-
-        .GH-instructions {
-            background-color: var(--game-card-bg);
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            margin-bottom: var(--gh-space-lg);
-            box-shadow: var(--gh-shadow-sm);
-        }
-
-        .GH-dark-mode .GH-instructions {
-            background-color: var(--game-dark-card-bg);
-        }
-
-        .GH-instructions h2 {
-            margin-bottom: var(--gh-space-sm);
-            text-align: center;
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-instructions h2 {
-            color: var(--game-accent);
-        }
-
-        .GH-instructions ul {
-            padding-left: 20px;
-        }
-
-        .GH-instructions li {
-            margin-bottom: 8px;
-            position: relative;
-        }
-
-        .GH-instructions li::before {
-            content: '•';
-            color: var(--game-primary);
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-
-        .GH-dark-mode .GH-instructions li::before {
-            color: var(--game-accent);
-        }
-
-        .GH-game-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            color: white;
-            font-weight: bold;
-            box-shadow: var(--gh-shadow-lg);
-            z-index: 1000;
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            max-width: 300px;
-        }
-
-        .GH-game-notification.show {
-            transform: translateX(0);
-        }
-
-        .GH-game-notification.success {
-            background-color: var(--game-success);
-        }
-
-        .GH-game-notification.error {
-            background-color: var(--game-error);
-        }
-
-        .GH-game-notification.info {
-            background-color: var(--game-primary);
-        }
-
-        .GH-game-notification.warning {
-            background-color: var(--game-warning);
-            color: var(--gh-dark-text);
-        }
-
-        .GH-game-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .GH-game-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .GH-modal-content {
-            background: var(--game-card-bg);
-            border-radius: var(--gh-radius-lg);
-            padding: var(--gh-space-xl);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            box-shadow: var(--gh-shadow-lg);
-            transform: scale(0.8);
-            transition: transform 0.3s ease;
-        }
-
-        .GH-dark-mode .GH-modal-content {
-            background: var(--game-dark-card-bg);
-        }
-
-        .GH-game-modal.active .GH-modal-content {
-            transform: scale(1);
-        }
-
-        .GH-modal-title {
-            font-size: var(--gh-font-size-3xl);
-            margin-bottom: var(--gh-space-md);
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-modal-title {
-            color: var(--game-accent);
-        }
-
-        .GH-modal-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--gh-space-md);
-            margin: var(--gh-space-lg) 0;
-        }
-
-        .GH-modal-stat {
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            background: rgba(139, 0, 0, 0.1);
-        }
-
-        .GH-modal-stat-value {
-            font-size: var(--gh-font-size-2xl);
-            font-weight: bold;
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-modal-stat-value {
-            color: var(--game-accent);
-        }
-
-        .GH-modal-stat-label {
-            font-size: var(--gh-font-size-sm);
-            opacity: 0.8;
-        }
-
-        .GH-turn-indicator {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: var(--gh-space-md);
-            padding: var(--gh-space-sm) var(--gh-space-lg);
-            border-radius: var(--gh-radius-lg);
-            background-color: var(--game-card-bg);
-            box-shadow: var(--gh-shadow-sm);
-            font-weight: bold;
-            font-size: var(--gh-font-size-lg);
-            gap: var(--gh-space-sm);
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-turn-indicator {
-            background-color: var(--game-dark-card-bg);
-            color: var(--game-accent);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .GH-game-header {
-                flex-direction: column;
-                gap: var(--gh-space-md);
-            }
-
-            .GH-game-stats {
-                order: 2;
-            }
-
-            .GH-game-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .GH-game-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-
-            .GH-player-hand {
-                max-width: 100%;
-                overflow-x: auto;
-                justify-content: flex-start;
-                padding-bottom: 10px;
-            }
-
-            .GH-card {
-                width: 60px;
-                height: 90px;
-                font-size: 0.8rem;
-            }
-
-            .GH-card-center {
-                font-size: 1.8rem;
-            }
-
-            .GH-trick-area {
-                width: 250px;
-                height: 180px;
-            }
-
-            .GH-card-slot {
-                width: 60px;
-                height: 90px;
-            }
-        }
-
-        /* Game background pattern */
-        .GH-game-area::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
-            z-index: -1;
-        }
-
-        /* Card animations */
-        @keyframes cardPlay {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .GH-card.played {
-            animation: cardPlay 0.5s ease;
-        }
-		/* Update card colors to be more vibrant and distinct */
-/* Update card colors to be more vibrant and distinct */
-.GH-card.heart {
-    background-color: white;
-    color: #FF0000;
-    border: 1px solid #FF0000;
+:root {
+    --game-primary: #8B0000;
+    --game-secondary: #B22222;
+    --game-accent: #000000;
+    --game-success: #006400;
+    --game-error: #DC143C;
+    --game-warning: #FF8C00;
+    --game-info: #1E90FF;
+    --game-light-bg: #FFF5F5;
+    --game-dark-bg: #2C0A0A;
+    --game-card-bg: rgba(255, 255, 255, 0.95);
+    --game-dark-card-bg: rgba(70, 20, 20, 0.95);
+    --game-player-area: rgba(139, 0, 0, 0.1);
+    --game-dark-player-area: rgba(139, 0, 0, 0.2);
 }
 
-.GH-card.diamond {
-    background-color: white;
-    color: #FF0000;
-    border: 1px solid #FF0000;
+.GH-game-container {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    padding: var(--gh-space-lg);
 }
 
-.GH-card.spade {
-    background-color: white;
-    color: #000000;
-    border: 1px solid #000000;
+.GH-game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--gh-space-lg);
+    padding: var(--gh-space-md);
+    border-radius: var(--gh-radius-lg);
+    background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+    color: white;
+    box-shadow: var(--gh-shadow-md);
 }
 
-.GH-card.club {
-    background-color: white;
-    color: #000000;
-    border: 1px solid #000000;
+.GH-game-stats {
+    display: flex;
+    gap: var(--gh-space-md);
 }
 
-/* Make Queen of Spades more distinctive */
-.GH-card.queen.spade {
-    box-shadow: 0 0 15px rgba(220, 20, 60, 0.7);
-    background: linear-gradient(135deg, #ffffff, #f0f0f0);
+.GH-stat-box {
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--gh-space-sm) var(--gh-space-md);
+    border-radius: var(--gh-radius-md);
+    text-align: center;
+    min-width: 100px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Improved mobile responsiveness */
+.GH-stat-value {
+    font-size: var(--gh-font-size-2xl);
+    font-weight: bold;
+    display: block;
+}
+
+.GH-stat-label {
+    font-size: var(--gh-font-size-sm);
+    opacity: 0.9;
+}
+
+.GH-game-area {
+    margin: 30px 0;
+    padding: 20px;
+    border-radius: var(--gh-radius-lg);
+    background-color: var(--game-card-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: var(--gh-shadow-md);
+    min-height: 600px;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.GH-dark-mode .GH-game-area {
+    background-color: var(--game-dark-card-bg);
+}
+
+.GH-hearts-table {
+    width: 100%;
+    height: 500px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.GH-player-area {
+    position: absolute;
+    width: 200px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: var(--gh-radius-md);
+    background-color: var(--game-player-area);
+    box-shadow: var(--gh-shadow-sm);
+}
+
+.GH-dark-mode .GH-player-area {
+    background-color: var(--game-dark-player-area);
+}
+
+.GH-player-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: var(--gh-font-size-sm);
+}
+
+.GH-player-score {
+    font-size: var(--gh-font-size-lg);
+    font-weight: bold;
+}
+
+.GH-player-area.player {
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 100, 0, 0.2);
+}
+
+.GH-player-area.left {
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.GH-player-area.right {
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.GH-player-area.top {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.GH-trick-area {
+    width: 300px;
+    height: 200px;
+    position: relative;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.GH-card-slot {
+    position: absolute;
+    width: 80px;
+    height: 120px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.GH-dark-mode .GH-card-slot {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.GH-card-slot.player-slot {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.GH-card-slot.left-slot {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.GH-card-slot.right-slot {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.GH-card-slot.top-slot {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.GH-player-hand {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    max-width: 800px;
+}
+
+.GH-card {
+    width: 80px;
+    height: 120px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--gh-shadow-sm);
+    position: relative;
+    user-select: none;
+}
+
+.GH-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--gh-shadow-md);
+}
+
+.GH-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.GH-card.selected {
+    transform: translateY(-20px);
+    box-shadow: 0 0 15px var(--game-primary);
+    border: 2px solid gold;
+}
+
+.GH-card-top, .GH-card-bottom {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+}
+
+.GH-card-center {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.GH-card-bottom {
+    transform: rotate(180deg);
+}
+
+/* Card suit colors - LIGHT MODE */
+.GH-card.hearts, .GH-card.diamonds {
+    background-color: white !important;
+    color: #FF0000 !important;
+    border: 1px solid #FF0000 !important;
+}
+
+.GH-card.spades, .GH-card.clubs {
+    background-color: white !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+}
+
+/* Queen of Spades special styling */
+.GH-card.queen.spades {
+    box-shadow: 0 0 15px rgba(220, 20, 60, 0.7) !important;
+    background: linear-gradient(135deg, #ffffff, #f0f0f0) !important;
+}
+
+/* Dark mode adjustments */
+.GH-dark-mode .GH-card.hearts,
+.GH-dark-mode .GH-card.diamonds {
+    color: #ff6b6b;
+}
+
+.GH-dark-mode .GH-card.spades,
+.GH-dark-mode .GH-card.clubs {
+    color: #e0e0e0;
+}
+
+.GH-game-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--gh-space-md);
+    margin-top: var(--gh-space-lg);
+    flex-wrap: wrap;
+}
+
+.GH-game-btn {
+    background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    font-size: var(--gh-font-size-base);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--gh-shadow-md);
+    min-width: 150px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.GH-game-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--gh-shadow-lg);
+}
+
+.GH-game-btn:active {
+    transform: translateY(1px);
+}
+
+.GH-game-btn.secondary {
+    background: transparent;
+    border: 2px solid var(--game-primary);
+    color: var(--game-primary);
+}
+
+.GH-dark-mode .GH-game-btn.secondary {
+    color: var(--game-accent);
+    border-color: var(--game-accent);
+}
+
+.GH-game-btn.secondary:hover {
+    background: var(--game-primary);
+    color: white;
+}
+
+.GH-dark-mode .GH-game-btn.secondary:hover {
+    background: var(--game-accent);
+    color: var(--game-dark-bg);
+}
+
+.GH-game-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.GH-game-btn:disabled:hover {
+    transform: none;
+    box-shadow: var(--gh-shadow-md);
+}
+
+.GH-instructions {
+    background-color: var(--game-card-bg);
+    padding: var(--gh-space-md);
+    border-radius: var(--gh-radius-md);
+    margin-bottom: var(--gh-space-lg);
+    box-shadow: var(--gh-shadow-sm);
+}
+
+.GH-dark-mode .GH-instructions {
+    background-color: var(--game-dark-card-bg);
+}
+
+.GH-instructions h2 {
+    margin-bottom: var(--gh-space-sm);
+    text-align: center;
+    color: var(--game-primary);
+}
+
+.GH-dark-mode .GH-instructions h2 {
+    color: var(--game-accent);
+}
+
+.GH-instructions ul {
+    padding-left: 20px;
+}
+
+.GH-instructions li {
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.GH-instructions li::before {
+    content: '•';
+    color: var(--game-primary);
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+.GH-dark-mode .GH-instructions li::before {
+    color: var(--game-accent);
+}
+
+.GH-game-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: var(--gh-space-md);
+    border-radius: var(--gh-radius-md);
+    color: white;
+    font-weight: bold;
+    box-shadow: var(--gh-shadow-lg);
+    z-index: 1000;
+    transform: translateX(150%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+}
+
+.GH-game-notification.show {
+    transform: translateX(0);
+}
+
+.GH-game-notification.success {
+    background-color: var(--game-success);
+}
+
+.GH-game-notification.error {
+    background-color: var(--game-error);
+}
+
+.GH-game-notification.info {
+    background-color: var(--game-primary);
+}
+
+.GH-game-notification.warning {
+    background-color: var(--game-warning);
+    color: var(--gh-dark-text);
+}
+
+.GH-game-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.GH-game-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.GH-modal-content {
+    background: var(--game-card-bg);
+    border-radius: var(--gh-radius-lg);
+    padding: var(--gh-space-xl);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--gh-shadow-lg);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.GH-dark-mode .GH-modal-content {
+    background: var(--game-dark-card-bg);
+}
+
+.GH-game-modal.active .GH-modal-content {
+    transform: scale(1);
+}
+
+.GH-modal-title {
+    font-size: var(--gh-font-size-3xl);
+    margin-bottom: var(--gh-space-md);
+    color: var(--game-primary);
+}
+
+.GH-dark-mode .GH-modal-title {
+    color: var(--game-accent);
+}
+
+.GH-modal-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gh-space-md);
+    margin: var(--gh-space-lg) 0;
+}
+
+.GH-modal-stat {
+    padding: var(--gh-space-md);
+    border-radius: var(--gh-radius-md);
+    background: rgba(139, 0, 0, 0.1);
+}
+
+.GH-modal-stat-value {
+    font-size: var(--gh-font-size-2xl);
+    font-weight: bold;
+    color: var(--game-primary);
+}
+
+.GH-dark-mode .GH-modal-stat-value {
+    color: var(--game-accent);
+}
+
+.GH-modal-stat-label {
+    font-size: var(--gh-font-size-sm);
+    opacity: 0.8;
+}
+
+.GH-turn-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--gh-space-md);
+    padding: var(--gh-space-sm) var(--gh-space-lg);
+    border-radius: var(--gh-radius-lg);
+    background-color: var(--game-card-bg);
+    box-shadow: var(--gh-shadow-sm);
+    font-weight: bold;
+    font-size: var(--gh-font-size-lg);
+    gap: var(--gh-space-sm);
+    color: var(--game-primary);
+}
+
+.GH-dark-mode .GH-turn-indicator {
+    background-color: var(--game-dark-card-bg);
+    color: var(--game-accent);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .GH-game-header {
+        flex-direction: column;
+        gap: var(--gh-space-md);
+    }
+
+    .GH-game-stats {
+        order: 2;
+    }
+
+    .GH-game-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .GH-game-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .GH-player-hand {
+        max-width: 100%;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 10px;
+    }
+
+    .GH-card {
+        width: 60px;
+        height: 90px;
+        font-size: 0.8rem;
+    }
+
+    .GH-card-center {
+        font-size: 1.8rem;
+    }
+
+    .GH-trick-area {
+        width: 250px;
+        height: 180px;
+    }
+
+    .GH-card-slot {
+        width: 60px;
+        height: 90px;
+    }
+}
+
 @media (max-width: 480px) {
     .GH-game-container {
         padding: 10px;
@@ -739,7 +696,6 @@
     }
 }
 
-/* Additional mobile optimizations for very small screens */
 @media (max-width: 360px) {
     .GH-card {
         width: 50px;
@@ -766,7 +722,6 @@
     }
 }
 
-/* Improve card hover effects for touch devices */
 @media (hover: none) {
     .GH-card:hover {
         transform: none;
@@ -775,6 +730,31 @@
     .GH-card:active {
         transform: translateY(-5px);
     }
+}
+
+/* Game background pattern */
+.GH-game-area::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
+    z-index: -1;
+}
+
+/* Card animations */
+@keyframes cardPlay {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.GH-card.played {
+    animation: cardPlay 0.5s ease;
 }
     </style>
 </head>
@@ -889,6 +869,13 @@
                 <button id="pass-btn" class="GH-game-btn secondary" data-i18n="GH.hearts.passCards" disabled>
                     <span>➡️</span> Pass Cards
                 </button>
+                <!-- New pass confirmation buttons -->
+                <button id="confirm-pass-btn" class="GH-game-btn" style="display: none;" data-i18n="GH.hearts.confirmPass">
+                    <span>✅</span> Confirm Pass
+                </button>
+                <button id="cancel-pass-btn" class="GH-game-btn secondary" style="display: none;" data-i18n="GH.hearts.cancelPass">
+                    <span>❌</span> Cancel
+                </button>
                 <button id="restart-btn" class="GH-game-btn secondary" data-i18n="GH.hearts.restart">
                     <span>🔄</span> Restart
                 </button>
@@ -970,6 +957,8 @@
     const playerSlot = document.getElementById('player-slot');
     const startBtn = document.getElementById('start-btn');
     const passBtn = document.getElementById('pass-btn');
+    const confirmPassBtn = document.getElementById('confirm-pass-btn');
+    const cancelPassBtn = document.getElementById('cancel-pass-btn');
     const restartBtn = document.getElementById('restart-btn');
     const gameNotification = document.getElementById('game-notification');
     const gameOverModal = document.getElementById('game-over-modal');
@@ -983,7 +972,9 @@
     
     // Event listeners
     startBtn.addEventListener('click', startGame);
-    passBtn.addEventListener('click', completePass);
+    passBtn.addEventListener('click', enablePassSelection);
+    confirmPassBtn.addEventListener('click', confirmPass);
+    cancelPassBtn.addEventListener('click', cancelPass);
     restartBtn.addEventListener('click', restartGame);
     playAgainBtn.addEventListener('click', playAgain);
     mainMenuBtn.addEventListener('click', goToMainMenu);
@@ -1016,6 +1007,8 @@
                 opponentTurn: "Opponent's Turn",
                 startGame: "Start Game",
                 passCards: "Pass Cards",
+                confirmPass: "Confirm Pass",
+                cancelPass: "Cancel",
                 restart: "Restart",
                 playAgain: "Play Again",
                 mainMenu: "Main Menu",
@@ -1035,7 +1028,14 @@
                 newRound: "Starting new round",
                 restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
                 onePoint: "1 point",
-                points: "points"
+                points: "points",
+                selectThree: "Please select exactly 3 cards to pass.",
+                passCancelled: "Pass cancelled. You can try again.",
+                illegalMove: "Illegal move!",
+                shootingMoon: "Shooting the moon! All opponents get 26 points.",
+                confirmPass: "Confirm Pass",
+                selectThree: "Please select exactly 3 cards to pass.",
+                shootMoon: "Shoot the Moon!"
             }
         },
         ar: {
@@ -1060,6 +1060,8 @@
                 opponentTurn: "دور الخصم",
                 startGame: "ابدأ اللعبة",
                 passCards: "تمرير البطاقات",
+                confirmPass: "تأكيد التمرير",
+                cancelPass: "إلغاء",
                 restart: "إعادة التشغيل",
                 playAgain: "العب مرة أخرى",
                 mainMenu: "القائمة الرئيسية",
@@ -1079,7 +1081,14 @@
                 newRound: "بداية جولة جديدة",
                 restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
                 onePoint: "نقطة واحدة",
-                points: "نقاط"
+                points: "نقاط",
+                selectThree: "يرجى اختيار 3 بطاقات بالضبط لتمريرها.",
+                passCancelled: "تم إلغاء التمرير. يمكنك المحاولة مرة أخرى.",
+                illegalMove: "حركة غير قانونية!",
+                shootingMoon: "إطلاق النار على القمر! جميع الخصوم يحصلون على 26 نقطة.",
+                confirmPass: "تأكيد التمرير",
+                selectThree: "يرجى اختيار 3 بطاقات لتمريرها.",
+                shootMoon: "أخذ القمر!"
             }
         },
         fr: {
@@ -1104,6 +1113,8 @@
                 opponentTurn: "Tour de l'Adversaire",
                 startGame: "Commencer le Jeu",
                 passCards: "Passer les Cartes",
+                confirmPass: "Confirmer le Pass",
+                cancelPass: "Annuler",
                 restart: "Redémarrer",
                 playAgain: "Rejouer",
                 mainMenu: "Menu Principal",
@@ -1123,7 +1134,14 @@
                 newRound: "Début d'un nouveau tour",
                 restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
                 onePoint: "1 point",
-                points: "points"
+                points: "points",
+                selectThree: "Veuillez sélectionner exactement 3 cartes à passer.",
+                passCancelled: "Pass annulé. Vous pouvez réessayer.",
+                illegalMove: "Mouvement illégal !",
+                shootingMoon: "Tir sur la lune ! Tous les adversaires reçoivent 26 points.",
+                confirmPass: "Confirmer le passage",
+                selectThree: "Veuillez sélectionner exactement 3 cartes à passer.",
+                shootMoon: "Faire la Lune!"
             }
         }
     };

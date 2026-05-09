@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHub - Target Practice</title>
+    <title>GameHub - Target Practice (Enhanced)</title>
     <link rel="stylesheet" href="main.css">
     <style>
-        /* Game-specific styles - Target Practice theme */
         :root {
-            /* Target Practice color palette - Action theme */
             --game-primary: #FF6B6B;
             --game-secondary: #FF8E8E;
             --game-accent: #4ECDC4;
@@ -20,608 +18,101 @@
             --game-card-bg: rgba(255, 255, 255, 0.95);
             --game-dark-card-bg: rgba(40, 40, 60, 0.95);
             --game-target-bg: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-            --game-target-accent: #4ECDC4;
             --game-glow: 0 0 20px rgba(255, 107, 107, 0.5);
         }
 
-        .GH-game-container {
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-            padding: var(--gh-space-lg);
-        }
-
-        .GH-game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--gh-space-lg);
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-lg);
-            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
-            color: white;
-            box-shadow: var(--gh-shadow-md);
-        }
-
-        .GH-game-stats {
-            display: flex;
-            gap: var(--gh-space-md);
-        }
-
-        .GH-stat-box {
-            background: rgba(255, 255, 255, 0.2);
-            padding: var(--gh-space-sm) var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            text-align: center;
-            min-width: 100px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .GH-stat-value {
-            font-size: var(--gh-font-size-2xl);
-            font-weight: bold;
-            display: block;
-        }
-
-        .GH-stat-label {
-            font-size: var(--gh-font-size-sm);
-            opacity: 0.9;
-        }
-
-        .GH-game-area {
-            margin: 30px 0;
-            padding: 20px;
-            border-radius: var(--gh-radius-lg);
-            background-color: var(--game-card-bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: var(--gh-shadow-md);
-            min-height: 500px;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .GH-dark-mode .GH-game-area {
-            background-color: var(--game-dark-card-bg);
-        }
-
-        .GH-target {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.2s;
-            background: var(--game-target-bg);
-            box-shadow: var(--game-glow);
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-            z-index: 10;
-        }
-
-        .GH-target:hover {
-            transform: scale(1.05);
-        }
-
-        .GH-target:active {
-            transform: scale(0.95);
-        }
-
-        .GH-game-controls {
-            display: flex;
-            justify-content: center;
-            gap: var(--gh-space-md);
-            margin-top: var(--gh-space-lg);
-            flex-wrap: wrap;
-        }
-
-        .GH-game-btn {
-            background: var(--gh-gradient-primary);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            font-size: var(--gh-font-size-base);
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--gh-shadow-md);
-            min-width: 150px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .GH-game-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--gh-shadow-lg);
-        }
-
-        .GH-game-btn:active {
-            transform: translateY(1px);
-        }
-
-        .GH-game-btn.secondary {
-            background: transparent;
-            border: 2px solid var(--game-primary);
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-game-btn.secondary {
-            color: var(--game-accent);
-            border-color: var(--game-accent);
-        }
-
-        .GH-game-btn.secondary:hover {
-            background: var(--game-primary);
-            color: white;
-        }
-
-        .GH-dark-mode .GH-game-btn.secondary:hover {
-            background: var(--game-accent);
-            color: var(--game-dark-bg);
-        }
-
-        .GH-game-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .GH-game-btn:disabled:hover {
-            transform: none;
-            box-shadow: var(--gh-shadow-md);
-        }
-
-        .GH-level-indicator {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--gh-space-sm);
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .GH-level-text {
-            font-size: var(--gh-font-size-lg);
-            font-weight: bold;
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-level-text {
-            color: var(--game-accent);
-        }
-
-        .GH-level-progress {
-            width: 100%;
-            max-width: 500px;
-            height: 10px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            margin: var(--gh-space-md) 0;
-            overflow: hidden;
-        }
-
-        .GH-dark-mode .GH-level-progress {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .GH-progress {
-            height: 100%;
-            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
-            border-radius: 5px;
-            transition: width 0.5s ease;
-            position: relative;
-        }
-
-        .GH-progress::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .GH-instructions {
-            background-color: var(--game-card-bg);
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            margin-bottom: var(--gh-space-lg);
-            box-shadow: var(--gh-shadow-sm);
-        }
-
-        .GH-dark-mode .GH-instructions {
-            background-color: var(--game-dark-card-bg);
-        }
-
-        .GH-instructions h2 {
-            margin-bottom: var(--gh-space-sm);
-            text-align: center;
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-instructions h2 {
-            color: var(--game-accent);
-        }
-
-        .GH-instructions ul {
-            padding-left: 20px;
-        }
-
-        .GH-instructions li {
-            margin-bottom: 8px;
-            position: relative;
-        }
-
-        .GH-instructions li::before {
-            content: '🎯';
-            color: var(--game-primary);
-            font-weight: bold;
-            display: inline-block;
-            width: 1.5em;
-            margin-left: -1.5em;
-        }
-
-        .GH-dark-mode .GH-instructions li::before {
-            color: var(--game-accent);
-        }
-
-        .GH-game-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            color: white;
-            font-weight: bold;
-            box-shadow: var(--gh-shadow-lg);
-            z-index: 1000;
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            max-width: 300px;
-        }
-
-        .GH-game-notification.show {
-            transform: translateX(0);
-        }
-
-        .GH-game-notification.success {
-            background-color: var(--game-success);
-        }
-
-        .GH-game-notification.error {
-            background-color: var(--game-error);
-        }
-
-        .GH-game-notification.info {
-            background-color: var(--game-primary);
-        }
-
-        .GH-game-notification.warning {
-            background-color: var(--game-warning);
-            color: var(--gh-dark-text);
-        }
-
-        .GH-timer-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-        }
-
-        .GH-timer-circle {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .GH-timer-background {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.2);
-            stroke-width: 8;
-        }
-
-        .GH-timer-progress {
-            fill: none;
-            stroke: white;
-            stroke-width: 8;
-            stroke-linecap: round;
-            stroke-dasharray: 283;
-            stroke-dashoffset: 283;
-            transition: stroke-dashoffset 1s linear;
-        }
-
-        .GH-timer-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: var(--gh-font-size-xl);
-            font-weight: bold;
-            color: white;
-        }
-
-        .GH-game-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .GH-game-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .GH-modal-content {
-            background: var(--game-card-bg);
-            border-radius: var(--gh-radius-lg);
-            padding: var(--gh-space-xl);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            box-shadow: var(--gh-shadow-lg);
-            transform: scale(0.8);
-            transition: transform 0.3s ease;
-        }
-
-        .GH-dark-mode .GH-modal-content {
-            background: var(--game-dark-card-bg);
-        }
-
-        .GH-game-modal.active .GH-modal-content {
-            transform: scale(1);
-        }
-
-        .GH-modal-title {
-            font-size: var(--gh-font-size-3xl);
-            margin-bottom: var(--gh-space-md);
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-modal-title {
-            color: var(--game-accent);
-        }
-
-        .GH-modal-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--gh-space-md);
-            margin: var(--gh-space-lg) 0;
-        }
-
-        .GH-modal-stat {
-            padding: var(--gh-space-md);
-            border-radius: var(--gh-radius-md);
-            background: rgba(255, 107, 107, 0.1);
-        }
-
-        .GH-modal-stat-value {
-            font-size: var(--gh-font-size-2xl);
-            font-weight: bold;
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-modal-stat-value {
-            color: var(--game-accent);
-        }
-
-        .GH-modal-stat-label {
-            font-size: var(--gh-font-size-sm);
-            opacity: 0.8;
-        }
-
-        .GH-difficulty-selector {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--gh-space-sm);
-            margin: var(--gh-space-md) 0;
-        }
-
-        .GH-difficulty-btn {
-            padding: 8px 16px;
-            border: 2px solid var(--game-primary);
-            background: transparent;
-            color: var(--game-primary);
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        .GH-dark-mode .GH-difficulty-btn {
-            border-color: var(--game-accent);
-            color: var(--game-accent);
-        }
-
-        .GH-difficulty-btn.active {
-            background: var(--game-primary);
-            color: white;
-        }
-
-        .GH-dark-mode .GH-difficulty-btn.active {
-            background: var(--game-accent);
-            color: var(--game-dark-bg);
-        }
-
-        .GH-target-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            font-size: 1.1rem;
-            width: 100%;
-            max-width: 600px;
-            gap: 15px;
-        }
-
-        .GH-target-stat {
-            background-color: var(--game-card-bg);
-            padding: 15px 20px;
-            border-radius: var(--gh-radius-md);
-            min-width: 140px;
-            text-align: center;
-            box-shadow: var(--gh-shadow-sm);
-        }
-
-        .GH-dark-mode .GH-target-stat {
-            background-color: var(--game-dark-card-bg);
-        }
-
-        .GH-target-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-top: 8px;
-            color: var(--game-primary);
-        }
-
-        .GH-dark-mode .GH-target-value {
-            color: var(--game-accent);
-        }
-
-        /* Target animations */
-        @keyframes targetPulse {
-            0% { transform: scale(1); box-shadow: var(--game-glow); }
-            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 107, 107, 0.8); }
-            100% { transform: scale(1); box-shadow: var(--game-glow); }
-        }
-
-        .GH-pulse {
-            animation: targetPulse 1.5s infinite;
-        }
-
-        @keyframes targetAppear {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .GH-target-appear {
-            animation: targetAppear 0.3s ease-out;
-        }
-
-        /* Countdown animation */
-        @keyframes countdownPulse {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(3); opacity: 0; }
-        }
-
-        .GH-countdown {
-            position: absolute;
-            font-size: 5rem;
-            font-weight: bold;
-            color: var(--game-primary);
-            z-index: 100;
-            animation: countdownPulse 1s ease-out;
-            text-shadow: 0 0 20px rgba(255, 107, 107, 0.7);
-        }
-
-        .GH-dark-mode .GH-countdown {
-            color: var(--game-accent);
-            text-shadow: 0 0 20px rgba(78, 205, 196, 0.7);
-        }
-
-        /* Responsive adjustments */
+        .GH-game-container { max-width: 1000px; margin: 0 auto; padding: var(--gh-space-lg); }
+        .GH-game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gh-space-lg); padding: var(--gh-space-md); border-radius: var(--gh-radius-lg); background: linear-gradient(135deg, var(--game-primary), var(--game-secondary)); color: white; box-shadow: var(--gh-shadow-md); }
+        .GH-game-stats { display: flex; gap: var(--gh-space-md); }
+        .GH-stat-box { background: rgba(255,255,255,0.2); padding: var(--gh-space-sm) var(--gh-space-md); border-radius: var(--gh-radius-md); text-align: center; min-width: 100px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .GH-stat-value { font-size: var(--gh-font-size-2xl); font-weight: bold; display: block; }
+        .GH-stat-label { font-size: var(--gh-font-size-sm); opacity: 0.9; }
+        .GH-game-area { margin: 30px 0; padding: 20px; border-radius: var(--gh-radius-lg); background-color: var(--game-card-bg); display: flex; flex-direction: column; align-items: center; box-shadow: var(--gh-shadow-md); min-height: 500px; justify-content: center; position: relative; overflow: hidden; }
+        .GH-dark-mode .GH-game-area { background-color: var(--game-dark-card-bg); }
+        .GH-target { width: 100px; height: 100px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; background: var(--game-target-bg); box-shadow: var(--game-glow); position: absolute; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; z-index: 10; }
+        .GH-target:hover { transform: scale(1.05); }
+        .GH-target:active { transform: scale(0.95); }
+        .GH-game-controls { display: flex; justify-content: center; gap: var(--gh-space-md); margin-top: var(--gh-space-lg); flex-wrap: wrap; }
+        .GH-game-btn { background: var(--gh-gradient-primary); border: none; color: white; padding: 12px 24px; font-size: var(--gh-font-size-base); border-radius: 50px; cursor: pointer; transition: all 0.3s ease; box-shadow: var(--gh-shadow-md); min-width: 150px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .GH-game-btn:hover { transform: translateY(-3px); box-shadow: var(--gh-shadow-lg); }
+        .GH-game-btn:active { transform: translateY(1px); }
+        .GH-game-btn.secondary { background: transparent; border: 2px solid var(--game-primary); color: var(--game-primary); }
+        .GH-dark-mode .GH-game-btn.secondary { color: var(--game-accent); border-color: var(--game-accent); }
+        .GH-game-btn.secondary:hover { background: var(--game-primary); color: white; }
+        .GH-dark-mode .GH-game-btn.secondary:hover { background: var(--game-accent); color: var(--game-dark-bg); }
+        .GH-game-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: var(--gh-shadow-md); }
+        .GH-level-indicator { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gh-space-sm); width: 100%; max-width: 500px; }
+        .GH-level-text { font-size: var(--gh-font-size-lg); font-weight: bold; color: var(--game-primary); }
+        .GH-dark-mode .GH-level-text { color: var(--game-accent); }
+        .GH-level-progress { width: 100%; max-width: 500px; height: 10px; background-color: rgba(0,0,0,0.1); border-radius: 5px; margin: var(--gh-space-md) 0; overflow: hidden; }
+        .GH-dark-mode .GH-level-progress { background-color: rgba(255,255,255,0.1); }
+        .GH-progress { height: 100%; background: linear-gradient(90deg, var(--game-primary), var(--game-accent)); border-radius: 5px; transition: width 0.5s ease; }
+        .GH-instructions { background-color: var(--game-card-bg); padding: var(--gh-space-md); border-radius: var(--gh-radius-md); margin-bottom: var(--gh-space-lg); box-shadow: var(--gh-shadow-sm); }
+        .GH-dark-mode .GH-instructions { background-color: var(--game-dark-card-bg); }
+        .GH-instructions h2 { margin-bottom: var(--gh-space-sm); text-align: center; color: var(--game-primary); }
+        .GH-dark-mode .GH-instructions h2 { color: var(--game-accent); }
+        .GH-instructions ul { padding-left: 20px; }
+        .GH-instructions li { margin-bottom: 8px; }
+        .GH-game-notification { position: fixed; top: 20px; right: 20px; padding: var(--gh-space-md); border-radius: var(--gh-radius-md); color: white; font-weight: bold; box-shadow: var(--gh-shadow-lg); z-index: 1000; transform: translateX(150%); transition: transform 0.3s ease; max-width: 300px; }
+        .GH-game-notification.show { transform: translateX(0); }
+        .GH-game-notification.success { background-color: var(--game-success); }
+        .GH-game-notification.error { background-color: var(--game-error); }
+        .GH-game-notification.info { background-color: var(--game-primary); }
+        .GH-game-notification.warning { background-color: var(--game-warning); color: var(--gh-dark-text); }
+        .GH-timer-container { position: relative; width: 100px; height: 100px; }
+        .GH-timer-circle { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .GH-timer-background { fill: none; stroke: rgba(255,255,255,0.2); stroke-width: 8; }
+        .GH-timer-progress { fill: none; stroke: white; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 1s linear; }
+        .GH-timer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: var(--gh-font-size-xl); font-weight: bold; color: white; }
+        .GH-game-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .GH-game-modal.active { opacity: 1; visibility: visible; }
+        .GH-modal-content { background: var(--game-card-bg); border-radius: var(--gh-radius-lg); padding: var(--gh-space-xl); max-width: 500px; width: 90%; text-align: center; box-shadow: var(--gh-shadow-lg); transform: scale(0.8); transition: transform 0.3s ease; }
+        .GH-dark-mode .GH-modal-content { background: var(--game-dark-card-bg); }
+        .GH-game-modal.active .GH-modal-content { transform: scale(1); }
+        .GH-modal-title { font-size: var(--gh-font-size-3xl); margin-bottom: var(--gh-space-md); color: var(--game-primary); }
+        .GH-dark-mode .GH-modal-title { color: var(--game-accent); }
+        .GH-modal-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gh-space-md); margin: var(--gh-space-lg) 0; }
+        .GH-modal-stat { padding: var(--gh-space-md); border-radius: var(--gh-radius-md); background: rgba(255,107,107,0.1); }
+        .GH-modal-stat-value { font-size: var(--gh-font-size-2xl); font-weight: bold; color: var(--game-primary); }
+        .GH-dark-mode .GH-modal-stat-value { color: var(--game-accent); }
+        .GH-modal-stat-label { font-size: var(--gh-font-size-sm); opacity: 0.8; }
+        .GH-difficulty-selector { display: flex; align-items: center; justify-content: center; gap: var(--gh-space-sm); margin: var(--gh-space-md) 0; }
+        .GH-difficulty-btn { padding: 8px 16px; border: 2px solid var(--game-primary); background: transparent; color: var(--game-primary); border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+        .GH-dark-mode .GH-difficulty-btn { border-color: var(--game-accent); color: var(--game-accent); }
+        .GH-difficulty-btn.active { background: var(--game-primary); color: white; }
+        .GH-dark-mode .GH-difficulty-btn.active { background: var(--game-accent); color: var(--game-dark-bg); }
+        .GH-target-stats { display: flex; justify-content: space-around; margin-top: 30px; font-size: 1.1rem; width: 100%; max-width: 600px; gap: 15px; flex-wrap: wrap; }
+        .GH-target-stat { background-color: var(--game-card-bg); padding: 15px 20px; border-radius: var(--gh-radius-md); min-width: 140px; text-align: center; box-shadow: var(--gh-shadow-sm); }
+        .GH-dark-mode .GH-target-stat { background-color: var(--game-dark-card-bg); }
+        .GH-target-value { font-size: 1.8rem; font-weight: bold; margin-top: 8px; color: var(--game-primary); }
+        .GH-dark-mode .GH-target-value { color: var(--game-accent); }
+        @keyframes targetPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .GH-pulse { animation: targetPulse 1.5s infinite; }
+        @keyframes targetAppear { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        .GH-target-appear { animation: targetAppear 0.3s ease-out; }
+        @keyframes countdownPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+        .GH-countdown { position: absolute; font-size: 5rem; font-weight: bold; color: var(--game-primary); z-index: 100; animation: countdownPulse 1s ease-out; }
+        .GH-dark-mode .GH-countdown { color: var(--game-accent); }
+        .GH-level-up-indicator { position: absolute; font-size: 3rem; font-weight: bold; color: var(--game-accent); z-index: 100; text-shadow: 0 0 20px rgba(78,205,196,0.7); animation: levelUpFade 1.5s ease-out; }
+        @keyframes levelUpFade { 0% { transform: scale(0.5); opacity: 0; } 30% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
         @media (max-width: 768px) {
-            .GH-game-header {
-                flex-direction: column;
-                gap: var(--gh-space-md);
-            }
-
-            .GH-game-stats {
-                order: 2;
-            }
-
-            .GH-timer-container {
-                order: 1;
-            }
-
-            .GH-game-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .GH-game-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-
-            .GH-target {
-                width: 80px;
-                height: 80px;
-            }
-
-            .GH-target-stats {
-                flex-direction: column;
-                gap: var(--gh-space-md);
-                align-items: center;
-            }
+            .GH-game-header { flex-direction: column; gap: var(--gh-space-md); }
+            .GH-game-stats { order: 2; }
+            .GH-timer-container { order: 1; }
+            .GH-game-controls { flex-direction: column; align-items: center; }
+            .GH-game-btn { width: 100%; max-width: 300px; }
+            .GH-target { width: 80px; height: 80px; }
+            .GH-target-stats { flex-direction: column; gap: var(--gh-space-md); align-items: center; }
         }
-
         @media (max-width: 480px) {
-            .GH-target {
-                width: 60px;
-                height: 60px;
-            }
+            .GH-target { width: 60px; height: 60px; }
         }
-
-        /* RTL support */
-        [dir="rtl"] .GH-instructions li::before {
-            margin-left: 0;
-            margin-right: -1.5em;
-        }
-
-        [dir="rtl"] .GH-game-notification {
-            right: auto;
-            left: 20px;
-            transform: translateX(-150%);
-        }
-
-        [dir="rtl"] .GH-game-notification.show {
-            transform: translateX(0);
-        }
-
-        /* Game background pattern */
-        .GH-game-area::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(78, 205, 196, 0.1) 0%, transparent 50%);
-            z-index: -1;
-        }
+        [dir="rtl"] .GH-game-notification { right: auto; left: 20px; transform: translateX(-150%); }
+        [dir="rtl"] .GH-game-notification.show { transform: translateX(0); }
+        .GH-game-area::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 30%, rgba(255,107,107,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(78,205,196,0.1) 0%, transparent 50%); z-index: -1; }
     </style>
 </head>
 <body class="GH-body GH-light-mode">
-    <!-- Header -->
     <header class="GH-header">
         <div class="GH-header-content">
             <div class="GH-logo-section">
@@ -629,28 +120,22 @@
                     <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
                 </a>
             </div>
-            
             <h1 class="GH-title" data-i18n="GH.target.title">Target Practice</h1>
-            
             <div class="GH-controls">
                 <select class="GH-language-select" id="languageSelect">
                     <option value="en">English</option>
                     <option value="ar">العربية</option>
                     <option value="fr">Français</option>
                 </select>
-                
                 <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
                     <span class="GH-icon">🌙</span>
                 </button>
-                
                 <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
                     <span class="GH-icon">🔔</span>
                 </button>
             </div>
         </div>
     </header>
-    
-    <!-- Main Content -->
     <main class="GH-main">
         <div class="GH-game-container">
             <div class="GH-game-header">
@@ -667,8 +152,11 @@
                         <span class="GH-stat-value" id="streak">0</span>
                         <span class="GH-stat-label" data-i18n="GH.target.streak">Streak</span>
                     </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="level">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.target.level">Level</span>
+                    </div>
                 </div>
-                
                 <div class="GH-timer-container">
                     <svg class="GH-timer-circle" viewBox="0 0 100 100">
                         <circle class="GH-timer-background" cx="50" cy="50" r="45"></circle>
@@ -677,58 +165,55 @@
                     <div class="GH-timer-text" id="timer-text">30</div>
                 </div>
             </div>
-            
             <div class="GH-instructions">
                 <h2 data-i18n="GH.target.howToPlay">How to Play</h2>
                 <ul>
-                    <li data-i18n="GH.target.instruction1">Click the target as many times as you can in 30 seconds!</li>
-                    <li data-i18n="GH.target.instruction2">Each hit increases your score</li>
-                    <li data-i18n="GH.target.instruction3">Build a streak by hitting targets quickly</li>
-                    <li data-i18n="GH.target.instruction4">The target gets smaller at higher difficulties</li>
-                    <li data-i18n="GH.target.instruction5">Try to beat your high score!</li>
+                    <li data-i18n="GH.target.instruction1">Click targets before they disappear!</li>
+                    <li data-i18n="GH.target.instruction2">Hit 90% of targets to win</li>
+                    <li data-i18n="GH.target.instruction3">Streaks increase your score faster</li>
+                    <li data-i18n="GH.target.instruction4">Levels get harder every 5 hits</li>
+                    <li data-i18n="GH.target.instruction5">Timer pauses during level transitions</li>
                 </ul>
             </div>
-
             <div class="GH-difficulty-selector">
                 <span data-i18n="GH.target.difficulty">Difficulty:</span>
                 <button class="GH-difficulty-btn active" data-difficulty="easy" data-i18n="GH.target.easy">Easy</button>
                 <button class="GH-difficulty-btn" data-difficulty="medium" data-i18n="GH.target.medium">Medium</button>
                 <button class="GH-difficulty-btn" data-difficulty="hard" data-i18n="GH.target.hard">Hard</button>
             </div>
-            
             <div class="GH-level-indicator">
                 <span class="GH-level-text" data-i18n="GH.target.clickTarget">Click the target!</span>
-                <span id="progress-text">0/20</span>
+                <span id="progress-text">0/5</span>
             </div>
-            
             <div class="GH-level-progress">
                 <div id="progress" class="GH-progress" style="width: 0%"></div>
             </div>
-            
             <div class="GH-game-area" id="game-area">
                 <div id="start-message" data-i18n="GH.target.getReady">Get Ready!</div>
                 <div id="target" class="GH-target GH-pulse"></div>
             </div>
-            
             <div class="GH-target-stats">
                 <div class="GH-target-stat">
                     <span data-i18n="GH.target.targetsHit">Targets Hit</span>
                     <div class="GH-target-value" id="targets-hit">0</div>
                 </div>
                 <div class="GH-target-stat">
-                    <span data-i18n="GH.target.bestStreak">Best Streak</span>
-                    <div class="GH-target-value" id="best-streak">0</div>
+                    <span data-i18n="GH.target.missed">Missed</span>
+                    <div class="GH-target-value" id="missed">0</div>
                 </div>
                 <div class="GH-target-stat">
-                    <span data-i18n="GH.target.avgTime">Average Time</span>
-                    <div class="GH-target-value" id="avg-time">0.00s</div>
+                    <span data-i18n="GH.target.accuracy">Accuracy</span>
+                    <div class="GH-target-value" id="accuracy">0%</div>
+                </div>
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.target.bestStreak">Best Streak</span>
+                    <div class="GH-target-value" id="best-streak">0</div>
                 </div>
                 <div class="GH-target-stat">
                     <span data-i18n="GH.target.highScore">High Score</span>
                     <div class="GH-target-value" id="high-score">0</div>
                 </div>
             </div>
-            
             <div class="GH-game-controls">
                 <button id="start-btn" class="GH-game-btn" data-i18n="GH.target.startGame">
                     <span>▶️</span> Start Game
@@ -742,20 +227,16 @@
             </div>
         </div>
     </main>
-    
-    <!-- Footer -->
     <footer class="GH-footer">
         <div class="GH-footer-content">
             <div class="GH-footer-column">
                 <span data-i18n="GH.general.version">Version:</span>
                 <span>v0.0.1</span>
             </div>
-            
             <div class="GH-footer-column">
                 <span data-i18n="GH.general.developer">Developer:</span>
                 <span>Mejri Ziad</span>
             </div>
-            
             <div class="GH-footer-column">
                 <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
                 <span> | </span>
@@ -763,11 +244,7 @@
             </div>
         </div>
     </footer>
-    
-    <!-- Game Notification -->
     <div class="GH-game-notification" id="game-notification" style="display: none;"></div>
-    
-    <!-- Game Over Modal -->
     <div class="GH-game-modal" id="game-over-modal">
         <div class="GH-modal-content">
             <h2 class="GH-modal-title" id="game-result-title" data-i18n="GH.target.gameOver">Game Over!</h2>
@@ -781,12 +258,16 @@
                     <div class="GH-modal-stat-label" data-i18n="GH.target.targetsHit">Targets Hit</div>
                 </div>
                 <div class="GH-modal-stat">
-                    <div class="GH-modal-stat-value" id="final-best-streak">0</div>
-                    <div class="GH-modal-stat-label" data-i18n="GH.target.bestStreak">Best Streak</div>
+                    <div class="GH-modal-stat-value" id="final-missed">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.target.missed">Missed</div>
                 </div>
                 <div class="GH-modal-stat">
                     <div class="GH-modal-stat-value" id="final-accuracy">0%</div>
                     <div class="GH-modal-stat-label" data-i18n="GH.target.accuracy">Accuracy</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="final-best-streak">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.target.bestStreak">Best Streak</div>
                 </div>
             </div>
             <div class="GH-game-controls">
@@ -795,404 +276,385 @@
             </div>
         </div>
     </div>
-    
-    <!-- Include JavaScript files -->
     <script src="translation.js"></script>
     <script src="global.js"></script>
     <script>
-        // Game state variables
-        let gameInterval;
-        let gameTime = 30;
+        // --- Enhanced Target Practice Game Logic ---
+        const TOTAL_TIME = 30; // seconds
+        const WIN_ACCURACY = 0.9; // 90%
+        const HITS_PER_LEVEL = 5;
+        const LEVEL_PAUSE_MS = 1500;
+
+        // Difficulty presets
+        const difficultySettings = {
+            easy:   { baseTargetSize: 100, baseTargetLifetime: 3000 },
+            medium: { baseTargetSize: 85,  baseTargetLifetime: 2500 },
+            hard:   { baseTargetSize: 70,  baseTargetLifetime: 2000 }
+        };
+
+        // Game state
+        let gameInterval = null;
+        let targetTimeout = null;
+        let spawnTimeout = null;
+        let remainingTime = TOTAL_TIME;
         let gameScore = 0;
         let isGameActive = false;
         let isGamePaused = false;
-        let targetsHit = 0;
+        let isLevelTransition = false;
+
+        let currentLevel = 1;
+        let hitsInLevel = 0;
+        let targetsHitTotal = 0;
+        let missedTargets = 0;
         let currentStreak = 0;
         let maxStreak = 0;
-        let totalReactionTime = 0;
         let gameDifficulty = 'easy';
-        let highScore = localStorage.getItem('GH-target-highScore') || 0;
-        
-        // Difficulty settings
-        const difficultySettings = {
-            easy: { targetSize: 100, speed: 1.0 },
-            medium: { targetSize: 80, speed: 1.2 },
-            hard: { targetSize: 60, speed: 1.5 }
-        };
-        
+        let highScore = parseInt(localStorage.getItem('GH-target-highScore')) || 0;
+
         // DOM elements
-        const timerElement = document.getElementById('timer');
-        const timerTextElement = document.getElementById('timer-text');
-        const scoreElement = document.getElementById('score');
-        const streakElement = document.getElementById('streak');
-        const targetElement = document.getElementById('target');
+        const timerEl = document.getElementById('timer');
+        const timerTextEl = document.getElementById('timer-text');
+        const scoreEl = document.getElementById('score');
+        const streakEl = document.getElementById('streak');
+        const levelEl = document.getElementById('level');
+        const targetEl = document.getElementById('target');
         const gameArea = document.getElementById('game-area');
-        const startMessage = document.getElementById('start-message');
+        const startMsg = document.getElementById('start-message');
         const progressBar = document.getElementById('progress');
         const progressText = document.getElementById('progress-text');
-        const targetsHitElement = document.getElementById('targets-hit');
-        const bestStreakElement = document.getElementById('best-streak');
-        const avgTimeElement = document.getElementById('avg-time');
-        const highScoreElement = document.getElementById('high-score');
+        const targetsHitEl = document.getElementById('targets-hit');
+        const missedEl = document.getElementById('missed');
+        const accuracyEl = document.getElementById('accuracy');
+        const bestStreakEl = document.getElementById('best-streak');
+        const highScoreEl = document.getElementById('high-score');
         const startBtn = document.getElementById('start-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const restartBtn = document.getElementById('restart-btn');
-        const gameNotification = document.getElementById('game-notification');
+        const gameNotif = document.getElementById('game-notification');
         const gameOverModal = document.getElementById('game-over-modal');
-        const finalScoreElement = document.getElementById('final-score');
-        const finalTargetsHitElement = document.getElementById('final-targets-hit');
-        const finalBestStreakElement = document.getElementById('final-best-streak');
-        const finalAccuracyElement = document.getElementById('final-accuracy');
+        const finalScoreEl = document.getElementById('final-score');
+        const finalTargetsHitEl = document.getElementById('final-targets-hit');
+        const finalMissedEl = document.getElementById('final-missed');
+        const finalAccuracyEl = document.getElementById('final-accuracy');
+        const finalBestStreakEl = document.getElementById('final-best-streak');
         const gameResultTitle = document.getElementById('game-result-title');
         const playAgainBtn = document.getElementById('play-again-btn');
         const mainMenuBtn = document.getElementById('main-menu-btn');
         const timerProgress = document.querySelector('.GH-timer-progress');
-        const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
-        
+        const diffBtns = document.querySelectorAll('.GH-difficulty-btn');
+
+        // Helper: get current target lifetime (decreases per level)
+        function getTargetLifetime() {
+            const base = difficultySettings[gameDifficulty].baseTargetLifetime;
+            // Reduce by 200ms per level past 1, minimum 800ms
+            return Math.max(800, base - (currentLevel-1) * 200);
+        }
+
+        // Helper: get current target size
+        function getTargetSize() {
+            const base = difficultySettings[gameDifficulty].baseTargetSize;
+            // Reduce by 5px per level past 1, minimum 40px
+            return Math.max(40, base - (currentLevel-1) * 5);
+        }
+
+        // Timer circle update
+        function updateTimerCircle() {
+            const fraction = remainingTime / TOTAL_TIME;
+            timerProgress.style.strokeDashoffset = 283 * (1 - fraction);
+            if (remainingTime <= 10) timerProgress.style.stroke = 'var(--game-error)';
+            else if (remainingTime <= 20) timerProgress.style.stroke = 'var(--game-warning)';
+            else timerProgress.style.stroke = 'white';
+        }
+
+        // Update UI numbers
+        function updateUI() {
+            timerEl.textContent = remainingTime;
+            timerTextEl.textContent = remainingTime;
+            scoreEl.textContent = gameScore;
+            streakEl.textContent = currentStreak;
+            levelEl.textContent = currentLevel;
+            targetsHitEl.textContent = targetsHitTotal;
+            missedEl.textContent = missedTargets;
+            const totalTargets = targetsHitTotal + missedTargets;
+            const acc = totalTargets ? Math.round((targetsHitTotal / totalTargets) * 100) : 0;
+            accuracyEl.textContent = acc + '%';
+            bestStreakEl.textContent = maxStreak;
+            highScoreEl.textContent = highScore;
+            const hitsNeeded = HITS_PER_LEVEL;
+            progressBar.style.width = (hitsInLevel / hitsNeeded) * 100 + '%';
+            progressText.textContent = hitsInLevel + '/' + hitsNeeded;
+            updateTimerCircle();
+        }
+
+        // Move target to random position, set size & lifetime
+        function spawnTarget() {
+            if (!isGameActive || isGamePaused || isLevelTransition) return;
+            const size = getTargetSize();
+            targetEl.style.width = size + 'px';
+            targetEl.style.height = size + 'px';
+            const maxX = gameArea.clientWidth - size;
+            const maxY = gameArea.clientHeight - size;
+            targetEl.style.left = Math.floor(Math.random() * maxX) + 'px';
+            targetEl.style.top = Math.floor(Math.random() * maxY) + 'px';
+            targetEl.style.display = 'flex';
+            targetEl.classList.add('GH-target-appear');
+            // Set timeout for miss
+            clearTimeout(targetTimeout);
+            const lifetime = getTargetLifetime();
+            targetTimeout = setTimeout(() => {
+                // Player missed
+                if (!isGameActive || isGamePaused || isLevelTransition) return;
+                missedTargets++;
+                currentStreak = 0;
+                updateUI();
+                showTranslatableNotification('GH.target.missedTarget', 'warning');
+                spawnTargetAfterDelay();
+            }, lifetime);
+        }
+
+        function spawnTargetAfterDelay(delay = 400) {
+            clearTimeout(spawnTimeout);
+            spawnTimeout = setTimeout(() => {
+                spawnTarget();
+            }, delay);
+        }
+
+        // Handle target click
+        function handleTargetClick() {
+            if (!isGameActive || isGamePaused || isLevelTransition) return;
+            clearTimeout(targetTimeout);
+            targetsHitTotal++;
+            currentStreak++;
+            if (currentStreak > maxStreak) maxStreak = currentStreak;
+            gameScore += 1 + Math.floor(currentStreak / 3); // bonus for streak
+            hitsInLevel++;
+            updateUI();
+            // Level up?
+            if (hitsInLevel >= HITS_PER_LEVEL) {
+                triggerLevelUp();
+            } else {
+                spawnTargetAfterDelay(300);
+            }
+        }
+
+        // Level transition: pause timer, show animation, then resume
+        function triggerLevelUp() {
+            isLevelTransition = true;
+            clearInterval(gameInterval); // timer freezes
+            targetEl.style.display = 'none';
+            clearTimeout(targetTimeout);
+            clearTimeout(spawnTimeout);
+
+            currentLevel++;
+            hitsInLevel = 0;
+
+            // Show level up indicator
+            const levelUpDiv = document.createElement('div');
+            levelUpDiv.className = 'GH-level-up-indicator';
+            levelUpDiv.textContent = getTranslation('GH.target.levelUp', 'Level Up!');
+            gameArea.appendChild(levelUpDiv);
+            setTimeout(() => levelUpDiv.remove(), LEVEL_PAUSE_MS);
+
+            showTranslatableNotification('GH.target.levelUpNotif', 'success');
+
+            setTimeout(() => {
+                isLevelTransition = false;
+                if (isGameActive) {
+                    // Resume timer
+                    gameInterval = setInterval(gameTick, 1000);
+                    spawnTarget();
+                }
+            }, LEVEL_PAUSE_MS);
+        }
+
+        function gameTick() {
+            if (!isGameActive || isGamePaused || isLevelTransition) return;
+            remainingTime--;
+            updateUI();
+            if (remainingTime <= 0) {
+                endGame();
+            }
+        }
+
+        function startGame() {
+            // Reset state
+            isGameActive = true;
+            isGamePaused = false;
+            isLevelTransition = false;
+            remainingTime = TOTAL_TIME;
+            gameScore = 0;
+            targetsHitTotal = 0;
+            missedTargets = 0;
+            currentStreak = 0;
+            maxStreak = 0;
+            currentLevel = 1;
+            hitsInLevel = 0;
+            gameDifficulty = document.querySelector('.GH-difficulty-btn.active')?.dataset.difficulty || 'easy';
+            highScore = parseInt(localStorage.getItem('GH-target-highScore')) || 0;
+            updateUI();
+            startMsg.style.display = 'block';
+            targetEl.style.display = 'none';
+            clearInterval(gameInterval);
+            clearTimeout(targetTimeout);
+            clearTimeout(spawnTimeout);
+            // Countdown
+            let countdown = 3;
+            startMsg.textContent = getTranslation('GH.target.startingIn', 'Starting in') + ` ${countdown}...`;
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    startMsg.textContent = getTranslation('GH.target.startingIn', 'Starting in') + ` ${countdown}...`;
+                } else {
+                    startMsg.textContent = getTranslation('GH.target.go', 'GO!');
+                    setTimeout(() => {
+                        startMsg.style.display = 'none';
+                        gameInterval = setInterval(gameTick, 1000);
+                        spawnTarget();
+                    }, 800);
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            showTranslatableNotification('GH.target.gameStarted', 'info');
+        }
+
+        function togglePause() {
+            if (!isGameActive) return;
+            isGamePaused = !isGamePaused;
+            const icon = isGamePaused ? '▶️' : '⏸️';
+            const text = isGamePaused ? getTranslation('GH.target.resume', 'Resume') : getTranslation('GH.target.pause', 'Pause');
+            pauseBtn.innerHTML = `<span>${icon}</span> ${text}`;
+            if (isGamePaused) {
+                clearInterval(gameInterval);
+                clearTimeout(targetTimeout);
+                clearTimeout(spawnTimeout);
+                targetEl.style.display = 'none';
+            } else {
+                gameInterval = setInterval(gameTick, 1000);
+                spawnTarget();
+            }
+            showTranslatableNotification(isGamePaused ? 'GH.target.gamePaused' : 'GH.target.gameResumed', 'info');
+        }
+
+        function restartGame() {
+            if (isGameActive) {
+                clearInterval(gameInterval);
+            }
+            startGame();
+        }
+
+        function endGame() {
+            isGameActive = false;
+            clearInterval(gameInterval);
+            clearTimeout(targetTimeout);
+            clearTimeout(spawnTimeout);
+            targetEl.style.display = 'none';
+
+            const totalTargets = targetsHitTotal + missedTargets;
+            const accuracy = totalTargets ? (targetsHitTotal / totalTargets) : 0;
+            const won = accuracy >= WIN_ACCURACY;
+            // Update high score (based on score)
+            if (gameScore > highScore) {
+                highScore = gameScore;
+                localStorage.setItem('GH-target-highScore', highScore);
+                highScoreEl.textContent = highScore;
+            }
+
+            // Modal data
+            finalScoreEl.textContent = gameScore;
+            finalTargetsHitEl.textContent = targetsHitTotal;
+            finalMissedEl.textContent = missedTargets;
+            finalAccuracyEl.textContent = Math.round(accuracy * 100) + '%';
+            finalBestStreakEl.textContent = maxStreak;
+            gameResultTitle.textContent = won ? getTranslation('GH.target.victory', 'Victory!') : getTranslation('GH.target.gameOver', 'Game Over!');
+            const message = won ? getTranslation('GH.target.winMessage', 'Excellent accuracy! You win!') : getTranslation('GH.target.loseMessage', 'Try to hit 90% of targets next time.');
+            showNotification(message, won ? 'success' : 'error');
+
+            setTimeout(() => {
+                gameOverModal.classList.add('active');
+            }, 500);
+
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.innerHTML = '<span>⏸️</span> ' + getTranslation('GH.target.pause', 'Pause');
+        }
+
+        function playAgain() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+
+        function goToMainMenu() {
+            gameOverModal.classList.remove('active');
+            window.location.href = 'index.html';
+        }
+
+        // Notifications
+        function showTranslatableNotification(messageKey, type) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            const keys = messageKey.replace(/^GH\./, '').split('.');
+            let msg = keys.reduce((obj, key) => (obj && obj[key] !== undefined ? obj[key] : undefined), translations) || messageKey;
+            showNotification(msg, type);
+        }
+
+        function showNotification(message, type) {
+            gameNotif.textContent = message;
+            gameNotif.className = `GH-game-notification ${type}`;
+            gameNotif.style.display = 'block';
+            gameNotif.classList.add('show');
+            setTimeout(() => {
+                gameNotif.classList.remove('show');
+                setTimeout(() => { gameNotif.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            const keys = key.replace(/^GH\./, '').split('.');
+            const val = keys.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : undefined), translations);
+            return (typeof val === 'string') ? val : fallback;
+        }
+
+        // Difficulty buttons
+        diffBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                diffBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameDifficulty = this.dataset.difficulty;
+                if (isGameActive) restartGame();
+            });
+        });
+
         // Event listeners
         startBtn.addEventListener('click', startGame);
         pauseBtn.addEventListener('click', togglePause);
         restartBtn.addEventListener('click', restartGame);
         playAgainBtn.addEventListener('click', playAgain);
         mainMenuBtn.addEventListener('click', goToMainMenu);
-        
-        targetElement.addEventListener('click', handleTargetClick);
-        
-        difficultyButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                difficultyButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                gameDifficulty = this.getAttribute('data-difficulty');
-                updateTargetSize();
-                if (isGameActive) {
-                    restartGame();
-                }
-            });
-        });
-        
-        // Game functions
-        function startGame() {
-            isGameActive = true;
-            isGamePaused = false;
-            
-            // Reset game state
-            gameTime = 30;
-            gameScore = 0;
-            targetsHit = 0;
-            currentStreak = 0;
-            maxStreak = 0;
-            totalReactionTime = 0;
-            
-            timerElement.textContent = gameTime;
-            timerTextElement.textContent = gameTime;
-            scoreElement.textContent = gameScore;
-            streakElement.textContent = currentStreak;
-            progressBar.style.width = '0%';
-            progressText.textContent = '0/20';
-            targetsHitElement.textContent = targetsHit;
-            bestStreakElement.textContent = maxStreak;
-            avgTimeElement.textContent = '0.00s';
-            highScoreElement.textContent = highScore;
-            
-            // Clear game area
-            startMessage.style.display = 'block';
-            
-            // Clear any existing intervals
-            clearInterval(gameInterval);
-            
-            // Start countdown
-            let countdown = 3;
-            startMessage.textContent = getTranslation('GH.target.startingIn', 'Starting in') + ` ${countdown}...`;
-            
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                if (countdown > 0) {
-                    startMessage.textContent = getTranslation('GH.target.startingIn', 'Starting in') + ` ${countdown}...`;
-                    createCountdownAnimation(countdown);
-                } else {
-                    startMessage.textContent = getTranslation('GH.target.go', 'GO!');
-                    createCountdownAnimation('GO!');
-                    setTimeout(() => {
-                        startMessage.style.display = 'none';
-                        // Start the actual game
-                        startActualGame();
-                    }, 800);
-                    clearInterval(countdownInterval);
-                }
-            }, 1000);
-            
-            startBtn.disabled = true;
-            pauseBtn.disabled = false;
-            
-            showTranslatableNotification('GH.target.gameStarted', 'info');
-        }
-        
-        function createCountdownAnimation(text) {
-            const countdownElement = document.createElement('div');
-            countdownElement.className = 'GH-countdown';
-            countdownElement.textContent = text;
-            gameArea.appendChild(countdownElement);
-            
-            setTimeout(() => {
-                countdownElement.remove();
-            }, 1000);
-        }
-        
-        function startActualGame() {
-            // Position target initially
-            moveTarget();
-            
-            // Start timer
-            gameInterval = setInterval(() => {
-                if (isGameActive && !isGamePaused) {
-                    gameTime--;
-                    timerElement.textContent = gameTime;
-                    timerTextElement.textContent = gameTime;
-                    
-                    // Update timer circle
-                    const progress = (gameTime / 30) * 283;
-                    timerProgress.style.strokeDashoffset = progress;
-                    
-                    // Change color based on time remaining
-                    if (gameTime <= 10) {
-                        timerProgress.style.stroke = 'var(--game-error)';
-                    } else if (gameTime <= 20) {
-                        timerProgress.style.stroke = 'var(--game-warning)';
-                    } else {
-                        timerProgress.style.stroke = 'white';
-                    }
-                    
-                    if (gameTime <= 0) {
-                        endGame();
-                    }
-                }
-            }, 1000);
-        }
-        
-        function handleTargetClick() {
-            if (!isGameActive || isGamePaused) return;
-            
-            // Record reaction time
-            totalReactionTime += 1;
-            
-            // Update score and streak
-            gameScore++;
-            targetsHit++;
-            currentStreak++;
-            maxStreak = Math.max(maxStreak, currentStreak);
-            
-            scoreElement.textContent = gameScore;
-            streakElement.textContent = currentStreak;
-            targetsHitElement.textContent = targetsHit;
-            bestStreakElement.textContent = maxStreak;
-            
-            // Update progress
-            const progress = (targetsHit % 20) * 5;
-            progressBar.style.width = `${progress}%`;
-            progressText.textContent = `${targetsHit % 20}/20`;
-            
-            // Update average time
-            const avgTime = totalReactionTime / targetsHit;
-            avgTimeElement.textContent = `${avgTime.toFixed(2)}s`;
-            
-            // Move target
-            moveTarget();
-            
-            // Visual feedback
-            targetElement.classList.remove('GH-target-appear');
-            void targetElement.offsetWidth; // Trigger reflow
-            targetElement.classList.add('GH-target-appear');
-        }
-        
-        function moveTarget() {
-            const settings = difficultySettings[gameDifficulty];
-            const maxX = gameArea.clientWidth - settings.targetSize;
-            const maxY = gameArea.clientHeight - settings.targetSize;
-            
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
-            
-            targetElement.style.left = `${randomX}px`;
-            targetElement.style.top = `${randomY}px`;
-        }
-        
-        function updateTargetSize() {
-            const settings = difficultySettings[gameDifficulty];
-            targetElement.style.width = `${settings.targetSize}px`;
-            targetElement.style.height = `${settings.targetSize}px`;
-        }
-        
-        function togglePause() {
-            isGamePaused = !isGamePaused;
-            const pauseIcon = isGamePaused ? '▶️' : '⏸️';
-            const pauseText = isGamePaused ? 
-                getTranslation('GH.target.resume', 'Resume') : 
-                getTranslation('GH.target.pause', 'Pause');
-            pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
-            
-            const messageKey = isGamePaused ? 'GH.target.gamePaused' : 'GH.target.gameResumed';
-            showTranslatableNotification(messageKey, 'info');
-        }
+        targetEl.addEventListener('click', handleTargetClick);
 
-        function restartGame() {
-            if (isGameActive) {
-                showTranslatableNotification('GH.target.restartConfirm', 'warning');
-                clearInterval(gameInterval);
-                startGame();
-            } else {
-                clearInterval(gameInterval);
-                startGame();
-            }
-        }
-        
-        function endGame() {
-            isGameActive = false;
-            clearInterval(gameInterval);
-            
-            // Calculate accuracy (always 100% in this game since there's no way to miss)
-            const accuracy = 100;
-            
-            // Update high score if needed
-            if (gameScore > highScore) {
-                highScore = gameScore;
-                localStorage.setItem('GH-target-highScore', highScore);
-                highScoreElement.textContent = highScore;
-            }
-            
-            // Determine result message
-            let message = '';
-            let title = '';
-            
-            if (gameScore >= 40) {
-                message = `${getTranslation('GH.target.amazing', 'Amazing! You have incredible accuracy!')} ${getTranslation('GH.target.score', 'Score')}: ${gameScore}`;
-                title = getTranslation('GH.target.victory', 'Victory!');
-            } else if (gameScore >= 25) {
-                message = `${getTranslation('GH.target.greatJob', 'Great job! You have good reflexes!')} ${getTranslation('GH.target.score', 'Score')}: ${gameScore}`;
-                title = getTranslation('GH.target.wellDone', 'Well Done!');
-            } else {
-                message = `${getTranslation('GH.target.gameOver', 'Game Over!')} ${getTranslation('GH.target.score', 'Score')}: ${gameScore}. ${getTranslation('GH.target.keepPracticing', 'Keep practicing!')}`;
-                title = getTranslation('GH.target.gameOver', 'Game Over!');
-            }
-            
-            // Update modal with final stats
-            finalScoreElement.textContent = gameScore;
-            finalTargetsHitElement.textContent = targetsHit;
-            finalBestStreakElement.textContent = maxStreak;
-            finalAccuracyElement.textContent = accuracy + '%';
-            gameResultTitle.textContent = title;
-            
-            // Show game over modal
-            setTimeout(() => {
-                gameOverModal.classList.add('active');
-            }, 800);
-            
-            // Reset buttons
-            startBtn.disabled = false;
-            pauseBtn.disabled = true;
-            
-            showNotification(message, 'info');
-        }
-        
-        function playAgain() {
-            gameOverModal.classList.remove('active');
-            startGame();
-        }
-        
-        function goToMainMenu() {
-            gameOverModal.classList.remove('active');
-            window.location.href = 'index.html';
-        }
-        
-        // Enhanced notification function that supports translation keys
-        function showTranslatableNotification(messageKey, type) {
-            const translations = window.getTranslations ? window.getTranslations() : {};
-            
-            // Remove 'GH.' prefix if present and split the key
-            const cleanKey = messageKey.replace(/^GH\./, '');
-            const keys = cleanKey.split('.');
-            
-            let message = keys.reduce((obj, key) => {
-                return obj && obj[key] !== undefined ? obj[key] : undefined;
-            }, translations);
-            
-            // Fallback if translation not found
-            if (!message || typeof message !== 'string') {
-                console.warn(`Translation not found for key: ${messageKey}`);
-                message = getFallbackGameMessage(cleanKey);
-            }
-            
-            showNotification(message, type);
-        }
-
-        function getFallbackGameMessage(key) {
-            const fallbackMessages = {
-                'target.gameStarted': 'Game started! Good luck!',
-                'target.gamePaused': 'Game paused',
-                'target.gameResumed': 'Game resumed',
-                'target.restartConfirm': 'Are you sure you want to restart? Your progress will be lost.',
-                'target.amazing': 'Amazing! You have incredible accuracy!',
-                'target.greatJob': 'Great job! You have good reflexes!',
-                'target.gameOver': 'Game Over!',
-                'target.keepPracticing': 'Keep practicing!',
-                'target.victory': 'Victory!',
-                'target.wellDone': 'Well Done!'
-            };
-            
-            return fallbackMessages[key] || key;
-        }
-
-        function showNotification(message, type) {
-            gameNotification.textContent = message;
-            gameNotification.className = `GH-game-notification ${type}`;
-            gameNotification.style.display = 'block';
-            gameNotification.classList.add('show');
-            
-            setTimeout(() => {
-                gameNotification.classList.remove('show');
-                setTimeout(() => {
-                    gameNotification.style.display = 'none';
-                }, 300);
-            }, 3000);
-        }
-        
-        // Helper function to get translations
-        function getTranslation(key, fallback) {
-            const translations = window.getTranslations ? window.getTranslations() : {};
-            
-            // Remove 'GH.' prefix if present and split the key
-            const cleanKey = key.replace(/^GH\./, '');
-            const keys = cleanKey.split('.');
-            
-            let value = keys.reduce((obj, k) => {
-                return obj && obj[k] !== undefined ? obj[k] : undefined;
-            }, translations);
-            
-            return value && typeof value === 'string' ? value : fallback;
-        }
-        
-        // Initialize target size
-        updateTargetSize();
-        
-        // Initialize high score display
-        highScoreElement.textContent = highScore;
+        // Initial UI
+        highScoreEl.textContent = highScore;
+        targetEl.style.display = 'none';
     </script>
-    
+
+    <!-- Object‑specific translations -->
     <script>
-        // Object specific translations for GH-target-practice.html
         window.GHObjectTranslations = window.GHObjectTranslations || {
             en: {
                 target: {
                     title: "Target Practice",
-                    description: "Test your accuracy by clicking targets!",
                     howToPlay: "How to Play",
-                    instruction1: "Click the target as many times as you can in 30 seconds!",
-                    instruction2: "Each hit increases your score",
-                    instruction3: "Build a streak by hitting targets quickly",
-                    instruction4: "The target gets smaller at higher difficulties",
-                    instruction5: "Try to beat your high score!",
+                    instruction1: "Click targets before they disappear!",
+                    instruction2: "Hit 90% of targets to win",
+                    instruction3: "Streaks increase your score faster",
+                    instruction4: "Levels get harder every 5 hits",
+                    instruction5: "Timer pauses during level transitions",
                     time: "Time",
                     score: "Score",
                     streak: "Streak",
+                    level: "Level",
                     difficulty: "Difficulty:",
                     easy: "Easy",
                     medium: "Medium",
@@ -1200,8 +662,9 @@
                     clickTarget: "Click the target!",
                     getReady: "Get Ready!",
                     targetsHit: "Targets Hit",
+                    missed: "Missed",
+                    accuracy: "Accuracy",
                     bestStreak: "Best Streak",
-                    avgTime: "Average Time",
                     highScore: "High Score",
                     startGame: "Start Game",
                     pause: "Pause",
@@ -1210,17 +673,16 @@
                     playAgain: "Play Again",
                     mainMenu: "Main Menu",
                     gameOver: "Game Over!",
-                    finalScore: "Final Score",
-                    accuracy: "Accuracy",
-                    amazing: "Amazing! You have incredible accuracy!",
-                    greatJob: "Great job! You have good reflexes!",
-                    keepPracticing: "Keep practicing!",
                     victory: "Victory!",
-                    wellDone: "Well Done!",
+                    winMessage: "Excellent accuracy! You win!",
+                    loseMessage: "Try to hit 90% of targets next time.",
+                    finalScore: "Final Score",
+                    levelUp: "Level Up!",
+                    levelUpNotif: "Level up! Difficulty increased.",
+                    missedTarget: "Missed!",
                     gameStarted: "Game started! Good luck!",
                     gamePaused: "Game paused",
                     gameResumed: "Game resumed",
-                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
                     startingIn: "Starting in",
                     go: "GO!"
                 }
@@ -1228,16 +690,16 @@
             ar: {
                 target: {
                     title: "تدريب على التصويب",
-                    description: "اختبر دقتك بالنقر على الأهداف!",
                     howToPlay: "كيفية اللعب",
-                    instruction1: "انقر على الهدف أكبر عدد ممكن من المرات في 30 ثانية!",
-                    instruction2: "كل ضربة تزيد من نقاطك",
-                    instruction3: "ابنِ سلسلة متتالية بضرب الأهداف بسرعة",
-                    instruction4: "يصغر الهدف في مستويات الصعوبة الأعلى",
-                    instruction5: "حاول تحطيم أعلى نتيجة لك!",
+                    instruction1: "انقر على الأهداف قبل أن تختفي!",
+                    instruction2: "اضرب 90% من الأهداف للفوز",
+                    instruction3: "المتتاليات تزيد نقاطك بسرعة",
+                    instruction4: "تزداد الصعوبة كل 5 ضربات",
+                    instruction5: "يتوقف المؤقت أثناء انتقال المستويات",
                     time: "الوقت",
                     score: "النقاط",
                     streak: "المتتالية",
+                    level: "المستوى",
                     difficulty: "الصعوبة:",
                     easy: "سهل",
                     medium: "متوسط",
@@ -1245,8 +707,9 @@
                     clickTarget: "انقر على الهدف!",
                     getReady: "استعد!",
                     targetsHit: "الأهداف المصابة",
+                    missed: "أخطأت",
+                    accuracy: "الدقة",
                     bestStreak: "أفضل متتالية",
-                    avgTime: "متوسط الوقت",
                     highScore: "أعلى نتيجة",
                     startGame: "ابدأ اللعبة",
                     pause: "إيقاف مؤقت",
@@ -1255,17 +718,16 @@
                     playAgain: "العب مرة أخرى",
                     mainMenu: "القائمة الرئيسية",
                     gameOver: "انتهت اللعبة!",
-                    finalScore: "النتيجة النهائية",
-                    accuracy: "الدقة",
-                    amazing: "مذهل! لديك دقة لا تصدق!",
-                    greatJob: "عمل رائع! لديك ردود فعل جيدة!",
-                    keepPracticing: "استمر في التدريب!",
                     victory: "انتصار!",
-                    wellDone: "أحسنت!",
+                    winMessage: "دقة ممتازة! لقد فزت!",
+                    loseMessage: "حاول ضرب 90% من الأهداف في المرة القادمة.",
+                    finalScore: "النتيجة النهائية",
+                    levelUp: "رفع المستوى!",
+                    levelUpNotif: "تم رفع المستوى! زادت الصعوبة.",
+                    missedTarget: "أخطأت!",
                     gameStarted: "بدأت اللعبة! حظاً طيباً!",
                     gamePaused: "تم إيقاف اللعبة مؤقتاً",
                     gameResumed: "تم استئناف اللعبة",
-                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
                     startingIn: "تبدأ خلال",
                     go: "انطلق!"
                 }
@@ -1273,16 +735,16 @@
             fr: {
                 target: {
                     title: "Entraînement à la Cible",
-                    description: "Testez votre précision en cliquant sur des cibles!",
                     howToPlay: "Comment Jouer",
-                    instruction1: "Cliquez sur la cible autant de fois que possible en 30 secondes!",
-                    instruction2: "Chaque touche augmente votre score",
-                    instruction3: "Créez une série en touchant rapidement les cibles",
-                    instruction4: "La cible rétrécit aux difficultés plus élevées",
-                    instruction5: "Essayez de battre votre meilleur score!",
+                    instruction1: "Cliquez sur les cibles avant qu'elles ne disparaissent!",
+                    instruction2: "Touchez 90% des cibles pour gagner",
+                    instruction3: "Les séries augmentent votre score plus vite",
+                    instruction4: "Les niveaux deviennent plus difficiles tous les 5 coups",
+                    instruction5: "Le minuteur s'arrête pendant les transitions de niveau",
                     time: "Temps",
                     score: "Score",
                     streak: "Série",
+                    level: "Niveau",
                     difficulty: "Difficulté:",
                     easy: "Facile",
                     medium: "Moyen",
@@ -1290,8 +752,9 @@
                     clickTarget: "Cliquez sur la cible!",
                     getReady: "Préparez-vous!",
                     targetsHit: "Cibles Touchées",
+                    missed: "Manquées",
+                    accuracy: "Précision",
                     bestStreak: "Meilleure Série",
-                    avgTime: "Temps Moyen",
                     highScore: "Meilleur Score",
                     startGame: "Commencer le Jeu",
                     pause: "Pause",
@@ -1300,17 +763,16 @@
                     playAgain: "Rejouer",
                     mainMenu: "Menu Principal",
                     gameOver: "Jeu Terminé!",
-                    finalScore: "Score Final",
-                    accuracy: "Précision",
-                    amazing: "Incroyable! Vous avez une précision incroyable!",
-                    greatJob: "Excellent travail! Vous avez de bons réflexes!",
-                    keepPracticing: "Continuez à vous entraîner!",
                     victory: "Victoire!",
-                    wellDone: "Bien Joué!",
+                    winMessage: "Excellente précision! Vous avez gagné!",
+                    loseMessage: "Essayez de toucher 90% des cibles la prochaine fois.",
+                    finalScore: "Score Final",
+                    levelUp: "Niveau Supérieur!",
+                    levelUpNotif: "Niveau supérieur! Difficulté augmentée.",
+                    missedTarget: "Manquée!",
                     gameStarted: "Jeu commencé! Bonne chance!",
                     gamePaused: "Jeu en pause",
                     gameResumed: "Jeu repris",
-                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer? Votre progression sera perdue.",
                     startingIn: "Début dans",
                     go: "ALLEZ!"
                 }

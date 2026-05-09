@@ -82,7 +82,9 @@
             min-height: 500px;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden; /* keep vertical under control if needed */
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
         }
 
         .GH-dark-mode .GH-game-area {
@@ -580,7 +582,24 @@
                 align-items: center;
             }
         }
-
+@media (max-width: 400px) {
+    .GH-memory-grid {
+        gap: 10px;               /* reduce gap */
+        margin: 10px auto;
+    }
+    .GH-memory-card {
+        width: 60px;
+        height: 80px;
+    }
+}
+@media (max-width: 340px) {
+    .GH-memory-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+body, .GH-main, .GH-game-container {
+    overflow-x: auto; /* or remove any overflow-x: hidden */
+}
         /* Game background pattern */
         .GH-game-area::before {
             content: '';

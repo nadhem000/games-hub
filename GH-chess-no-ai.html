@@ -108,16 +108,19 @@
             border-radius: var(--gh-radius-md);
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box; /* Prevents border from expanding total width */
         }
 
         .GH-chess-square {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: clamp(1.5rem, 5vw, 2.5rem); /* Responsive size */
+            line-height: 1; /* Prevents extra vertical space */
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Removed 'all' to avoid resizing animations */
             position: relative;
+            overflow: hidden; /* Clips any overflowing glyph parts */
         }
 
         .GH-chess-square.light {
@@ -640,7 +643,7 @@
     </style>
 </head>
 <body class="GH-body GH-light-mode">
-    <!-- Header -->
+    <!-- Header (unchanged) -->
     <header class="GH-header">
         <div class="GH-header-content">
             <div class="GH-logo-section">
@@ -826,167 +829,166 @@
     </div>
     
     <!-- Include JavaScript files -->
-    <!-- Include JavaScript files -->
-<script src="translation.js"></script>
-<script src="global.js"></script>
-<script src="data-chess.js"></script>
-<script>
-    // Object specific translations for GH-chess.html
-    window.GHObjectTranslations = window.GHObjectTranslations || {
-        en: {
-            chess: {
-                title: "Chess Challenge",
-                description: "Test your strategic thinking in this classic game of chess!",
-                howToPlay: "How to Play",
-                instruction1: "Move pieces by clicking on them and then on a valid destination",
-                instruction2: "Capture your opponent's pieces by moving onto their squares",
-                instruction3: "Checkmate the opponent's king to win the game",
-                instruction4: "Use strategy to control the board and protect your pieces",
-                time: "Time",
-                score: "Score",
-                level: "Level",
-                moves: "Moves",
-                white: "White",
-                black: "Black",
-                whiteToMove: "White to move",
-                blackToMove: "Black to move",
-                moveHistory: "Move History",
-                gameControls: "Game Controls",
-                newGame: "New Game",
-                undo: "Undo",
-                hint: "Hint",
-                startGame: "Start Game",
-                pause: "Pause",
-                resume: "Resume",
-                restart: "Restart",
-                playAgain: "Play Again",
-                mainMenu: "Main Menu",
-                checkmate: "Checkmate!",
-                stalemate: "Stalemate!",
-                draw: "Draw!",
-                winsOnTime: "wins on time!",
-                finalScore: "Final Score",
-                levelReached: "Level Reached",
-                totalMoves: "Total Moves",
-                gameTime: "Game Time",
-                gameStarted: "Game started! Good luck!",
-                gamePaused: "Game paused",
-                gameResumed: "Game resumed",
-                restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
-                moveUndone: "Move undone!",
-                noMovesToUndo: "No moves to undo!",
-                hintShown: "Hint shown!",
-                selectPieceFirst: "Select a piece first to get a hint.",
-                gameOver: "Game Over!",
-                difficulty: "Difficulty:",
-                easy: "Easy",
-                medium: "Medium",
-                hard: "Hard"
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script src="data-chess.js"></script>
+    <script>
+        // Object specific translations for GH-chess.html (unchanged)
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                chess: {
+                    title: "Chess Challenge",
+                    description: "Test your strategic thinking in this classic game of chess!",
+                    howToPlay: "How to Play",
+                    instruction1: "Move pieces by clicking on them and then on a valid destination",
+                    instruction2: "Capture your opponent's pieces by moving onto their squares",
+                    instruction3: "Checkmate the opponent's king to win the game",
+                    instruction4: "Use strategy to control the board and protect your pieces",
+                    time: "Time",
+                    score: "Score",
+                    level: "Level",
+                    moves: "Moves",
+                    white: "White",
+                    black: "Black",
+                    whiteToMove: "White to move",
+                    blackToMove: "Black to move",
+                    moveHistory: "Move History",
+                    gameControls: "Game Controls",
+                    newGame: "New Game",
+                    undo: "Undo",
+                    hint: "Hint",
+                    startGame: "Start Game",
+                    pause: "Pause",
+                    resume: "Resume",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    checkmate: "Checkmate!",
+                    stalemate: "Stalemate!",
+                    draw: "Draw!",
+                    winsOnTime: "wins on time!",
+                    finalScore: "Final Score",
+                    levelReached: "Level Reached",
+                    totalMoves: "Total Moves",
+                    gameTime: "Game Time",
+                    gameStarted: "Game started! Good luck!",
+                    gamePaused: "Game paused",
+                    gameResumed: "Game resumed",
+                    restartConfirm: "Are you sure you want to restart? Your progress will be lost.",
+                    moveUndone: "Move undone!",
+                    noMovesToUndo: "No moves to undo!",
+                    hintShown: "Hint shown!",
+                    selectPieceFirst: "Select a piece first to get a hint.",
+                    gameOver: "Game Over!",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    medium: "Medium",
+                    hard: "Hard"
+                }
+            },
+            ar: {
+                chess: {
+                    title: "تحدي الشطرنج",
+                    description: "اختبر تفكيرك الاستراتيجي في هذه اللعبة الكلاسيكية للشطرنج!",
+                    howToPlay: "كيفية اللعب",
+                    instruction1: "انقل القطع بالنقر عليها ثم على الوجهة الصالحة",
+                    instruction2: "احترف قطع الخصم بالانتقال إلى مربعاتهم",
+                    instruction3: "كش ملك الخصم للفوز في اللعبة",
+                    instruction4: "استخدم الإستراتيجية للسيطرة على اللوحة وحماية قطعك",
+                    time: "الوقت",
+                    score: "النقاط",
+                    level: "المستوى",
+                    moves: "الحركات",
+                    white: "الأبيض",
+                    black: "الأسود",
+                    whiteToMove: "دور الأبيض",
+                    blackToMove: "دور الأسود",
+                    moveHistory: "سجل الحركات",
+                    gameControls: "عناصر تحكم اللعبة",
+                    newGame: "لعبة جديدة",
+                    undo: "تراجع",
+                    hint: "تلميح",
+                    startGame: "ابدأ اللعبة",
+                    pause: "إيقاف مؤقت",
+                    resume: "استئناف",
+                    restart: "إعادة التشغيل",
+                    playAgain: "العب مرة أخرى",
+                    mainMenu: "القائمة الرئيسية",
+                    checkmate: "كش ملك!",
+                    stalemate: "مأزق!",
+                    draw: "تعادل!",
+                    winsOnTime: "يفوز بالوقت!",
+                    finalScore: "النتيجة النهائية",
+                    levelReached: "المستوى الذي تم الوصول إليه",
+                    totalMoves: "إجمالي الحركات",
+                    gameTime: "وقت اللعبة",
+                    gameStarted: "بدأت اللعبة! حظاً طيباً!",
+                    gamePaused: "تم إيقاف اللعبة مؤقتاً",
+                    gameResumed: "تم استئناف اللعبة",
+                    restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
+                    moveUndone: "تم التراجع عن الحركة!",
+                    noMovesToUndo: "لا توجد حركات للتراجع عنها!",
+                    hintShown: "تم عرض التلميح!",
+                    selectPieceFirst: "حدد قطعة أولاً للحصول على تلميح.",
+                    gameOver: "انتهت اللعبة!",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    medium: "متوسط",
+                    hard: "صعب"
+                }
+            },
+            fr: {
+                chess: {
+                    title: "Défi d'Échecs",
+                    description: "Testez votre pensée stratégique dans ce jeu classique d'échecs !",
+                    howToPlay: "Comment Jouer",
+                    instruction1: "Déplacez les pièces en cliquant dessus puis sur une destination valide",
+                    instruction2: "Capturez les pièces de l'adversaire en vous déplaçant sur leurs cases",
+                    instruction3: "Faites échec et mat au roi adverse pour gagner la partie",
+                    instruction4: "Utilisez la stratégie pour contrôler l'échiquier et protéger vos pièces",
+                    time: "Temps",
+                    score: "Score",
+                    level: "Niveau",
+                    moves: "Mouvements",
+                    white: "Blanc",
+                    black: "Noir",
+                    whiteToMove: "Aux blancs de jouer",
+                    blackToMove: "Aux noirs de jouer",
+                    moveHistory: "Historique des Coups",
+                    gameControls: "Contrôles du Jeu",
+                    newGame: "Nouvelle Partie",
+                    undo: "Annuler",
+                    hint: "Indice",
+                    startGame: "Commencer le Jeu",
+                    pause: "Pause",
+                    resume: "Reprendre",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    checkmate: "Échec et Mat !",
+                    stalemate: "Pat !",
+                    draw: "Match Nul !",
+                    winsOnTime: "gagne au temps !",
+                    finalScore: "Score Final",
+                    levelReached: "Niveau Atteint",
+                    totalMoves: "Total des Mouvements",
+                    gameTime: "Temps de Jeu",
+                    gameStarted: "Jeu commencé ! Bonne chance !",
+                    gamePaused: "Jeu en pause",
+                    gameResumed: "Jeu repris",
+                    restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
+                    moveUndone: "Coup annulé !",
+                    noMovesToUndo: "Aucun coup à annuler !",
+                    hintShown: "Indice affiché !",
+                    selectPieceFirst: "Sélectionnez d'abord une pièce pour obtenir un indice.",
+                    gameOver: "Jeu Terminé !",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    medium: "Moyen",
+                    hard: "Difficile"
+                }
             }
-        },
-        ar: {
-            chess: {
-                title: "تحدي الشطرنج",
-                description: "اختبر تفكيرك الاستراتيجي في هذه اللعبة الكلاسيكية للشطرنج!",
-                howToPlay: "كيفية اللعب",
-                instruction1: "انقل القطع بالنقر عليها ثم على الوجهة الصالحة",
-                instruction2: "احترف قطع الخصم بالانتقال إلى مربعاتهم",
-                instruction3: "كش ملك الخصم للفوز في اللعبة",
-                instruction4: "استخدم الإستراتيجية للسيطرة على اللوحة وحماية قطعك",
-                time: "الوقت",
-                score: "النقاط",
-                level: "المستوى",
-                moves: "الحركات",
-                white: "الأبيض",
-                black: "الأسود",
-                whiteToMove: "دور الأبيض",
-                blackToMove: "دور الأسود",
-                moveHistory: "سجل الحركات",
-                gameControls: "عناصر تحكم اللعبة",
-                newGame: "لعبة جديدة",
-                undo: "تراجع",
-                hint: "تلميح",
-                startGame: "ابدأ اللعبة",
-                pause: "إيقاف مؤقت",
-                resume: "استئناف",
-                restart: "إعادة التشغيل",
-                playAgain: "العب مرة أخرى",
-                mainMenu: "القائمة الرئيسية",
-                checkmate: "كش ملك!",
-                stalemate: "مأزق!",
-                draw: "تعادل!",
-                winsOnTime: "يفوز بالوقت!",
-                finalScore: "النتيجة النهائية",
-                levelReached: "المستوى الذي تم الوصول إليه",
-                totalMoves: "إجمالي الحركات",
-                gameTime: "وقت اللعبة",
-                gameStarted: "بدأت اللعبة! حظاً طيباً!",
-                gamePaused: "تم إيقاف اللعبة مؤقتاً",
-                gameResumed: "تم استئناف اللعبة",
-                restartConfirm: "هل أنت متأكد أنك تريد إعادة التشغيل؟ سيتم فقدان تقدمك.",
-                moveUndone: "تم التراجع عن الحركة!",
-                noMovesToUndo: "لا توجد حركات للتراجع عنها!",
-                hintShown: "تم عرض التلميح!",
-                selectPieceFirst: "حدد قطعة أولاً للحصول على تلميح.",
-                gameOver: "انتهت اللعبة!",
-                difficulty: "الصعوبة:",
-                easy: "سهل",
-                medium: "متوسط",
-                hard: "صعب"
-            }
-        },
-        fr: {
-            chess: {
-                title: "Défi d'Échecs",
-                description: "Testez votre pensée stratégique dans ce jeu classique d'échecs !",
-                howToPlay: "Comment Jouer",
-                instruction1: "Déplacez les pièces en cliquant dessus puis sur une destination valide",
-                instruction2: "Capturez les pièces de l'adversaire en vous déplaçant sur leurs cases",
-                instruction3: "Faites échec et mat au roi adverse pour gagner la partie",
-                instruction4: "Utilisez la stratégie pour contrôler l'échiquier et protéger vos pièces",
-                time: "Temps",
-                score: "Score",
-                level: "Niveau",
-                moves: "Mouvements",
-                white: "Blanc",
-                black: "Noir",
-                whiteToMove: "Aux blancs de jouer",
-                blackToMove: "Aux noirs de jouer",
-                moveHistory: "Historique des Coups",
-                gameControls: "Contrôles du Jeu",
-                newGame: "Nouvelle Partie",
-                undo: "Annuler",
-                hint: "Indice",
-                startGame: "Commencer le Jeu",
-                pause: "Pause",
-                resume: "Reprendre",
-                restart: "Redémarrer",
-                playAgain: "Rejouer",
-                mainMenu: "Menu Principal",
-                checkmate: "Échec et Mat !",
-                stalemate: "Pat !",
-                draw: "Match Nul !",
-                winsOnTime: "gagne au temps !",
-                finalScore: "Score Final",
-                levelReached: "Niveau Atteint",
-                totalMoves: "Total des Mouvements",
-                gameTime: "Temps de Jeu",
-                gameStarted: "Jeu commencé ! Bonne chance !",
-                gamePaused: "Jeu en pause",
-                gameResumed: "Jeu repris",
-                restartConfirm: "Êtes-vous sûr de vouloir redémarrer ? Votre progression sera perdue.",
-                moveUndone: "Coup annulé !",
-                noMovesToUndo: "Aucun coup à annuler !",
-                hintShown: "Indice affiché !",
-                selectPieceFirst: "Sélectionnez d'abord une pièce pour obtenir un indice.",
-                gameOver: "Jeu Terminé !",
-                difficulty: "Difficulté:",
-                easy: "Facile",
-                medium: "Moyen",
-                hard: "Difficile"
-            }
-        }
-    };
-</script>
+        };
+    </script>
 </body>
 </html>
