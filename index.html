@@ -2,13 +2,13 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>GameHub - Collection</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+		<title>GameHub - Memory & Brain Games with Damma</title>
 		<link rel="stylesheet" href="main.css">
 		<!-- PWA Manifest -->
 		<link rel="manifest" href="manifest.json">
 		<meta name="theme-color" content="#667eea">
-		<meta name="description" content="GameHub - A collection of fun and interactive browser games">
+		<meta name="description" content="GameHub - A collection of fun browser games including Damma and Damma Beta in Brain Games">
 		<!-- iOS Safari PWA -->
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -282,7 +282,7 @@
 		<!-- Main Content -->
 		<main class="GH-main">
 			<div class="GH-cards-container">
-				<!-- Memory & Brain Games -->
+				<!-- Memory & Brain Games (contains Damma + Damma Beta) -->
 				<div class="GH-card GH-card-1" id="memory-brain-card">
 					<h2 data-i18n="GH.index.card1Title">Memory & Brain Games</h2>
 					<p data-i18n="GH.index.explore">Explore the games</p>
@@ -333,12 +333,12 @@
 		<div class="GH-modal-overlay" id="games-modal">
 			<div class="GH-modal">
 				<div class="GH-modal-header">
-					<h2 class="GH-modal-title" id="modal-title" data-i18n="GH.index.modalTitle">Action Games</h2>
+					<h2 class="GH-modal-title" id="modal-title" data-i18n="GH.index.modalTitle">Memory & Brain Games</h2>
 					<button class="GH-modal-close" id="modal-close">&times;</button>
 				</div>
 				<div class="GH-modal-body">
 					<div class="GH-modal-games" id="games-list">
-						<!-- Games will be populated here by JavaScript -->
+						<!-- Games populated by JavaScript -->
 					</div>
 				</div>
 			</div>
@@ -348,6 +348,8 @@
 		<script src="translation.js"></script>
 		<script src="global.js"></script>
 		<script src="main.js"></script>
+		
+		<!-- Games data with Damma added to Memory & Brain Games -->
 		<script>
 			// Games data organized by category
 			const gameCategories = {
@@ -376,6 +378,22 @@
 							descriptionKey: 'GH.index.games.patternRecognition.description',
 							icon: '🔍',
 							url: '/GH-pattern-recognition'
+						},
+						// ========== DAMMA GAME (classic) ==========
+						{
+							id: 'damma-classic',
+							titleKey: 'GH.index.games.damma.title',
+							descriptionKey: 'GH.index.games.damma.description',
+							icon: '🎲',
+							url: '/GH-damma'
+						},
+						// ========== DAMMA GAME v.beta ==========
+						{
+							id: 'damma-beta',
+							titleKey: 'GH.index.games.dammaBeta.title',
+							descriptionKey: 'GH.index.games.dammaBeta.description',
+							icon: '⚙️',
+							url: '/GH-damma-beta'
 						}
 					]
 				},
@@ -458,7 +476,7 @@
 				}
 			};
 
-			// Modal functionality
+			// Modal functionality (unchanged)
 			document.addEventListener('DOMContentLoaded', function() {
 				const modal = document.getElementById('games-modal');
 				const modalTitle = document.getElementById('modal-title');
@@ -469,7 +487,8 @@
 				Object.values(gameCategories).forEach(category => {
 					const card = document.getElementById(category.id);
 					if (card) {
-						card.addEventListener('click', function() {
+						card.addEventListener('click', function(e) {
+							e.stopPropagation();
 							openModal(category);
 						});
 					}
@@ -477,75 +496,54 @@
 				
 				// Close modal when clicking close button
 				if (modalClose) {
-					modalClose.addEventListener('click', function() {
-						closeModal();
-					});
+					modalClose.addEventListener('click', closeModal);
 				}
 				
 				// Close modal when clicking outside of it
 				if (modal) {
 					modal.addEventListener('click', function(e) {
-						if (e.target === modal) {
-							closeModal();
-						}
+						if (e.target === modal) closeModal();
 					});
 				}
 				
 				// Close modal with Escape key
 				document.addEventListener('keydown', function(e) {
-					if (e.key === 'Escape' && modal.classList.contains('active')) {
-						closeModal();
-					}
+					if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
 				});
 				
-				// Function to open modal with specific category
 				function openModal(category) {
 					if (modal && modalTitle) {
-						// Set modal title
 						const title = getTranslation(category.modalTitleKey, category.modalTitleKey);
 						modalTitle.textContent = title;
-						
-						// Populate games list
 						populateGamesList(category.games);
-						
-						// Show modal
 						modal.classList.add('active');
-						document.body.style.overflow = 'hidden'; // Prevent scrolling
+						document.body.style.overflow = 'hidden';
 					}
 				}
 				
-				// Function to close modal
 				function closeModal() {
 					if (modal) {
 						modal.classList.remove('active');
-						document.body.style.overflow = ''; // Restore scrolling
+						document.body.style.overflow = '';
 					}
 				}
 				
-				// Function to populate games list
 				function populateGamesList(games) {
 					if (!gamesList) return;
-					
-					// Clear previous content
 					gamesList.innerHTML = '';
 					
 					if (games.length === 0) {
-						// Show message if no games
 						const noGamesMessage = document.createElement('div');
 						noGamesMessage.className = 'GH-modal-no-games';
 						noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
 						gamesList.appendChild(noGamesMessage);
 					} else {
-						// Create game cards
 						games.forEach(game => {
 							const gameElement = document.createElement('a');
 							gameElement.href = game.url;
 							gameElement.className = 'GH-modal-game';
-							
-							// Get translated title and description
 							const title = getTranslation(game.titleKey, game.titleKey);
 							const description = getTranslation(game.descriptionKey, game.descriptionKey);
-							
 							gameElement.innerHTML = `
 								<div class="GH-modal-game-icon">${game.icon}</div>
 								<div class="GH-modal-game-info">
@@ -553,37 +551,26 @@
 									<div class="GH-modal-game-description">${description}</div>
 								</div>
 							`;
-							
 							gamesList.appendChild(gameElement);
 						});
 					}
 				}
 				
-				// Helper function to get translations
 				function getTranslation(key, fallback) {
 					const translations = window.getTranslations ? window.getTranslations() : {};
-					
-					// Remove 'GH.' prefix if present and split the key
 					const cleanKey = key.replace(/^GH\./, '');
 					const keys = cleanKey.split('.');
-					
 					let value = translations;
 					for (const k of keys) {
-						if (value && value[k] !== undefined) {
-							value = value[k];
-						} else {
-							return fallback;
-						}
+						if (value && value[k] !== undefined) value = value[k];
+						else return fallback;
 					}
-					
 					return value || fallback;
 				}
 				
 				// Listen for language changes to update modal content
 				document.addEventListener('translationsUpdated', function() {
-					// If modal is open, refresh the games list with new translations
 					if (modal && modal.classList.contains('active')) {
-						// Refresh the modal title and games list with new translations
 						const activeCategory = Object.values(gameCategories).find(cat => 
 							getTranslation(cat.modalTitleKey, '') === modalTitle.textContent
 						);
@@ -596,8 +583,8 @@
 			});
 		</script>
 					
+		<!-- Translations extended with Damma entries -->
 		<script>
-			// object specific translations for index.html
 			window.GHObjectTranslations = window.GHObjectTranslations || {
 				en: {
 					index: {
@@ -661,6 +648,15 @@
 							chessAI: {
 								title: "Chess vs AI",
 								description: "Challenge the computer in a game of chess with adjustable difficulty"
+							},
+							// Damma games added to Brain Games category
+							damma: {
+								title: "Damma Game",
+								description: "Classic strategy board game — capture all opponent pieces by jumping"
+							},
+							dammaBeta: {
+								title: "Damma Game v.beta",
+								description: "Enhanced beta version with new rules, AI improvements and visual polish"
 							}
 						}
 					}
@@ -727,6 +723,14 @@
 							chessAI: {
 								title: "الشطرنج ضد الذكاء الاصطناعي",
 								description: "تحدَّ الكمبيوتر في لعبة شطرنج بمستويات صعوبة قابلة للتعديل"
+							},
+							damma: {
+								title: "لعبة الدمّة",
+								description: "لعبة إستراتيجية كلاسيكية — التقاط جميع قطع الخصم عن طريق القفز"
+							},
+							dammaBeta: {
+								title: "النسخة التجريبية من الدمّة v.beta",
+								description: "نسخة تجريبية محسّنة بقواعد جديدة وتحسينات في الذكاء الاصطناعي"
 							}
 						}
 					}
@@ -793,6 +797,14 @@
 							chessAI: {
 								title: "Échecs contre IA",
 								description: "Affrontez l'ordinateur dans une partie d'échecs avec difficulté réglable"
+							},
+							damma: {
+								title: "Jeu Damma",
+								description: "Jeu de stratégie classique — capturez toutes les pièces adverses en sautant"
+							},
+							dammaBeta: {
+								title: "Jeu Damma v.beta",
+								description: "Version bêta améliorée avec nouvelles règles, IA améliorée et finitions visuelles"
 							}
 						}
 					}

@@ -8,7 +8,6 @@
     <style>
         /* Game-specific styles - Enigma theme */
         :root {
-            /* Logic Puzzle color palette - Enigma theme */
             --game-primary: #0D47A1;
             --game-secondary: #1976D2;
             --game-accent: #FF5722;
@@ -1005,8 +1004,8 @@
     <!-- Include JavaScript files -->
     <script src="translation.js"></script>
     <script src="global.js"></script>
-	<!-- Include puzzle data -->
-<script src="data-logic-puzzle.js"></script>
+    <!-- Include puzzle data -->
+    <script src="data-logic-puzzle.js"></script>
     <script>
         // Game state variables
         let gameInterval;
@@ -1015,6 +1014,7 @@
         let gameLevel = 1;
         let isGameActive = false;
         let isGamePaused = false;
+        let feedbackPhase = false;          // NEW: true when waiting for "Next"
         let puzzlesSolved = 0;
         let totalAttempts = 0;
         let correctAttempts = 0;
@@ -1025,7 +1025,7 @@
         let currentPuzzle = null;
         
         // Puzzle database with enhanced content
-const puzzles = window.logicPuzzles || {};
+        const puzzles = window.logicPuzzles || {};
         
         // DOM elements
         const timerElement = document.getElementById('timer');
@@ -1055,16 +1055,18 @@ const puzzles = window.logicPuzzles || {};
         const progressBar = document.getElementById('progress');
         const progressText = document.getElementById('progress-text');
         const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
+        
         // language change listener to regenerate puzzles
-document.getElementById('languageSelect').addEventListener('change', function() {
-    const newLang = this.value;
-    window.changeLanguage(newLang).then(() => {
-        // Regenerate puzzle with new language if game is active
-        if (isGameActive && currentPuzzle) {
-            generatePuzzle();
-        }
-    });
-});
+        document.getElementById('languageSelect').addEventListener('change', function() {
+            const newLang = this.value;
+            window.changeLanguage(newLang).then(() => {
+                // Regenerate puzzle with new language if game is active
+                if (isGameActive && currentPuzzle) {
+                    generatePuzzle();
+                }
+            });
+        });
+        
         // Event listeners
         startBtn.addEventListener('click', startGame);
         pauseBtn.addEventListener('click', togglePause);
@@ -1088,7 +1090,7 @@ document.getElementById('languageSelect').addEventListener('change', function() 
         function startGame() {
             isGameActive = true;
             isGamePaused = false;
-            
+            feedbackPhase = false;           // reset feedback
             // Reset game state
             gameTime = 60;
             gameScore = 0;
@@ -1142,15 +1144,32 @@ document.getElementById('languageSelect').addEventListener('change', function() 
         }
         
         function togglePause() {
+            if (feedbackPhase) {
+                // In feedback phase, the button acts as "Next"
+                advanceToNextPuzzle();
+                return;
+            }
+
             isGamePaused = !isGamePaused;
             const pauseIcon = isGamePaused ? '▶️' : '⏸️';
             const pauseText = isGamePaused ? 
                 getTranslation('GH.logicPuzzle.resume', 'Resume') : 
                 getTranslation('GH.logicPuzzle.pause', 'Pause');
             pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
-            
+
             const messageKey = isGamePaused ? 'GH.logicPuzzle.gamePaused' : 'GH.logicPuzzle.gameResumed';
             showTranslatableNotification(messageKey, 'info');
+        }
+
+        function advanceToNextPuzzle() {
+            isGamePaused = false;
+            feedbackPhase = false;
+            // Reset pause button to normal state
+            const pauseIcon = '⏸️';
+            const pauseText = getTranslation('GH.logicPuzzle.pause', 'Pause');
+            pauseBtn.innerHTML = `<span>${pauseIcon}</span> ${pauseText}`;
+            // Load next puzzle
+            generatePuzzle();
         }
 
         function restartGame() {
@@ -1175,106 +1194,104 @@ document.getElementById('languageSelect').addEventListener('change', function() 
         }
         
         function generatePuzzle() {
-    // Clear previous options
-    optionsContainer.innerHTML = '';
-    cluesList.innerHTML = '';
-    resultMessage.textContent = '';
-    resultMessage.className = 'GH-result-message';
-    explanationContainer.style.display = 'none';
-    
-    // Get puzzles for current language, fallback to English if not available
-    const currentLang = window.currentLanguage || 'en';
-    console.log('Current language:', currentLang, 'Difficulty:', currentDifficulty);
-    console.log('Available puzzles:', puzzles);
-    
-    // Safely access the puzzle data - FIXED: Properly navigate the puzzle structure
-    let puzzleList = [];
-    
-    // Check if puzzles exist for current language and difficulty
-    if (puzzles && puzzles[currentLang]) {
-        console.log(`Found puzzles for language: ${currentLang}`, puzzles[currentLang]);
-        
-        if (puzzles[currentLang][currentDifficulty]) {
-            puzzleList = puzzles[currentLang][currentDifficulty];
-            console.log(`Found ${puzzleList.length} puzzles for ${currentLang}/${currentDifficulty}`);
-        } else {
-            console.warn(`No puzzles found for difficulty: ${currentDifficulty} in language: ${currentLang}`);
-        }
-    }
-    
-    // Fallback to English if no puzzles found for current language
-    if (puzzleList.length === 0 && currentLang !== 'en') {
-        console.log(`Falling back to English puzzles`);
-        if (puzzles && puzzles['en'] && puzzles['en'][currentDifficulty]) {
-            puzzleList = puzzles['en'][currentDifficulty];
-        }
-    }
-    
-    if (puzzleList.length === 0) {
-        puzzleScenario.textContent = getTranslation('GH.logicPuzzle.noPuzzles', 'No puzzles available for this difficulty.');
-        return;
-    }
-    
-    const randomIndex = Math.floor(Math.random() * puzzleList.length);
-    currentPuzzle = puzzleList[randomIndex];
-    
-    console.log('Selected puzzle:', currentPuzzle);
-    
-    // Display puzzle scenario with type badge
-    puzzleScenario.innerHTML = currentPuzzle.scenario + 
-        `<span class="GH-puzzle-type">${currentPuzzle.type}</span>`;
-    
-    // Display clues
-    currentPuzzle.clues.forEach(clue => {
-        const clueItem = document.createElement('li');
-        clueItem.textContent = clue;
-        cluesList.appendChild(clueItem);
-    });
-    
-    // Create option buttons
-    currentPuzzle.options.forEach((option, index) => {
-        const optionBtn = document.createElement('button');
-        optionBtn.className = 'GH-option-btn';
-        optionBtn.textContent = option;
-        optionBtn.dataset.index = index;
-        
-        optionBtn.addEventListener('click', () => {
-            if (!isGameActive || isGamePaused) return;
+            // Clear previous options
+            optionsContainer.innerHTML = '';
+            cluesList.innerHTML = '';
+            resultMessage.textContent = '';
+            resultMessage.className = 'GH-result-message';
+            explanationContainer.style.display = 'none';
             
-            totalAttempts++;
+            // Get puzzles for current language, fallback to English if not available
+            const currentLang = window.currentLanguage || 'en';
+            console.log('Current language:', currentLang, 'Difficulty:', currentDifficulty);
+            console.log('Available puzzles:', puzzles);
             
-            // Disable all buttons during feedback
-            const allButtons = document.querySelectorAll('.GH-option-btn');
-            allButtons.forEach(btn => {
-                btn.disabled = true;
-            });
+            // Safely access the puzzle data
+            let puzzleList = [];
             
-            if (parseInt(optionBtn.dataset.index) === currentPuzzle.correctAnswer) {
-                // Correct answer
-                handleCorrectAnswer();
-                optionBtn.classList.add('correct');
-            } else {
-                // Wrong answer
-                handleWrongAnswer();
-                optionBtn.classList.add('incorrect');
-                
-                // Highlight correct answer
-                setTimeout(() => {
-                    const correctBtn = document.querySelector(`.GH-option-btn[data-index="${currentPuzzle.correctAnswer}"]`);
-                    if (correctBtn) {
-                        correctBtn.classList.add('correct');
-                    }
-                }, 500);
+            if (puzzles && puzzles[currentLang]) {
+                console.log(`Found puzzles for language: ${currentLang}`, puzzles[currentLang]);
+                if (puzzles[currentLang][currentDifficulty]) {
+                    puzzleList = puzzles[currentLang][currentDifficulty];
+                    console.log(`Found ${puzzleList.length} puzzles for ${currentLang}/${currentDifficulty}`);
+                } else {
+                    console.warn(`No puzzles found for difficulty: ${currentDifficulty} in language: ${currentLang}`);
+                }
             }
             
-            // Show explanation
-            explanationContent.textContent = currentPuzzle.explanation;
-            explanationContainer.style.display = 'block';
-        });
-        
-        optionsContainer.appendChild(optionBtn);
-    });
-}
+            // Fallback to English
+            if (puzzleList.length === 0 && currentLang !== 'en') {
+                console.log(`Falling back to English puzzles`);
+                if (puzzles && puzzles['en'] && puzzles['en'][currentDifficulty]) {
+                    puzzleList = puzzles['en'][currentDifficulty];
+                }
+            }
+            
+            if (puzzleList.length === 0) {
+                puzzleScenario.textContent = getTranslation('GH.logicPuzzle.noPuzzles', 'No puzzles available for this difficulty.');
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * puzzleList.length);
+            currentPuzzle = puzzleList[randomIndex];
+            
+            console.log('Selected puzzle:', currentPuzzle);
+            
+            // Display puzzle scenario with type badge
+            puzzleScenario.innerHTML = currentPuzzle.scenario + 
+                `<span class="GH-puzzle-type">${currentPuzzle.type}</span>`;
+            
+            // Display clues
+            currentPuzzle.clues.forEach(clue => {
+                const clueItem = document.createElement('li');
+                clueItem.textContent = clue;
+                cluesList.appendChild(clueItem);
+            });
+            
+            // Create option buttons
+            currentPuzzle.options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'GH-option-btn';
+                optionBtn.textContent = option;
+                optionBtn.dataset.index = index;
+                
+                optionBtn.addEventListener('click', () => {
+                    if (!isGameActive || isGamePaused) return;
+                    
+                    totalAttempts++;
+                    
+                    // Disable all buttons during feedback
+                    const allButtons = document.querySelectorAll('.GH-option-btn');
+                    allButtons.forEach(btn => {
+                        btn.disabled = true;
+                    });
+                    
+                    if (parseInt(optionBtn.dataset.index) === currentPuzzle.correctAnswer) {
+                        // Correct answer
+                        handleCorrectAnswer();
+                        optionBtn.classList.add('correct');
+                    } else {
+                        // Wrong answer
+                        handleWrongAnswer();
+                        optionBtn.classList.add('incorrect');
+                        
+                        // Highlight correct answer
+                        setTimeout(() => {
+                            const correctBtn = document.querySelector(`.GH-option-btn[data-index="${currentPuzzle.correctAnswer}"]`);
+                            if (correctBtn) {
+                                correctBtn.classList.add('correct');
+                            }
+                        }, 500);
+                    }
+                    
+                    // Show explanation
+                    explanationContent.textContent = currentPuzzle.explanation;
+                    explanationContainer.style.display = 'block';
+                });
+                
+                optionsContainer.appendChild(optionBtn);
+            });
+        }
         
         function useHint() {
             if (hintsRemaining <= 0) return;
@@ -1305,7 +1322,7 @@ document.getElementById('languageSelect').addEventListener('change', function() 
             maxStreak = Math.max(maxStreak, currentStreak);
             
             // Calculate score based on level, streak, and difficulty
-            let points = gameLevel * 10; // Higher levels give more points
+            let points = gameLevel * 10;
             
             switch(currentDifficulty) {
                 case 'medium': points *= 1.5; break;
@@ -1339,15 +1356,19 @@ document.getElementById('languageSelect').addEventListener('change', function() 
             // Update progress
             updateProgress();
             
-            // Generate next puzzle after delay
-            setTimeout(generatePuzzle, 3000);
+            // Enter feedback phase (freeze timer, show Next button)
+            isGamePaused = true;
+            feedbackPhase = true;
+            const nextText = getTranslation('GH.logicPuzzle.next', 'Next');
+            pauseBtn.innerHTML = `<span>▶️</span> ${nextText}`;
+            pauseBtn.disabled = false;
         }
         
         function handleWrongAnswer() {
             currentStreak = 0;
             puzzlesSolved++;
             
-            gameScore = Math.max(0, gameScore - 5); // Lose points for wrong answer
+            gameScore = Math.max(0, gameScore - 5);
             scoreElement.textContent = gameScore;
             streakElement.textContent = currentStreak;
             
@@ -1357,8 +1378,12 @@ document.getElementById('languageSelect').addEventListener('change', function() 
             // Update progress
             updateProgress();
             
-            // Generate next puzzle after delay
-            setTimeout(generatePuzzle, 3000);
+            // Enter feedback phase (freeze timer, show Next button)
+            isGamePaused = true;
+            feedbackPhase = true;
+            const nextText = getTranslation('GH.logicPuzzle.next', 'Next');
+            pauseBtn.innerHTML = `<span>▶️</span> ${nextText}`;
+            pauseBtn.disabled = false;
         }
         
         function updateProgress() {
@@ -1398,6 +1423,10 @@ document.getElementById('languageSelect').addEventListener('change', function() 
             pauseBtn.disabled = true;
             hintBtn.disabled = true;
             
+            // Reset feedback phase in case game ended during feedback
+            feedbackPhase = false;
+            isGamePaused = false;
+            
             const gameOverMessage = `${getTranslation('GH.logicPuzzle.gameOver', 'Game Over!')} ${getTranslation('GH.logicPuzzle.finalScore', 'Final Score')}: ${gameScore}`;
             showNotification(gameOverMessage, 'info');
         }
@@ -1406,7 +1435,6 @@ document.getElementById('languageSelect').addEventListener('change', function() 
         function showTranslatableNotification(messageKey, type) {
             const translations = window.getTranslations ? window.getTranslations() : {};
             
-            // Remove 'GH.' prefix if present and split the key
             const cleanKey = messageKey.replace(/^GH\./, '');
             const keys = cleanKey.split('.');
             
@@ -1414,7 +1442,6 @@ document.getElementById('languageSelect').addEventListener('change', function() 
                 return obj && obj[key] !== undefined ? obj[key] : undefined;
             }, translations);
             
-            // Fallback if translation not found
             if (!message || typeof message !== 'string') {
                 console.warn(`Translation not found for key: ${messageKey}`);
                 message = getFallbackGameMessage(cleanKey);
@@ -1457,7 +1484,6 @@ document.getElementById('languageSelect').addEventListener('change', function() 
         function getTranslation(key, fallback) {
             const translations = window.getTranslations ? window.getTranslations() : {};
             
-            // Remove 'GH.' prefix if present and split the key
             const cleanKey = key.replace(/^GH\./, '');
             const keys = cleanKey.split('.');
             
@@ -1497,6 +1523,7 @@ document.getElementById('languageSelect').addEventListener('change', function() 
                     startGame: "Start Game",
                     pause: "Pause",
                     resume: "Resume",
+                    next: "Next",
                     restart: "Restart",
                     playAgain: "Play Again",
                     mainMenu: "Main Menu",
@@ -1542,6 +1569,7 @@ document.getElementById('languageSelect').addEventListener('change', function() 
                     startGame: "ابدأ اللعبة",
                     pause: "إيقاف مؤقت",
                     resume: "استئناف",
+                    next: "التالي",
                     restart: "إعادة التشغيل",
                     playAgain: "العب مرة أخرى",
                     mainMenu: "القائمة الرئيسية",
@@ -1587,6 +1615,7 @@ document.getElementById('languageSelect').addEventListener('change', function() 
                     startGame: "Commencer le Jeu",
                     pause: "Pause",
                     resume: "Reprendre",
+                    next: "Suivant",
                     restart: "Redémarrer",
                     playAgain: "Rejouer",
                     mainMenu: "Menu Principal",
