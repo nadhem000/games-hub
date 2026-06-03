@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GameHub - Image Puzzle Challenge</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        :root {
+            --gh-puzzle-primary: #3A86FF;
+            --gh-puzzle-secondary: #2667CC;
+            --gh-puzzle-accent: #FF006E;
+            --gh-puzzle-gold: #FFD700;
+            --gh-puzzle-bg: #0A192F;
+            --gh-puzzle-surface: rgba(20, 40, 80, 0.95);
+            --gh-puzzle-card: rgba(255, 255, 255, 0.95);
+            --gh-puzzle-border: rgba(58, 134, 255, 0.2);
+            --gh-puzzle-text: #E0E0E0;
+            --gh-puzzle-text-secondary: #B0B0B0;
+            --gh-puzzle-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --gh-puzzle-radius: 16px;
+            --gh-puzzle-radius-sm: 10px;
+            --gh-puzzle-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .GH-dark-mode {
+            --gh-puzzle-bg: #0A192F;
+            --gh-puzzle-surface: rgba(20, 40, 80, 0.95);
+            --gh-puzzle-card: rgba(20, 40, 80, 0.95);
+            --gh-puzzle-border: rgba(58, 134, 255, 0.3);
+            --gh-puzzle-text: #E0E0E0;
+            --gh-puzzle-text-secondary: #B0B0B0;
+        }
+
+        .GH-light-mode {
+            --gh-puzzle-bg: #F0F7FF;
+            --gh-puzzle-surface: rgba(255, 255, 255, 0.95);
+            --gh-puzzle-card: rgba(255, 255, 255, 0.95);
+            --gh-puzzle-border: rgba(58, 134, 255, 0.15);
+            --gh-puzzle-text: #1A1A2E;
+            --gh-puzzle-text-secondary: #555;
+        }
+
+        .GH-game-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        /* Instructions block (reused from reflex, adapted) */
+        .GH-puzzle-instructions {
+            background: var(--gh-puzzle-card);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-puzzle-radius-sm);
+            margin-bottom: var(--gh-space-xl);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            border: 1px solid var(--gh-puzzle-border);
+        }
+        .GH-puzzle-instructions h2 {
+            margin-bottom: var(--gh-space-md);
+            text-align: center;
+            color: var(--gh-puzzle-primary);
+            font-size: var(--gh-font-size-2xl);
+        }
+        .GH-dark-mode .GH-puzzle-instructions h2 {
+            color: var(--gh-puzzle-accent);
+        }
+        .GH-puzzle-instructions ul {
+            padding-left: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            list-style: none;
+            margin: 0;
+        }
+        .GH-puzzle-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+            padding: 8px 0;
+            color: var(--gh-puzzle-text);
+        }
+        .GH-puzzle-instructions li::before {
+            content: '🧩';
+            color: var(--gh-puzzle-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1.8em;
+            margin-left: -1.8em;
+        }
+        .GH-dark-mode .GH-puzzle-instructions li::before {
+            color: var(--gh-puzzle-accent);
+        }
+
+        [dir="rtl"] .GH-puzzle-instructions li::before {
+            margin-left: 0;
+            margin-right: -1.8em;
+        }
+
+        .GH-puzzle-layout {
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .GH-puzzle-board-section {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .GH-board-wrapper {
+            position: relative;
+            background: var(--gh-puzzle-surface);
+            border-radius: var(--gh-puzzle-radius);
+            padding: 12px;
+            box-shadow: var(--gh-puzzle-shadow);
+            border: 2px solid var(--gh-puzzle-border);
+            transition: border-color 0.6s;
+            direction: ltr; /* prevent RTL mirroring */
+        }
+        .GH-board-wrapper.solved {
+            border-color: #4caf84;
+            box-shadow: 0 8px 40px rgba(76, 175, 132, 0.3);
+            animation: GH-glowPulse 1.2s ease-in-out 3;
+        }
+        @keyframes GH-glowPulse {
+            0%,100% { box-shadow: 0 8px 40px rgba(76,175,132,0.3); }
+            50% { box-shadow: 0 8px 60px rgba(76,175,132,0.6); }
+        }
+
+        .GH-board-container {
+            display: grid;
+            gap: 3px;
+            background: #0a0a15;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .GH-piece {
+            background-size: cover;
+            background-repeat: no-repeat;
+            border-radius: 3px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+            cursor: pointer;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        .GH-piece:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.15); z-index: 2; }
+        .GH-piece:active { transform: scale(0.96); transition: transform 0.08s ease; }
+        .GH-piece.selected {
+            box-shadow: 0 0 0 3px var(--gh-puzzle-accent), 0 0 24px rgba(255,0,110,0.6), inset 0 0 0 1px rgba(255,255,255,0.2) !important;
+            transform: scale(1.04); z-index: 5;
+            animation: GH-selectedPulse 0.8s ease-in-out infinite;
+        }
+        @keyframes GH-selectedPulse {
+            0%,100% { box-shadow: 0 0 0 3px var(--gh-puzzle-accent), 0 0 24px rgba(255,0,110,0.6), inset 0 0 0 1px rgba(255,255,255,0.2); }
+            50% { box-shadow: 0 0 0 5px #ff6b6b, 0 0 36px rgba(255,107,107,0.8), inset 0 0 0 1px rgba(255,255,255,0.3); }
+        }
+        .GH-piece.swap-highlight { animation: GH-swapFlash 0.4s ease-out; }
+        @keyframes GH-swapFlash {
+            0% { transform: scale(1.12); filter: brightness(1.6); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        .GH-piece.correct-position { box-shadow: inset 0 0 0 2px rgba(76,175,132,0.5) !important; }
+
+        .GH-puzzle-sidebar {
+            flex: 0 0 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-width: 240px;
+        }
+        @media (max-width: 700px) {
+            .GH-puzzle-sidebar { flex: 0 0 100%; flex-direction: row; flex-wrap: wrap; gap: 12px; justify-content: center; }
+            .GH-puzzle-sidebar > * { flex: 1 1 140px; min-width: 130px; }
+        }
+
+        .GH-puzzle-card {
+            background: var(--gh-puzzle-card);
+            border-radius: var(--gh-puzzle-radius-sm);
+            padding: 16px 18px;
+            border: 1px solid var(--gh-puzzle-border);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .GH-puzzle-card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gh-puzzle-text-secondary);
+            margin: 0;
+        }
+
+        .GH-ref-preview {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2px solid var(--gh-puzzle-border);
+            position: relative;
+            overflow: hidden;
+            direction: ltr;
+        }
+        .GH-ref-preview::after {
+            content: attr(data-ref-text);
+            position: absolute;
+            bottom: 6px;
+            right: 10px;
+            font-size: 0.7rem;
+            color: #fff;
+            background: rgba(0,0,0,0.55);
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+            pointer-events: none;
+        }
+
+        .GH-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+        .GH-stat-value {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            color: var(--gh-puzzle-gold);
+            font-size: 1.1rem;
+        }
+
+        .GH-puzzle-btn {
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: var(--gh-puzzle-transition);
+            letter-spacing: 0.03em;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .GH-btn-primary { background: var(--gh-puzzle-primary); color: #fff; }
+        .GH-btn-primary:hover { background: #5277ff; box-shadow: 0 4px 20px rgba(58,134,255,0.45); transform: translateY(-1px); }
+        .GH-btn-outline { background: transparent; border: 2px solid var(--gh-puzzle-border); color: var(--gh-puzzle-text); }
+        .GH-btn-outline:hover { border-color: var(--gh-puzzle-accent); color: #fff; background: rgba(255,0,110,0.08); }
+        .GH-btn-sm { padding: 7px 12px; font-size: 0.8rem; border-radius: 6px; }
+
+        .GH-file-wrapper {
+            position: relative; overflow: hidden; display: inline-block; width: 100%;
+        }
+        .GH-file-wrapper input[type="file"] {
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .GH-file-wrapper .GH-puzzle-btn { width: 100%; pointer-events: none; }
+
+        .GH-win-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index:100;
+            display: flex; justify-content: center; align-items: center; animation: GH-fadeIn 0.3s ease;
+        }
+        .GH-win-overlay.hidden { display: none; }
+        @keyframes GH-fadeIn { from { opacity:0; } to { opacity:1; } }
+        .GH-win-dialog {
+            background: var(--gh-puzzle-surface); border-radius: var(--gh-puzzle-radius); padding: 32px 28px;
+            text-align: center; box-shadow: 0 16px 60px rgba(0,0,0,0.7); border: 2px solid #4caf84;
+            max-width: 420px; animation: GH-popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        @keyframes GH-popIn { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+        .GH-confetti {
+            position: fixed; pointer-events: none; z-index:101; animation: GH-confettiFall 2.5s ease-out forwards;
+            font-size: 1.5rem;
+        }
+        @keyframes GH-confettiFall {
+            0% { transform: translateY(-120px) rotate(0deg) scale(1); opacity:1; }
+            100% { transform: translateY(105vh) rotate(720deg) scale(0.3); opacity:0; }
+        }
+
+        @media (max-width: 700px) {
+            .GH-puzzle-layout { flex-direction: column; align-items: center; gap: 16px; }
+            .GH-board-wrapper { padding: 8px; }
+            .GH-board-container { gap: 2px; }
+            .GH-puzzle-instructions ul { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            <h1 class="GH-title" data-i18n="GH.puzzle.title">Image Puzzle Challenge</h1>
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <!-- How to Play Instructions -->
+            <div class="GH-puzzle-instructions">
+                <h2 data-i18n="GH.puzzle.howToPlay">🧩 How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.puzzle.instruction1">Click any tile to select it (it will glow).</li>
+                    <li data-i18n="GH.puzzle.instruction2">Click another tile to swap the two pieces.</li>
+                    <li data-i18n="GH.puzzle.instruction3">Use the reference image to guide you.</li>
+                    <li data-i18n="GH.puzzle.instruction4">Press the 💡 Hint button to briefly highlight correct pieces.</li>
+                    <li data-i18n="GH.puzzle.instruction5">Finish with all pieces in the right place to win!</li>
+                </ul>
+            </div>
+
+            <div class="GH-puzzle-layout">
+                <div class="GH-puzzle-board-section">
+                    <div class="GH-board-wrapper" id="boardWrapper">
+                        <div class="GH-board-container" id="boardContainer" dir="ltr"></div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                        <button class="GH-puzzle-btn GH-btn-outline GH-btn-sm" id="btnShuffle" data-i18n="GH.puzzle.shuffle">🔀 Shuffle</button>
+                        <button class="GH-puzzle-btn GH-btn-outline GH-btn-sm" id="btnHint" data-i18n="GH.puzzle.hint">💡 Hint</button>
+                    </div>
+                </div>
+
+                <div class="GH-puzzle-sidebar">
+                    <div class="GH-puzzle-card">
+                        <h3 data-i18n="GH.puzzle.referenceImage">🖼️ Reference Image</h3>
+                        <div class="GH-ref-preview" id="refPreview" data-ref-text="Reference"></div>
+                    </div>
+                    <div class="GH-puzzle-card">
+                        <h3 data-i18n="GH.puzzle.settings">⚙️ Settings</h3>
+                        <label for="gridSizeSelect" style="font-size:0.85rem;color:var(--gh-puzzle-text-secondary);" data-i18n="GH.puzzle.gridSize">Grid Size</label>
+                        <select id="gridSizeSelect">
+                            <option value="3" data-i18n="GH.puzzle.gridOption3">3 × 3 (Easy)</option>
+                            <option value="4" selected data-i18n="GH.puzzle.gridOption4">4 × 4 (Medium)</option>
+                            <option value="5" data-i18n="GH.puzzle.gridOption5">5 × 5 (Hard)</option>
+                            <option value="6" data-i18n="GH.puzzle.gridOption6">6 × 6 (Expert)</option>
+                        </select>
+                        <div class="GH-file-wrapper">
+                            <button class="GH-puzzle-btn GH-btn-primary" style="width:100%;" data-i18n="GH.puzzle.chooseImage">📁 Choose Image from assets</button>
+                            <input type="file" id="fileInput" accept="image/*">
+                        </div>
+                        <button class="GH-puzzle-btn GH-btn-outline GH-btn-sm" id="btnReset" data-i18n="GH.puzzle.reset">🔄 Reset Puzzle</button>
+                    </div>
+                    <div class="GH-puzzle-card" id="statsCard">
+                        <h3 data-i18n="GH.puzzle.stats">📊 Stats</h3>
+                        <div class="GH-stat-row">
+                            <span data-i18n="GH.puzzle.time">⏱️ Time</span>
+                            <span class="GH-stat-value" id="timerDisplay">00:00</span>
+                        </div>
+                        <div class="GH-stat-row">
+                            <span data-i18n="GH.puzzle.moves">👆 Moves</span>
+                            <span class="GH-stat-value" id="movesDisplay">0</span>
+                        </div>
+                        <div class="GH-stat-row">
+                            <span data-i18n="GH.puzzle.correct">✅ Correct</span>
+                            <span class="GH-stat-value" id="correctDisplay">0 / 16</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.1.0</span>
+            </div>
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="GH-win-overlay hidden" id="winOverlay">
+        <div class="GH-win-dialog">
+            <span style="font-size:3.5rem;display:block;">🎉</span>
+            <h2 style="font-size:2rem;margin-bottom:8px;" data-i18n="GH.puzzle.solved">Puzzle Solved!</h2>
+            <div class="GH-win-stats" id="winStats"></div>
+            <button class="GH-puzzle-btn GH-btn-primary" id="btnPlayAgain" data-i18n="GH.puzzle.playAgain">🔄 Play Again</button>
+            <button class="GH-puzzle-btn GH-btn-outline" id="btnNewImage" data-i18n="GH.puzzle.newImage">🖼️ New Image</button>
+        </div>
+    </div>
+
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+    (function() {
+        // ────────────── DOM References ──────────────
+        const boardContainer = document.getElementById('boardContainer');
+        const boardWrapper = document.getElementById('boardWrapper');
+        const refPreview = document.getElementById('refPreview');
+        const gridSizeSelect = document.getElementById('gridSizeSelect');
+        const fileInput = document.getElementById('fileInput');
+        const btnShuffle = document.getElementById('btnShuffle');
+        const btnHint = document.getElementById('btnHint');
+        const btnReset = document.getElementById('btnReset');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const movesDisplay = document.getElementById('movesDisplay');
+        const correctDisplay = document.getElementById('correctDisplay');
+        const winOverlay = document.getElementById('winOverlay');
+        const winStats = document.getElementById('winStats');
+        const btnPlayAgain = document.getElementById('btnPlayAgain');
+        const btnNewImage = document.getElementById('btnNewImage');
+
+        // ────────────── State ──────────────
+        let gridSize = 4;
+        let boardPixelSize = 450;
+        let piecePixelSize = boardPixelSize / gridSize;
+        let sharedImageDataUrl = null;
+        let pieces = [];
+        let gridState = [];
+        let selectedPiecePos = null;
+        let moveCount = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let gameActive = false;
+        let gameSolved = false;
+        let hintActive = false;
+        let hintTimeout = null;
+
+        // ────────────── i18n & Notifications ──────────────
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            let value = keys.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : undefined), translations);
+            return value && typeof value === 'string' ? value : fallback;
+        }
+
+        // Central notification function – uses your global toast system
+        function notify(key, type = 'info', fallbackText = '') {
+            // Check global notification setting
+            if (window.GHSettings && !window.GHSettings.settings.notifications) {
+                return; // Notifications disabled
+            }
+
+            const message = getTranslation(key, fallbackText);
+            if (window.showGlobalToast) {
+                window.showGlobalToast(message, type);
+            } else {
+                // Fallback (rarely needed)
+                console.log('Toast:', message);
+            }
+        }
+
+        // ────────────── Timer ──────────────
+        function startTimer() { if (timerInterval) return; timerSeconds = 0; updateTimerDisplay(); timerInterval = setInterval(() => { timerSeconds++; updateTimerDisplay(); }, 1000); }
+        function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+        function resetTimer() { stopTimer(); timerSeconds = 0; updateTimerDisplay(); }
+        function updateTimerDisplay() { const m = Math.floor(timerSeconds/60); const s = timerSeconds%60; timerDisplay.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+        // ────────────── Board Sizing ──────────────
+        function recalculateBoardSize() {
+            const vw = window.innerWidth;
+            const maxSize = Math.min(450, vw * 0.85);
+            boardPixelSize = Math.floor(maxSize);
+            piecePixelSize = Math.floor(boardPixelSize / gridSize);
+            boardPixelSize = piecePixelSize * gridSize;
+        }
+
+        // ────────────── Default Pattern ──────────────
+        function createDefaultPattern() {
+            const canvas = document.createElement('canvas');
+            canvas.width = boardPixelSize; canvas.height = boardPixelSize;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0,0, boardPixelSize, boardPixelSize);
+            grad.addColorStop(0,'#ff6b6b'); grad.addColorStop(0.25,'#feca57');
+            grad.addColorStop(0.5,'#48dbfb'); grad.addColorStop(0.75,'#ff9ff3');
+            grad.addColorStop(1,'#54a0ff');
+            ctx.fillStyle = grad; ctx.fillRect(0,0, boardPixelSize, boardPixelSize);
+            return canvas.toDataURL('image/jpeg', 0.9);
+        }
+
+        // ────────────── Image Processing ──────────────
+        function processImageFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => { const img = new Image(); img.onload = () => resolve(cropAndScaleImage(img, boardPixelSize)); img.onerror = reject; img.src = e.target.result; };
+                reader.onerror = reject; reader.readAsDataURL(file);
+            });
+        }
+        function cropAndScaleImage(img, targetSize) {
+            const canvas = document.createElement('canvas'); canvas.width = targetSize; canvas.height = targetSize;
+            const ctx = canvas.getContext('2d');
+            const minDim = Math.min(img.width, img.height);
+            const sx = (img.width - minDim) / 2; const sy = (img.height - minDim) / 2;
+            ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0,0,targetSize,targetSize);
+            ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, targetSize, targetSize);
+            return canvas.toDataURL('image/jpeg', 0.92);
+        }
+
+        // ────────────── Puzzle Init ──────────────
+        function initPuzzle(imageDataUrl) {
+            recalculateBoardSize();
+            piecePixelSize = Math.floor(boardPixelSize / gridSize);
+            boardPixelSize = piecePixelSize * gridSize;
+            sharedImageDataUrl = imageDataUrl;
+            pieces = [];
+            let id = 0;
+            for (let r=0; r<gridSize; r++) for (let c=0; c<gridSize; c++) pieces.push({ id:id++, correctRow:r, correctCol:c });
+            gridState = [];
+            for (let r=0; r<gridSize; r++) {
+                gridState[r] = [];
+                for (let c=0; c<gridSize; c++) gridState[r][c] = pieces.find(p => p.correctRow===r && p.correctCol===c);
+            }
+            selectedPiecePos = null; moveCount = 0; gameSolved = false; gameActive = true; hintActive = false;
+            if (hintTimeout) clearTimeout(hintTimeout); hintTimeout = null;
+            updateMovesDisplay(); updateCorrectDisplay(); resetTimer();
+            boardWrapper.classList.remove('solved'); winOverlay.classList.add('hidden');
+            renderBoard(); updateRefPreview();
+            shufflePieces(); renderBoard(); updateCorrectDisplay();
+        }
+
+        function shufflePieces() {
+            if (gameSolved) return;
+            let attempts = 0; const minOut = Math.max(3, Math.floor(pieces.length*0.6));
+            do {
+                const flat = [];
+                for (let r=0; r<gridSize; r++) for (let c=0; c<gridSize; c++) flat.push(gridState[r][c]);
+                for (let i=flat.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [flat[i], flat[j]] = [flat[j], flat[i]]; }
+                let idx = 0;
+                for (let r=0; r<gridSize; r++) for (let c=0; c<gridSize; c++) gridState[r][c] = flat[idx++];
+                attempts++;
+            } while (countCorrect() > (pieces.length - minOut) && attempts<100);
+            selectedPiecePos = null; moveCount = 0; updateMovesDisplay(); updateCorrectDisplay(); resetTimer();
+            gameActive = true; gameSolved = false; boardWrapper.classList.remove('solved'); winOverlay.classList.add('hidden');
+            if (hintTimeout) clearTimeout(hintTimeout); hintActive = false;
+        }
+
+        function countCorrect() { let c=0; for (let r=0; r<gridSize; r++) for (let c2=0; c2<gridSize; c2++) if (gridState[r][c2] && gridState[r][c2].correctRow===r && gridState[r][c2].correctCol===c2) c++; return c; }
+
+        function renderBoard() {
+            boardContainer.innerHTML = '';
+            boardContainer.style.gridTemplateColumns = `repeat(${gridSize}, ${piecePixelSize}px)`;
+            boardContainer.style.gridTemplateRows = `repeat(${gridSize}, ${piecePixelSize}px)`;
+            boardContainer.style.width = boardPixelSize+'px'; boardContainer.style.height = boardPixelSize+'px';
+            for (let r=0; r<gridSize; r++) {
+                for (let c=0; c<gridSize; c++) {
+                    const piece = gridState[r][c];
+                    const div = document.createElement('div');
+                    div.className = 'GH-piece';
+                    div.style.width = piecePixelSize+'px'; div.style.height = piecePixelSize+'px';
+                    div.style.backgroundImage = `url(${sharedImageDataUrl})`;
+                    div.style.backgroundSize = `${boardPixelSize}px ${boardPixelSize}px`;
+                    div.style.backgroundPosition = `-${piece.correctCol * piecePixelSize}px -${piece.correctRow * piecePixelSize}px`;
+                    div.dataset.row = r; div.dataset.col = c; div.dataset.pieceId = piece.id;
+                    if (selectedPiecePos && selectedPiecePos.row===r && selectedPiecePos.col===c) div.classList.add('selected');
+                    if (hintActive && piece.correctRow===r && piece.correctCol===c) div.classList.add('correct-position');
+                    div.addEventListener('click', () => onPieceClick(r,c));
+                    boardContainer.appendChild(div);
+                }
+            }
+        }
+
+        function updatePieceElement(r,c) {
+            const div = boardContainer.querySelector(`[data-row="${r}"][data-col="${c}"]`); if (!div) return;
+            const piece = gridState[r][c]; if (!piece) return;
+            div.style.backgroundImage = `url(${sharedImageDataUrl})`;
+            div.style.backgroundSize = `${boardPixelSize}px ${boardPixelSize}px`;
+            div.style.backgroundPosition = `-${piece.correctCol*piecePixelSize}px -${piece.correctRow*piecePixelSize}px`;
+            div.dataset.pieceId = piece.id;
+            if (selectedPiecePos && selectedPiecePos.row===r && selectedPiecePos.col===c) div.classList.add('selected'); else div.classList.remove('selected');
+            if (hintActive && piece.correctRow===r && piece.correctCol===c) div.classList.add('correct-position'); else div.classList.remove('correct-position');
+        }
+
+        function onPieceClick(row, col) {
+            if (!gameActive || gameSolved) return;
+            const piece = gridState[row][col]; if (!piece) return;
+            if (selectedPiecePos === null) { selectedPiecePos = { row, col }; renderBoard(); }
+            else if (selectedPiecePos.row===row && selectedPiecePos.col===col) { selectedPiecePos = null; renderBoard(); }
+            else {
+                const sr = selectedPiecePos.row, sc = selectedPiecePos.col;
+                const temp = gridState[sr][sc]; gridState[sr][sc] = gridState[row][col]; gridState[row][col] = temp;
+                selectedPiecePos = null; moveCount++; updateMovesDisplay();
+                if (moveCount===1 && !timerInterval && timerSeconds===0) startTimer();
+                updatePieceElement(sr, sc); updatePieceElement(row, col);
+                const d1 = boardContainer.querySelector(`[data-row="${sr}"][data-col="${sc}"]`);
+                const d2 = boardContainer.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (d1) { d1.classList.add('swap-highlight'); setTimeout(()=>d1.classList.remove('swap-highlight'),400); }
+                if (d2) { d2.classList.add('swap-highlight'); setTimeout(()=>d2.classList.remove('swap-highlight'),400); }
+                updateCorrectDisplay(); checkWin();
+            }
+        }
+
+        function checkWin() {
+            if (countCorrect() === pieces.length) {
+                gameSolved = true; gameActive = false; stopTimer();
+                boardWrapper.classList.add('solved'); selectedPiecePos = null; renderBoard(); updateCorrectDisplay();
+                spawnConfetti(); setTimeout(() => showWinOverlay(), 600);
+            }
+        }
+
+        function showWinOverlay() {
+            const m=Math.floor(timerSeconds/60), s=timerSeconds%60;
+            const timeStr = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+            winStats.innerHTML = `
+                <p>🕐 ${getTranslation('GH.puzzle.timeLabel','Time')}: <strong>${timeStr}</strong></p>
+                <p>👆 ${getTranslation('GH.puzzle.movesLabel','Moves')}: <strong>${moveCount}</strong></p>
+                <p>📐 ${getTranslation('GH.puzzle.gridLabel','Grid')}: <strong>${gridSize} × ${gridSize}</strong></p>
+            `;
+            winOverlay.classList.remove('hidden');
+        }
+
+        function spawnConfetti() {
+            const emojis = ['🎉','✨','🌟','💫','🎊','🥳','🧩','💎','🔥','🎯'];
+            for (let i=0; i<35; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('span'); el.className='GH-confetti';
+                    el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+                    el.style.left = Math.random()*90+'%'; el.style.top = -(Math.random()*40+10)+'px';
+                    el.style.animationDuration = (Math.random()*2+2)+'s';
+                    el.style.fontSize = (Math.random()*1.5+1)+'rem';
+                    document.body.appendChild(el); setTimeout(()=>el.remove(),3000);
+                }, i*35);
+            }
+        }
+
+        function updateMovesDisplay() { movesDisplay.textContent = moveCount; }
+        function updateCorrectDisplay() { correctDisplay.textContent = countCorrect()+' / '+pieces.length; }
+        function updateRefPreview() { refPreview.style.backgroundImage = `url(${sharedImageDataUrl})`; refPreview.setAttribute('data-ref-text', getTranslation('GH.puzzle.reference','Reference')); }
+
+        function toggleHint() {
+            if (gameSolved || !gameActive) return;
+            if (hintActive) { hintActive=false; if (hintTimeout) clearTimeout(hintTimeout); hintTimeout=null; renderBoard(); return; }
+            hintActive=true; renderBoard();
+            if (hintTimeout) clearTimeout(hintTimeout);
+            hintTimeout = setTimeout(() => { hintActive=false; renderBoard(); hintTimeout=null; }, 2000);
+            notify('GH.puzzle.hintActive', 'info', '💡 Correct pieces highlighted (2s)');
+        }
+
+        // ────────────── Event Handlers ──────────────
+        gridSizeSelect.addEventListener('change', () => {
+            const newSize = parseInt(gridSizeSelect.value);
+            if (newSize === gridSize) return;
+            gridSize = newSize;
+            piecePixelSize = Math.floor(boardPixelSize / gridSize);
+            boardPixelSize = piecePixelSize * gridSize;
+            stopTimer();
+            if (sharedImageDataUrl) {
+                const img = new Image();
+                img.onload = () => { sharedImageDataUrl = cropAndScaleImage(img, boardPixelSize); initPuzzleWithExisting(); };
+                img.src = sharedImageDataUrl;
+            } else initPuzzleWithExisting();
+        });
+
+        function initPuzzleWithExisting() {
+            recalculateBoardSize();
+            piecePixelSize = Math.floor(boardPixelSize / gridSize);
+            boardPixelSize = piecePixelSize * gridSize;
+            pieces = [];
+            let id=0;
+            for (let r=0; r<gridSize; r++) for (let c=0; c<gridSize; c++) pieces.push({ id:id++, correctRow:r, correctCol:c });
+            gridState = [];
+            for (let r=0; r<gridSize; r++) { gridState[r]=[]; for (let c=0; c<gridSize; c++) gridState[r][c] = pieces.find(p => p.correctRow===r && p.correctCol===c); }
+            selectedPiecePos=null; moveCount=0; gameSolved=false; gameActive=true; hintActive=false;
+            if (hintTimeout) clearTimeout(hintTimeout); hintTimeout=null;
+            updateMovesDisplay(); updateCorrectDisplay(); resetTimer();
+            boardWrapper.classList.remove('solved'); winOverlay.classList.add('hidden');
+            renderBoard(); updateRefPreview(); shufflePieces(); renderBoard(); updateCorrectDisplay();
+        }
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            try {
+                notify('GH.puzzle.loading', 'info', '📂 Loading image...');
+                recalculateBoardSize();
+                piecePixelSize = Math.floor(boardPixelSize / gridSize);
+                boardPixelSize = piecePixelSize * gridSize;
+                sharedImageDataUrl = await processImageFile(file);
+                initPuzzleWithExisting();
+                notify('GH.puzzle.loaded', 'success', '✅ Image loaded!');
+            } catch (err) { notify('GH.puzzle.error', 'error', '❌ Failed to load image.'); }
+            fileInput.value = '';
+        });
+
+        btnShuffle.addEventListener('click', () => {
+            if (!sharedImageDataUrl) return;
+            if (gameSolved) initPuzzleWithExisting();
+            else {
+                shufflePieces(); renderBoard(); updateCorrectDisplay();
+                selectedPiecePos=null; moveCount=0; updateMovesDisplay(); resetTimer();
+                gameActive=true; boardWrapper.classList.remove('solved'); winOverlay.classList.add('hidden');
+                if (hintTimeout) clearTimeout(hintTimeout); hintActive=false;
+            }
+            notify('GH.puzzle.shuffled', 'success', '🔀 Shuffled!');
+        });
+
+        btnHint.addEventListener('click', () => { if (sharedImageDataUrl && !gameSolved && gameActive) toggleHint(); });
+        btnReset.addEventListener('click', () => { if (sharedImageDataUrl) { initPuzzleWithExisting(); notify('GH.puzzle.resetDone', 'info', '🔄 Puzzle reset!'); } });
+
+        btnPlayAgain.addEventListener('click', () => { winOverlay.classList.add('hidden'); initPuzzleWithExisting(); });
+        btnNewImage.addEventListener('click', () => { winOverlay.classList.add('hidden'); fileInput.click(); });
+        winOverlay.addEventListener('click', (e) => { if (e.target===winOverlay) { winOverlay.classList.add('hidden'); initPuzzleWithExisting(); } });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key==='Escape') {
+                if (selectedPiecePos!==null) { selectedPiecePos=null; renderBoard(); }
+                if (!winOverlay.classList.contains('hidden')) { winOverlay.classList.add('hidden'); initPuzzleWithExisting(); }
+            }
+            if (e.key==='h' && !e.ctrlKey && !e.metaKey && gameActive && !gameSolved) { e.preventDefault(); toggleHint(); }
+        });
+
+        window.addEventListener('resize', () => {
+            clearTimeout(window._resizeDebounce);
+            window._resizeDebounce = setTimeout(() => {
+                const old = boardPixelSize;
+                recalculateBoardSize();
+                piecePixelSize = Math.floor(boardPixelSize / gridSize);
+                boardPixelSize = piecePixelSize * gridSize;
+                if (boardPixelSize!==old && sharedImageDataUrl) {
+                    const img = new Image();
+                    img.onload = () => { sharedImageDataUrl = cropAndScaleImage(img, boardPixelSize); renderBoard(); updateRefPreview(); };
+                    img.src = sharedImageDataUrl;
+                }
+            }, 300);
+        });
+
+        // Boot
+        recalculateBoardSize();
+        piecePixelSize = Math.floor(boardPixelSize / gridSize);
+        boardPixelSize = piecePixelSize * gridSize;
+        sharedImageDataUrl = createDefaultPattern();
+        initPuzzleWithExisting();
+        updateRefPreview();
+    })();
+</script>
+
+    <script>
+        // Object-specific translations (updated with grid options and instructions)
+        window.GHObjectTranslations = window.GHObjectTranslations || {
+            en: {
+                puzzle: {
+                    title: "Image Puzzle Challenge",
+                    howToPlay: "🧩 How to Play",
+                    instruction1: "Click any tile to select it (it will glow).",
+                    instruction2: "Click another tile to swap the two pieces.",
+                    instruction3: "Use the reference image to guide you.",
+                    instruction4: "Press the 💡 Hint button to briefly highlight correct pieces.",
+                    instruction5: "Finish with all pieces in the right place to win!",
+                    shuffle: "🔀 Shuffle",
+                    hint: "💡 Hint",
+                    referenceImage: "🖼️ Reference Image",
+                    settings: "⚙️ Settings",
+                    gridSize: "Grid Size",
+                    gridOption3: "3 × 3 (Easy)",
+                    gridOption4: "4 × 4 (Medium)",
+                    gridOption5: "5 × 5 (Hard)",
+                    gridOption6: "6 × 6 (Expert)",
+                    chooseImage: "📁 Choose Image from assets",
+                    reset: "🔄 Reset Puzzle",
+                    stats: "📊 Stats",
+                    time: "⏱️ Time",
+                    moves: "👆 Moves",
+                    correct: "✅ Correct",
+                    solved: "Puzzle Solved!",
+                    playAgain: "🔄 Play Again",
+                    newImage: "🖼️ New Image",
+                    loading: "📂 Loading image...",
+                    loaded: "✅ Image loaded! Solve the puzzle.",
+                    error: "❌ Failed to load image.",
+                    shuffled: "🔀 Shuffled!",
+                    hintActive: "💡 Correct pieces highlighted (2s)",
+                    resetDone: "🔄 Puzzle reset!",
+                    timeLabel: "Time",
+                    movesLabel: "Moves",
+                    gridLabel: "Grid",
+                    reference: "Reference"
+                }
+            },
+            ar: {
+                puzzle: {
+                    title: "تحدي تركيب الصورة",
+                    howToPlay: "🧩 كيفية اللعب",
+                    instruction1: "انقر على أي قطعة لتحديدها (ستتوهج).",
+                    instruction2: "انقر على قطعة أخرى لتبديل القطعتين.",
+                    instruction3: "استخدم الصورة المرجعية لإرشادك.",
+                    instruction4: "اضغط على زر 💡 تلميح لإبراز القطع الصحيحة مؤقتًا.",
+                    instruction5: "أنهِ اللعبة بجعل كل القطع في أماكنها الصحيحة لتربح!",
+                    shuffle: "🔀 خلط",
+                    hint: "💡 تلميح",
+                    referenceImage: "🖼️ الصورة المرجعية",
+                    settings: "⚙️ الإعدادات",
+                    gridSize: "حجم الشبكة",
+                    gridOption3: "3 × 3 (سهل)",
+                    gridOption4: "4 × 4 (متوسط)",
+                    gridOption5: "5 × 5 (صعب)",
+                    gridOption6: "6 × 6 (خبير)",
+                    chooseImage: "📁 اختر صورة من المجلد",
+                    reset: "🔄 إعادة تعيين",
+                    stats: "📊 الإحصائيات",
+                    time: "⏱️ الوقت",
+                    moves: "👆 الحركات",
+                    correct: "✅ صحيح",
+                    solved: "تم حل اللغز!",
+                    playAgain: "🔄 العب مرة أخرى",
+                    newImage: "🖼️ صورة جديدة",
+                    loading: "📂 جاري تحميل الصورة...",
+                    loaded: "✅ تم تحميل الصورة! قم بحل اللغز.",
+                    error: "❌ فشل تحميل الصورة.",
+                    shuffled: "🔀 تم الخلط!",
+                    hintActive: "💡 تم تمييز القطع الصحيحة (ثانيتان)",
+                    resetDone: "🔄 تم إعادة تعيين اللغز!",
+                    timeLabel: "الوقت",
+                    movesLabel: "الحركات",
+                    gridLabel: "الشبكة",
+                    reference: "مرجع"
+                }
+            },
+            fr: {
+                puzzle: {
+                    title: "Défi Puzzle d'Image",
+                    howToPlay: "🧩 Comment Jouer",
+                    instruction1: "Cliquez sur une tuile pour la sélectionner (elle brillera).",
+                    instruction2: "Cliquez sur une autre tuile pour échanger les deux pièces.",
+                    instruction3: "Utilisez l'image de référence pour vous guider.",
+                    instruction4: "Appuyez sur le bouton 💡 Indice pour mettre en évidence les pièces correctes.",
+                    instruction5: "Terminez avec toutes les pièces à la bonne place pour gagner !",
+                    shuffle: "🔀 Mélanger",
+                    hint: "💡 Indice",
+                    referenceImage: "🖼️ Image de Référence",
+                    settings: "⚙️ Paramètres",
+                    gridSize: "Taille de la Grille",
+                    gridOption3: "3 × 3 (Facile)",
+                    gridOption4: "4 × 4 (Moyen)",
+                    gridOption5: "5 × 5 (Difficile)",
+                    gridOption6: "6 × 6 (Expert)",
+                    chooseImage: "📁 Choisir une Image",
+                    reset: "🔄 Réinitialiser",
+                    stats: "📊 Statistiques",
+                    time: "⏱️ Temps",
+                    moves: "👆 Coups",
+                    correct: "✅ Correct",
+                    solved: "Puzzle Résolu !",
+                    playAgain: "🔄 Rejouer",
+                    newImage: "🖼️ Nouvelle Image",
+                    loading: "📂 Chargement de l'image...",
+                    loaded: "✅ Image chargée ! Résolvez le puzzle.",
+                    error: "❌ Échec du chargement.",
+                    shuffled: "🔀 Mélangé !",
+                    hintActive: "💡 Pièces correctes mises en évidence (2s)",
+                    resetDone: "🔄 Puzzle réinitialisé !",
+                    timeLabel: "Temps",
+                    movesLabel: "Coups",
+                    gridLabel: "Grille",
+                    reference: "Référence"
+                }
+            }
+        };
+    </script>
+</body>
+</html>

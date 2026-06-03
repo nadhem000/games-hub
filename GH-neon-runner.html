@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GameHub - Neon Speed Runner</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        :root {
+            --game-primary: #00e5ff;
+            --game-secondary: #0090b0;
+            --game-accent: #ff3b5c;
+            --game-success: #38B000;
+            --game-error: #FF4D6D;
+            --game-warning: #FF9E00;
+            --game-gold: #FFD700;
+            --game-light-bg: #F0F7FF;
+            --game-dark-bg: #0A192F;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(20, 40, 80, 0.95);
+            --neon-bg: #0a0a1a;
+            --neon-glow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+
+        .GH-game-container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-xl);
+            background: linear-gradient(135deg, #0a0a2e, #101040);
+            color: white;
+            box-shadow: var(--gh-shadow-lg);
+            position: relative;
+            overflow: hidden;
+            flex-wrap: wrap;
+            gap: var(--gh-space-lg);
+        }
+        .GH-game-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.08"><circle cx="50" cy="50" r="1.5" fill="white"/></svg>') repeat;
+            z-index: 0;
+        }
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-lg);
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: var(--gh-space-md) var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            text-align: center;
+            min-width: 90px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .GH-stat-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .GH-stat-box.best-box {
+            background: rgba(255, 215, 0, 0.15);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+        .GH-stat-box.best-box .GH-stat-value {
+            color: var(--game-gold);
+        }
+        .GH-stat-value {
+            font-size: var(--gh-font-size-3xl);
+            font-weight: bold;
+            display: block;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .GH-game-area {
+            margin: 30px 0;
+            padding: 0;
+            border-radius: var(--gh-radius-xl);
+            background-color: #0a0a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-lg);
+            min-height: 420px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .GH-dark-mode .GH-game-area {
+            border: 1px solid rgba(0, 229, 255, 0.35);
+        }
+        .GH-game-area canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .GH-pause-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 40px var(--game-primary);
+            pointer-events: none;
+            z-index: 12;
+            display: none;
+            letter-spacing: 0.2em;
+            font-family: 'Orbitron', 'Segoe UI', monospace;
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            margin-bottom: var(--gh-space-xl);
+            box-shadow: var(--gh-shadow-md);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+        }
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+        }
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-md);
+            text-align: center;
+            color: var(--game-primary);
+            font-size: var(--gh-font-size-2xl);
+        }
+        .GH-instructions ul {
+            padding-left: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 8px;
+        }
+        .GH-instructions li {
+            margin-bottom: 10px;
+            position: relative;
+            padding: 6px 0;
+        }
+        .GH-instructions li::before {
+            content: '⚡';
+            color: var(--game-primary);
+            font-weight: bold;
+            display: inline-block;
+            width: 1.5em;
+            margin-left: -1.5em;
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+            flex-wrap: wrap;
+        }
+        .GH-difficulty-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 90px;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Orbitron', 'Segoe UI', monospace;
+        }
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: #05051a;
+            box-shadow: 0 5px 20px rgba(0, 229, 255, 0.4);
+        }
+        .GH-difficulty-btn:hover:not(.active) {
+            background: rgba(0, 229, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+        }
+
+        .GH-level-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-md);
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 20px;
+            background: rgba(0, 229, 255, 0.05);
+            border-radius: var(--gh-radius-lg);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+        }
+        .GH-level-text {
+            font-size: var(--gh-font-size-xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+
+        .GH-level-progress {
+            width: 100%;
+            max-width: 600px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: var(--gh-space-md) 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .GH-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-lg);
+            margin-top: var(--gh-space-xl);
+            flex-wrap: wrap;
+        }
+        .GH-game-btn {
+            background: linear-gradient(135deg, #0a0a2e, #101040);
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+            padding: 14px 28px;
+            font-size: var(--gh-font-size-lg);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+            min-width: 150px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Orbitron', 'Segoe UI', monospace;
+        }
+        .GH-game-btn:hover {
+            background: rgba(0, 229, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.5);
+            transform: translateY(-3px);
+        }
+        .GH-game-btn:active {
+            transform: translateY(2px);
+        }
+        .GH-game-btn.secondary {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+            box-shadow: 0 0 15px rgba(255, 59, 92, 0.2);
+        }
+        .GH-game-btn.secondary:hover {
+            background: rgba(255, 59, 92, 0.1);
+            box-shadow: 0 0 30px rgba(255, 59, 92, 0.5);
+        }
+        .GH-game-btn.gold-btn {
+            border-color: var(--game-gold);
+            color: var(--game-gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+        .GH-game-btn.gold-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        .GH-game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-xl);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+        .GH-game-notification.show {
+            transform: translateX(0);
+            display: block;
+        }
+        .GH-game-notification.success {
+            background: linear-gradient(135deg, var(--game-success), #2E8B57);
+        }
+        .GH-game-notification.error {
+            background: linear-gradient(135deg, var(--game-error), #D32F2F);
+        }
+        .GH-game-notification.info {
+            background: linear-gradient(135deg, #0a0a2e, #101040);
+            border: 1px solid var(--game-primary);
+        }
+        .GH-game-notification.warning {
+            background: linear-gradient(135deg, var(--game-warning), #FF8C00);
+            color: #1a1a1a;
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(10, 25, 47, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-xl);
+            padding: var(--gh-space-xl);
+            max-width: 550px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-xl);
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+        }
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+        }
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1) translateY(0);
+        }
+        .GH-modal-title {
+            font-size: var(--gh-font-size-4xl);
+            margin-bottom: var(--gh-space-lg);
+            color: var(--game-accent);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-family: 'Orbitron', 'Segoe UI', monospace;
+        }
+        .GH-modal-title.win {
+            color: var(--game-gold);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-lg);
+            margin: var(--gh-space-xl) 0;
+        }
+        .GH-modal-stat {
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .GH-modal-stat:hover {
+            transform: translateY(-4px);
+        }
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-3xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+            }
+            .GH-game-stats {
+                gap: var(--gh-space-md);
+            }
+            .GH-stat-box {
+                min-width: 65px;
+                padding: var(--gh-space-sm) var(--gh-space-md);
+            }
+            .GH-stat-value {
+                font-size: var(--gh-font-size-xl);
+            }
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .GH-game-btn {
+                width: 100%;
+                max-width: 280px;
+                padding: 12px 20px;
+                font-size: var(--gh-font-size-md);
+            }
+            .GH-instructions ul {
+                grid-template-columns: 1fr;
+            }
+            .GH-modal-stats {
+                grid-template-columns: 1fr;
+            }
+            .GH-game-area {
+                min-height: 340px;
+            }
+            .GH-pause-overlay {
+                font-size: 2.2rem;
+            }
+        }
+
+        [dir="rtl"] .GH-instructions li::before {
+            margin-left: 0;
+            margin-right: -1.5em;
+        }
+        [dir="rtl"] .GH-game-notification {
+            right: auto;
+            left: 30px;
+            transform: translateX(-150%);
+        }
+        [dir="rtl"] .GH-game-notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            <h1 class="GH-title" id="game-title">Neon Speed Runner</h1>
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="neon-score">0</span>
+                        <span class="GH-stat-label" id="label-score">Score</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="neon-level">1</span>
+                        <span class="GH-stat-label" id="label-level">Level</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="neon-speed">100%</span>
+                        <span class="GH-stat-label" id="label-speed">Speed</span>
+                    </div>
+                    <div class="GH-stat-box best-box">
+                        <span class="GH-stat-value" id="neon-best">0</span>
+                        <span class="GH-stat-label" id="label-best">Best</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="GH-instructions">
+                <h2 id="how-to-play-title">How to Play</h2>
+                <ul>
+                    <li id="instr1">Press Space, Up Arrow, W, Click, or Tap to jump</li>
+                    <li id="instr2">Double-jump while airborne for extra height</li>
+                    <li id="instr3">Dodge obstacles — reach 350 points to level up</li>
+                    <li id="instr4">Collect power-ups for shields and score boosts</li>
+                    <li id="instr5">Speed increases with each level — stay sharp!</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span id="label-difficulty" style="font-weight:600;">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-diff="easy" id="diff-easy">Easy</button>
+                <button class="GH-difficulty-btn" data-diff="medium" id="diff-medium">Medium</button>
+                <button class="GH-difficulty-btn" data-diff="hard" id="diff-hard">Hard</button>
+            </div>
+
+            <div class="GH-level-indicator">
+                <span class="GH-level-text" id="label-progress">Progress to Next Level</span>
+                <span id="neon-target" style="color:var(--game-gold);font-weight:bold;">🎯 350</span>
+            </div>
+
+            <div class="GH-level-progress">
+                <div id="neon-progress-bar" class="GH-progress" style="width:0%"></div>
+            </div>
+
+            <div class="GH-game-area" id="neon-game-area">
+                <canvas id="neon-canvas"></canvas>
+                <div class="GH-pause-overlay" id="neon-pause-overlay">PAUSED</div>
+            </div>
+
+            <div class="GH-game-controls">
+                <button id="neon-start-btn" class="GH-game-btn">
+                    <span>▶️</span> <span id="btn-start-text">Start</span>
+                </button>
+                <button id="neon-stop-btn" class="GH-game-btn secondary">
+                    <span>⏸️</span> <span id="btn-stop-text">Stop</span>
+                </button>
+                <button id="neon-restart-btn" class="GH-game-btn gold-btn">
+                    <span>↺</span> <span id="btn-restart-text">Restart</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.1.0</span>
+            </div>
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="GH-game-notification" id="neon-notification"></div>
+
+    <div class="GH-game-modal" id="neon-game-over-modal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="modal-title">Game Over!</h2>
+            <p id="modal-message" style="font-size:1.1rem;margin-bottom:10px;"></p>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="modal-score">0</div>
+                    <div class="GH-modal-stat-label" id="modal-label-score">Final Score</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="modal-level">1</div>
+                    <div class="GH-modal-stat-label" id="modal-label-level">Level Reached</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="modal-speed">100%</div>
+                    <div class="GH-modal-stat-label" id="modal-label-speed">Top Speed</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="modal-best">0</div>
+                    <div class="GH-modal-stat-label" id="modal-label-best">Best Score</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="neon-play-again-btn" class="GH-game-btn">
+                    <span id="btn-play-again-text">Play Again</span>
+                </button>
+                <button id="neon-main-menu-btn" class="GH-game-btn secondary">
+                    <span id="btn-main-menu-text">Main Menu</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+        // ─────────────────────────────────────
+        // NEON SPEED RUNNER — GameHub Edition
+        // ─────────────────────────────────────
+        (function() {
+            const canvas = document.getElementById('neon-canvas');
+            const ctx = canvas.getContext('2d');
+            const gameArea = document.getElementById('neon-game-area');
+            const pauseOverlay = document.getElementById('neon-pause-overlay');
+            const notificationEl = document.getElementById('neon-notification');
+            const gameOverModal = document.getElementById('neon-game-over-modal');
+            const progressBar = document.getElementById('neon-progress-bar');
+            const neonTarget = document.getElementById('neon-target');
+
+            // ─── Canvas sizing ───────────────
+            let W, H, groundY, horizonY;
+
+            function resize() {
+                const rect = gameArea.getBoundingClientRect();
+                W = canvas.width = rect.width || window.innerWidth;
+                H = canvas.height = Math.max(420, rect.height || 420);
+                groundY = Math.floor(H * 0.68);
+                horizonY = Math.floor(H * 0.48);
+            }
+            resize();
+            window.addEventListener('resize', () => {
+                resize();
+                if (player) {
+                    player.groundY = groundY;
+                    if (!player.isJumping && gameState === STATE.PLAYING && !paused)
+                        player.y = groundY - player.height;
+                }
+            });
+            new ResizeObserver(() => {
+                resize();
+                if (player) {
+                    player.groundY = groundY;
+                    if (!player.isJumping && gameState === STATE.PLAYING && !paused)
+                        player.y = groundY - player.height;
+                }
+            }).observe(gameArea);
+
+            // ─── Game State ──────────────────
+            const STATE = { WAITING: 'waiting', PLAYING: 'playing', OVER: 'over' };
+            let gameState = STATE.WAITING;
+            let paused = false;
+            let score = 0;
+            let level = 1;
+            let totalDistance = 0;
+            let gameSpeed = 420;
+            const BASE_SPEED = 420;
+            const SPEED_PER_LEVEL = 35;
+            const MAX_SPEED = 1450;
+            let spawnTimer = 0;
+            let spawnInterval = 1.6;
+            const BASE_SPAWN_INTERVAL = 1.6;
+            const MIN_SPAWN_INTERVAL = 0.45;
+            const SPAWN_DECREASE_PER_LEVEL = 0.06;
+            let currentDifficulty = 'medium';
+            const difficultyPresets = {
+                easy: { speedMult: 0.6, spawnMult: 1.6 },
+                medium: { speedMult: 1.0, spawnMult: 1.0 },
+                hard: { speedMult: 1.45, spawnMult: 0.65 }
+            };
+            const MAX_PARTICLES = 100;
+            const MAX_AMBIENT = 35;
+            let particles = [];
+            let ambientParticles = [];
+            let shakeAmount = 0;
+            let shakeDuration = 0;
+            let levelUpText = null;
+
+            // ─── Player ──────────────────────
+            const player = {
+                x: 0,
+                y: 0,
+                width: 48,
+                height: 28,
+                groundY: 0,
+                vy: 0,
+                isJumping: false,
+                hasDoubleJumped: false,
+                jumpPower: -720,
+                doubleJumpPower: -520,
+                gravity: 2100,
+                hoverOffset: 0,
+                trailTimer: 0,
+                invincible: false,
+                invincibleTimer: 0,
+            };
+
+            function resetPlayer() {
+                player.x = Math.floor(W * 0.16);
+                player.y = groundY - player.height;
+                player.groundY = groundY;
+                player.vy = 0;
+                player.isJumping = false;
+                player.hasDoubleJumped = false;
+                player.hoverOffset = 0;
+                player.trailTimer = 0;
+                player.invincible = false;
+                player.invincibleTimer = 0;
+            }
+
+            let obstacles = [];
+            let powerUps = [];
+            const OBSTACLE_DEFS = [
+                { name: 'low_barrier', minLevel: 1, w: 22, h: 34, color: '#ff3b5c', glow: '#ff6b8a', shape: 'rect' },
+                { name: 'tall_barrier', minLevel: 2, w: 18, h: 56, color: '#ff6d3a', glow: '#ff9a6c', shape: 'rect' },
+                { name: 'spike_strip', minLevel: 3, w: 38, h: 26, color: '#ff9500', glow: '#ffb84d', shape: 'spikes' },
+                { name: 'double_block', minLevel: 4, w: 44, h: 38, color: '#e040fb', glow: '#f080ff', shape: 'double' },
+                { name: 'energy_pylon', minLevel: 5, w: 14, h: 64, color: '#00e5ff', glow: '#80f0ff', shape: 'pylon' },
+                { name: 'floating_drone', minLevel: 6, w: 28, h: 28, color: '#ff1744', glow: '#ff616f', shape: 'drone',
+                    floats: true }
+            ];
+            const POWERUP_TYPES = [
+                { name: 'shield', color: '#00e5ff', glow: '#80f0ff', duration: 6, symbol: '🛡' },
+                { name: 'score_boost', color: '#ffea00', glow: '#fff59d', duration: 4, symbol: '⚡' }
+            ];
+
+            function getAvailableObstacles() { return OBSTACLE_DEFS.filter(d => d.minLevel <= level); }
+
+            function spawnObstacle() {
+                const available = getAvailableObstacles();
+                if (!available.length) return;
+                const def = available[Math.floor(Math.random() * available.length)];
+                obstacles.push({
+                    x: W + 20,
+                    y: groundY - def.h,
+                    width: def.w,
+                    height: def.h,
+                    color: def.color,
+                    glow: def.glow,
+                    shape: def.shape,
+                    floats: def.floats || false,
+                    floatBaseY: groundY - def.h,
+                    floatPhase: Math.random() * Math.PI * 2,
+                    floatAmp: def.floats ? 18 + Math.random() * 22 : 0,
+                    floatSpeed: 2.5 + Math.random() * 3.5,
+                    passed: false
+                });
+            }
+
+            function spawnPowerUp() {
+                if (powerUps.length >= 2) return;
+                const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+                powerUps.push({
+                    x: W + 40,
+                    y: groundY - 55 - Math.random() * 80,
+                    width: 24,
+                    height: 24,
+                    type: type,
+                    pulsePhase: Math.random() * Math.PI * 2
+                });
+            }
+
+            // ─── Storage ─────────────────────
+            function getStorageKey() { return 'neonSpeedRunner_high_' + currentDifficulty; }
+
+            function loadHighScore() {
+                const saved = localStorage.getItem(getStorageKey());
+                return saved ? parseInt(saved) : 0;
+            }
+
+            function saveHighScore(s) {
+                const best = loadHighScore();
+                if (s > best) { localStorage.setItem(getStorageKey(), s); return true; }
+                return false;
+            }
+
+            function updateBestDisplay() {
+                document.getElementById('neon-best').textContent = loadHighScore();
+            }
+
+            // ─── Input ───────────────────────
+            let jumpRequested = false;
+
+            function requestJump() {
+                if (paused) return;
+                if (gameState === STATE.WAITING) { startGame(); return; }
+                if (gameState === STATE.OVER) { restartGame(); return; }
+                if (gameState === STATE.PLAYING) jumpRequested = true;
+            }
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                    e.preventDefault();
+                    requestJump();
+                }
+            });
+            canvas.addEventListener('mousedown', (e) => { e.preventDefault();
+                requestJump(); });
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault();
+                requestJump(); }, { passive: false });
+
+            // ─── Particles ───────────────────
+            function addParticle(x, y, vx, vy, life, size, color) {
+                if (particles.length >= MAX_PARTICLES) return;
+                particles.push({ x, y, vx, vy, life, maxLife: life, size, color });
+            }
+
+            function spawnJumpParticles(x, y, color, count) {
+                for (let i = 0; i < count; i++) {
+                    const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+                    const s = 60 + Math.random() * 140;
+                    addParticle(x, y, Math.cos(a) * s, Math.sin(a) * s, 0.25 + Math.random() * 0.3, 1.2 + Math.random() * 2,
+                        color);
+                }
+            }
+
+            function spawnExplosionParticles(x, y) {
+                const cols = ['#ff3b5c', '#ff6d3a', '#ff9500', '#ffffff', '#e040fb'];
+                for (let i = 0; i < 20; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const s = 40 + Math.random() * 220;
+                    addParticle(x, y, Math.cos(a) * s, Math.sin(a) * s - 60, 0.25 + Math.random() * 0.45, 1.5 + Math.random() *
+                        3.5, cols[Math.floor(Math.random() * cols.length)]);
+                }
+            }
+
+            let stars = [];
+
+            function initStars() {
+                stars = [];
+                for (let i = 0; i < 100; i++) {
+                    stars.push({
+                        x: Math.random() * W,
+                        y: Math.random() * horizonY * 0.85,
+                        size: 0.3 + Math.random() * 1.4,
+                        twinkleSpeed: 1 + Math.random() * 3,
+                        twinklePhase: Math.random() * Math.PI * 2,
+                        alpha: 0.18 + Math.random() * 0.55
+                    });
+                }
+            }
+
+            // ─── Game Flow ───────────────────
+            function applyDifficulty() {
+                const p = difficultyPresets[currentDifficulty];
+                gameSpeed = BASE_SPEED * p.speedMult;
+                spawnInterval = BASE_SPAWN_INTERVAL * p.spawnMult;
+            }
+
+            function startGame() {
+                gameState = STATE.PLAYING;
+                paused = false;
+                score = 0;
+                level = 1;
+                totalDistance = 0;
+                applyDifficulty();
+                spawnTimer = 0;
+                obstacles = [];
+                powerUps = [];
+                particles = [];
+                levelUpText = null;
+                shakeAmount = 0;
+                shakeDuration = 0;
+                resetPlayer();
+                jumpRequested = false;
+                pauseOverlay.style.display = 'none';
+                updateBestDisplay();
+                updateUI();
+                document.getElementById('neon-target').textContent = '🎯 350';
+                progressBar.style.width = '0%';
+            }
+
+            function restartGame() { startGame(); }
+
+            function endGame() {
+                gameState = STATE.OVER;
+                paused = false;
+                shakeAmount = 10;
+                shakeDuration = 0.35;
+                spawnExplosionParticles(player.x + player.width / 2, player.y + player.height / 2);
+                pauseOverlay.style.display = 'none';
+                const isNewBest = saveHighScore(score);
+                updateBestDisplay();
+                if (isNewBest) {
+                    levelUpText = { text: getTranslation('GH.neon.newBest', 'NEW BEST!'), alpha: 1, scale: 0.6,
+                        duration: 0, maxDuration: 2.2 };
+                }
+                // Show modal
+                setTimeout(() => showGameOverModal(isNewBest), 500);
+                updateUI();
+            }
+
+            function levelUp() {
+                level++;
+                const p = difficultyPresets[currentDifficulty];
+                gameSpeed = Math.min(BASE_SPEED * p.speedMult + SPEED_PER_LEVEL * (level - 1), MAX_SPEED);
+                spawnInterval = Math.max(MIN_SPAWN_INTERVAL, BASE_SPAWN_INTERVAL * p.spawnMult - SPAWN_DECREASE_PER_LEVEL * (
+                    level - 1));
+                levelUpText = { text: getTranslation('GH.neon.levelUp', 'LEVEL ') + level, alpha: 1, scale: 0.5,
+                    duration: 0, maxDuration: 1.6 };
+                for (let i = 0; i < 10; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    addParticle(W / 2, H / 2, Math.cos(a) * 130, Math.sin(a) * 130, 0.45, 2 + Math.random() * 3,
+                    '#ffea00');
+                }
+                document.getElementById('neon-target').textContent = '🎯 ' + (level * 350);
+                progressBar.style.width = '0%';
+                showNotification(getTranslation('GH.neon.levelUpNotif', 'Level up! Speed increased.'), 'success');
+                updateUI();
+            }
+
+            function rectsCollide(a, b) {
+                const m = 5;
+                return a.x + m < b.x + b.width - m && a.x + a.width - m > b.x + m && a.y + m < b.y + b.height - m && a.y + a
+                    .height - m > b.y + m;
+            }
+
+            // ─── Fixed Timestep ──────────────
+            const FIXED_DT = 1 / 60;
+            let accumulator = 0;
+            let lastTime = performance.now();
+
+            function processInput() {
+                if (jumpRequested && gameState === STATE.PLAYING) {
+                    jumpRequested = false;
+                    if (!player.isJumping) {
+                        player.vy = player.jumpPower;
+                        player.isJumping = true;
+                        player.hasDoubleJumped = false;
+                        spawnJumpParticles(player.x + player.width / 2, player.y + player.height, '#00e5ff', 7);
+                    } else if (!player.hasDoubleJumped) {
+                        player.vy = player.doubleJumpPower;
+                        player.hasDoubleJumped = true;
+                        spawnJumpParticles(player.x + player.width / 2, player.y + player.height, '#e040fb', 9);
+                    }
+                }
+            }
+
+            function fixedUpdate(dt) {
+                if (gameState !== STATE.PLAYING || paused) return;
+                player.vy += player.gravity * dt;
+                player.y += player.vy * dt;
+                if (player.y >= groundY - player.height) {
+                    player.y = groundY - player.height;
+                    player.vy = 0;
+                    player.isJumping = false;
+                    player.hasDoubleJumped = false;
+                }
+                player.hoverOffset = player.isJumping ? player.hoverOffset * Math.exp(-8 * dt) : Math.sin(performance.now() *
+                    0.004) * 3.5;
+                if ((player.isJumping || gameSpeed > 400) && Math.random() < 0.25) {
+                    addParticle(player.x + 5, player.y + player.height - 2 + (Math.random() - 0.5) * 5, -35 - Math.random() *
+                        70, (Math.random() - 0.5) * 12, 0.18, 0.8 + Math.random() * 1.8, player.isJumping ? '#e040fb' :
+                        '#00e5ff');
+                }
+                if (player.invincible) {
+                    player.invincibleTimer -= dt;
+                    if (player.invincibleTimer <= 0) player.invincible = false;
+                }
+                totalDistance += gameSpeed * dt;
+                const newScore = Math.floor(totalDistance / 7);
+                if (newScore > score) {
+                    score = newScore;
+                    const newLevel = Math.floor(score / 350) + 1;
+                    if (newLevel > level) levelUp();
+                    const progInLevel = (score % 350) / 350 * 100;
+                    progressBar.style.width = progInLevel + '%';
+                    updateUI();
+                }
+                spawnTimer += dt;
+                if (spawnTimer >= spawnInterval) {
+                    spawnTimer = 0;
+                    spawnObstacle();
+                    if (Math.random() < 0.2) spawnPowerUp();
+                }
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    obs.x -= gameSpeed * dt;
+                    if (obs.floats) { obs.floatPhase += obs.floatSpeed * dt;
+                        obs.y = obs.floatBaseY + Math.sin(obs.floatPhase) * obs.floatAmp; }
+                    if (!obs.passed && obs.x + obs.width < player.x) { obs.passed = true;
+                        spawnJumpParticles(obs.x + obs.width / 2, obs.y + obs.height / 2, '#ffffff', 3); }
+                    if (obs.x < -80) obstacles.splice(i, 1);
+                }
+                for (let i = powerUps.length - 1; i >= 0; i--) {
+                    const pu = powerUps[i];
+                    pu.x -= gameSpeed * dt;
+                    pu.pulsePhase += 5 * dt;
+                    if (pu.x < -60) powerUps.splice(i, 1);
+                }
+                const pr = { x: player.x, y: player.y, width: player.width, height: player.height };
+                if (!player.invincible) {
+                    for (const obs of obstacles) {
+                        if (rectsCollide(pr, { x: obs.x, y: obs.y, width: obs.width, height: obs.height })) { endGame(); break; }
+                    }
+                }
+                for (let i = powerUps.length - 1; i >= 0; i--) {
+                    const pu = powerUps[i];
+                    if (rectsCollide(pr, { x: pu.x, y: pu.y, width: pu.width, height: pu.height })) {
+                        applyPowerUp(pu);
+                        powerUps.splice(i, 1);
+                    }
+                }
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    p.life -= dt;
+                    if (p.life <= 0) particles.splice(i, 1);
+                }
+            }
+
+            function applyPowerUp(pu) {
+                if (pu.type.name === 'shield') {
+                    player.invincible = true;
+                    player.invincibleTimer = pu.type.duration;
+                    for (let i = 0; i < 8; i++) addParticle(player.x + player.width / 2, player.y + player.height / 2, (Math
+                        .random() - 0.5) * 180, (Math.random() - 0.5) * 180, 0.35, 2, '#00e5ff');
+                } else {
+                    score += 60 + Math.floor(Math.random() * 80);
+                    totalDistance += score * 7;
+                    for (let i = 0; i < 8; i++) addParticle(player.x + player.width / 2, player.y + player.height / 2, (Math
+                        .random() - 0.5) * 160, (Math.random() - 0.5) * 160, 0.3, 1.8, '#ffea00');
+                    updateUI();
+                }
+            }
+
+            function updateUI() {
+                document.getElementById('neon-score').textContent = score;
+                document.getElementById('neon-level').textContent = level;
+                document.getElementById('neon-speed').textContent = Math.round(gameSpeed / BASE_SPEED * 100) + '%';
+                updateBestDisplay();
+            }
+
+            // ─── Rendering ───────────────────
+            function drawSky() {
+                const t = performance.now() * 0.00001;
+                const hue1 = 0.68 + Math.sin(t * 0.7) * 0.08;
+                const hue2 = 0.78 + Math.cos(t * 0.5) * 0.1;
+                const grad = ctx.createLinearGradient(0, 0, 0, horizonY);
+                grad.addColorStop(0, 'hsl(' + hue1 * 360 + ',70%,8%)');
+                grad.addColorStop(0.5, 'hsl(' + hue2 * 360 + ',65%,12%)');
+                grad.addColorStop(1, 'hsl(' + (0.85 + Math.sin(t) * 0.05) * 360 + ',60%,15%)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, horizonY);
+                for (const star of stars) {
+                    const tw = 0.4 + 0.6 * Math.abs(Math.sin(star.twinklePhase + t * 10));
+                    ctx.fillStyle = 'rgba(255,255,255,' + star.alpha * tw + ')';
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                const sunX = W * 0.72,
+                    sunY = horizonY,
+                    sunR = Math.min(H * 0.2, W * 0.13);
+                const sunHue = 0.05 + Math.sin(t * 0.4) * 0.08;
+                const sunGrad = ctx.createLinearGradient(0, sunY - sunR, 0, sunY + sunR * 0.5);
+                sunGrad.addColorStop(0, 'hsl(' + sunHue * 360 + ',90%,65%)');
+                sunGrad.addColorStop(0.4, 'hsl(' + (sunHue + 0.05) * 360 + ',80%,50%)');
+                sunGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = sunGrad;
+                ctx.beginPath();
+                ctx.arc(sunX, sunY, sunR, 0, Math.PI);
+                ctx.fill();
+            }
+
+            function drawGround() {
+                ctx.fillStyle = '#0a0a18';
+                ctx.fillRect(0, horizonY, W, H - horizonY);
+                ctx.strokeStyle = 'rgba(0,200,255,0.07)';
+                ctx.lineWidth = 1;
+                const numRad = 12;
+                const scroll = (totalDistance * 0.3) % (W / numRad);
+                for (let i = -1; i <= numRad + 1; i++) {
+                    const bx = W * 0.5 + (i * W) / numRad + scroll;
+                    ctx.beginPath();
+                    ctx.moveTo(W * 0.5, horizonY);
+                    ctx.lineTo(bx, H);
+                    ctx.stroke();
+                }
+                for (let i = 3; i > 0; i--) {
+                    ctx.strokeStyle = 'rgba(0,240,255,' + 0.12 / i + ')';
+                    ctx.lineWidth = i * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, groundY);
+                    ctx.lineTo(W, groundY);
+                    ctx.stroke();
+                }
+                const dashLen = 28,
+                    dashGap = 50;
+                const dashOffset = -(totalDistance % (dashLen + dashGap));
+                ctx.fillStyle = 'rgba(0,240,255,0.85)';
+                for (let dx = dashOffset; dx < W + dashLen + dashGap; dx += dashLen + dashGap) {
+                    if (dx + dashLen > 0) ctx.fillRect(dx, groundY - 1.5, dashLen, 3);
+                }
+            }
+
+            function drawPlayer() {
+                const px = player.x,
+                    py = player.y + player.hoverOffset,
+                    pw = player.width,
+                    ph = player.height;
+                if (player.invincible) {
+                    ctx.strokeStyle = 'rgba(0,229,255,' + (0.25 + 0.2 * Math.sin(performance.now() * 0.012)) + ')';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.roundRect(px - 3, py - 3, pw + 6, ph + 6, 8);
+                    ctx.stroke();
+                }
+                const glow = ctx.createRadialGradient(px + pw * 0.75, py + ph, pw * 0.08, px + pw * 0.75, py + ph, pw * 0.4);
+                glow.addColorStop(0, 'rgba(0,240,255,0.65)');
+                glow.addColorStop(1, 'transparent');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.ellipse(px + pw * 0.75, py + ph, pw * 0.4, ph * 0.35, 0, 0, Math.PI * 2);
+                ctx.fill();
+                const bGrad = ctx.createLinearGradient(px, py, px, py + ph);
+                bGrad.addColorStop(0, '#e0e0f0');
+                bGrad.addColorStop(0.5, '#9090a0');
+                bGrad.addColorStop(1, '#2a2a3a');
+                ctx.fillStyle = bGrad;
+                ctx.beginPath();
+                ctx.moveTo(px + pw * 0.08, py + ph * 0.45);
+                ctx.lineTo(px + pw * 0.25, py + ph * 0.08);
+                ctx.lineTo(px + pw * 0.7, py + ph * 0.05);
+                ctx.lineTo(px + pw * 0.92, py + ph * 0.25);
+                ctx.lineTo(px + pw * 0.95, py + ph * 0.55);
+                ctx.lineTo(px + pw * 0.85, py + ph * 0.9);
+                ctx.lineTo(px + pw * 0.15, py + ph * 0.92);
+                ctx.lineTo(px + pw * 0.04, py + ph * 0.7);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#00e5ff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#80f0ff';
+                ctx.beginPath();
+                ctx.moveTo(px + pw * 0.32, py + ph * 0.22);
+                ctx.lineTo(px + pw * 0.5, py + ph * 0.18);
+                ctx.lineTo(px + pw * 0.62, py + ph * 0.32);
+                ctx.lineTo(px + pw * 0.5, py + ph * 0.42);
+                ctx.lineTo(px + pw * 0.32, py + ph * 0.38);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function drawObstacle(obs) {
+                const { x, y, width: w, height: h, color, glow } = obs;
+                ctx.strokeStyle = glow;
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.45;
+                ctx.strokeRect(x, y, w, h);
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, w, h);
+                if (obs.shape === 'spikes') {
+                    ctx.fillStyle = '#1a1a2e';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + h);
+                    const count = 5,
+                        sw = w / count;
+                    for (let s = 0; s < count; s++) { ctx.lineTo(x + s * sw + sw * 0.5, y);
+                        ctx.lineTo(x + (s + 1) * sw, y + h); }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                } else if (obs.shape === 'double') {
+                    const gap = h * 0.3,
+                        bh = (h - gap) / 2;
+                    ctx.fillRect(x, y, w, bh);
+                    ctx.strokeRect(x, y, w, bh);
+                    ctx.fillRect(x, y + bh + gap, w, bh);
+                    ctx.strokeRect(x, y + bh + gap, w, bh);
+                } else if (obs.shape === 'drone') {
+                    const cx = x + w / 2,
+                        cy = y + h / 2;
+                    ctx.fillStyle = '#1a1a2e';
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.lineTo(x + w, cy);
+                    ctx.lineTo(cx, y + h);
+                    ctx.lineTo(x, cy);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+
+            function drawPowerUp(pu) {
+                const cx = pu.x + pu.width / 2,
+                    cy = pu.y + pu.height / 2,
+                    r = pu.width * 0.6;
+                ctx.fillStyle = pu.type.glow;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = 'rgba(20,20,35,0.9)';
+                ctx.beginPath();
+                ctx.moveTo(cx, pu.y);
+                ctx.lineTo(pu.x + pu.width, cy);
+                ctx.lineTo(cx, pu.y + pu.height);
+                ctx.lineTo(pu.x, cy);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = pu.type.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = pu.width * 0.5 + 'px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pu.type.symbol, cx, cy);
+                ctx.textAlign = 'start';
+            }
+
+            function drawParticles() {
+                for (const p of particles) {
+                    const alpha = Math.max(0, p.life / p.maxLife);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                for (const ap of ambientParticles) {
+                    const tw = 0.3 + 0.7 * Math.abs(Math.sin(ap.twinklePhase));
+                    ctx.fillStyle = 'rgba(180,200,255,' + ap.alpha * tw + ')';
+                    ctx.beginPath();
+                    ctx.arc(ap.x, ap.y, ap.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function drawHUD() {
+                if (levelUpText && levelUpText.alpha > 0.01) {
+                    ctx.save();
+                    ctx.globalAlpha = levelUpText.alpha;
+                    ctx.fillStyle = '#ffea00';
+                    ctx.font = 'bold ' + Math.round(44 * levelUpText.scale) +
+                        'px "Orbitron","Segoe UI",monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(levelUpText.text, W / 2, H * 0.32);
+                    ctx.textAlign = 'start';
+                    ctx.restore();
+                }
+                if (gameState === STATE.WAITING) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold ' + Math.max(20, Math.min(40, W * 0.04)) +
+                        'px "Orbitron","Segoe UI",monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(getTranslation('GH.neon.title', 'NEON SPEED RUNNER'), W / 2, H * 0.25);
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                    ctx.font = Math.max(11, Math.min(15, W * 0.016)) + 'px "Segoe UI",monospace';
+                    ctx.fillText(getTranslation('GH.neon.pressToStart', 'PRESS SPACE OR TAP TO START'), W / 2, H *
+                        0.33);
+                    ctx.textAlign = 'start';
+                }
+                if (gameState === STATE.OVER) {
+                    ctx.fillStyle = 'rgba(5,5,20,0.65)';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.fillStyle = '#ff3b5c';
+                    ctx.font = 'bold ' + Math.max(26, Math.min(48, W * 0.045)) +
+                        'px "Orbitron","Segoe UI",monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(getTranslation('GH.neon.gameOver', 'GAME OVER'), W / 2, H * 0.35);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = Math.max(12, Math.min(18, W * 0.018)) + 'px "Segoe UI",monospace';
+                    ctx.fillText(getTranslation('GH.neon.tapToRetry', 'TAP OR PRESS SPACE TO RETRY'), W / 2, H * 0.44);
+                    ctx.textAlign = 'start';
+                }
+            }
+
+            function render() {
+                ctx.clearRect(0, 0, W, H);
+                let sx = 0,
+                    sy = 0;
+                if (shakeAmount > 0.3) { sx = (Math.random() - 0.5) * shakeAmount * 2;
+                    sy = (Math.random() - 0.5) * shakeAmount * 2; }
+                ctx.save();
+                ctx.translate(sx, sy);
+                drawSky();
+                drawGround();
+                for (const pu of powerUps) drawPowerUp(pu);
+                for (const obs of obstacles) drawObstacle(obs);
+                drawPlayer();
+                drawParticles();
+                ctx.restore();
+                drawHUD();
+                pauseOverlay.style.display = (paused && gameState === STATE.PLAYING) ? 'block' : 'none';
+            }
+
+            // ─── Game Loop ───────────────────
+            function gameLoop(now) {
+                const dt = Math.min(0.1, (now - lastTime) / 1000);
+                lastTime = now;
+                processInput();
+                if (shakeDuration > 0) {
+                    shakeDuration -= dt;
+                    shakeAmount = shakeDuration <= 0 ? 0 : shakeAmount * Math.exp(-5 * dt);
+                }
+                if (levelUpText) {
+                    levelUpText.duration += dt;
+                    if (levelUpText.duration > levelUpText.maxDuration) levelUpText = null;
+                    else {
+                        const p = levelUpText.duration / levelUpText.maxDuration;
+                        levelUpText.alpha = p < 0.25 ? p / 0.25 : p > 0.75 ? 1 - (p - 0.75) / 0.25 : 1;
+                        levelUpText.scale = 0.5 + Math.sin(p * Math.PI) * 1;
+                    }
+                }
+                for (const ap of ambientParticles) {
+                    ap.twinklePhase += ap.twinkleSpeed * dt;
+                    ap.x += (ap.driftX || 0) * dt;
+                    ap.y += (ap.driftY || -3) * dt;
+                    if (ap.y < -10) ap.y = H + 10;
+                    if (ap.x < -10) ap.x = W + 10;
+                    if (ap.x > W + 10) ap.x = -10;
+                }
+                while (ambientParticles.length < 30) ambientParticles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    size: 0.4 + Math.random() * 1,
+                    alpha: 0.08 + Math.random() * 0.25,
+                    twinkleSpeed: 1 + Math.random() * 2,
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    driftX: (Math.random() - 0.5) * 3,
+                    driftY: -2 - Math.random() * 5
+                });
+                if (ambientParticles.length > MAX_AMBIENT) ambientParticles.splice(0, ambientParticles.length -
+                    MAX_AMBIENT);
+                if (gameState === STATE.PLAYING && !paused) {
+                    accumulator += dt;
+                    while (accumulator >= FIXED_DT) { fixedUpdate(FIXED_DT);
+                        accumulator -= FIXED_DT; }
+                }
+                render();
+                requestAnimationFrame(gameLoop);
+            }
+
+            // ─── Modal & Notifications ───────
+            function showGameOverModal(isNewBest) {
+                document.getElementById('modal-score').textContent = score;
+                document.getElementById('modal-level').textContent = level;
+                document.getElementById('modal-speed').textContent = Math.round(gameSpeed / BASE_SPEED * 100) + '%';
+                document.getElementById('modal-best').textContent = loadHighScore();
+                const titleEl = document.getElementById('modal-title');
+                if (isNewBest) {
+                    titleEl.textContent = getTranslation('GH.neon.newBestTitle', 'NEW BEST!');
+                    titleEl.className = 'GH-modal-title win';
+                } else {
+                    titleEl.textContent = getTranslation('GH.neon.gameOverTitle', 'Game Over!');
+                    titleEl.className = 'GH-modal-title';
+                }
+                document.getElementById('modal-message').textContent = getTranslation('GH.neon.gameOverMsg',
+                    'Keep racing to beat your high score!');
+                gameOverModal.classList.add('active');
+                updateBestDisplay();
+            }
+
+            function hideGameOverModal() {
+                gameOverModal.classList.remove('active');
+            }
+
+            function showNotification(msg, type) {
+                notificationEl.textContent = msg;
+                notificationEl.className = 'GH-game-notification ' + (type || 'info');
+                notificationEl.style.display = 'block';
+                notificationEl.classList.add('show');
+                setTimeout(() => {
+                    notificationEl.classList.remove('show');
+                    setTimeout(() => { notificationEl.style.display = 'none'; }, 300);
+                }, 3000);
+            }
+
+            // ─── Translation Helper ──────────
+            function getTranslation(key, fallback) {
+                const translations = window.getTranslations ? window.getTranslations() : {};
+                const objTrans = window.GHObjectTranslations || {};
+                const lang = (window.getCurrentLanguage ? window.getCurrentLanguage() : 'en') || 'en';
+                const objLang = objTrans[lang] || objTrans['en'] || {};
+                const cleanKey = key.replace(/^GH\./, '');
+                const keys = cleanKey.split('.');
+                let val = keys.reduce((o, k) => o && o[k] !== undefined ? o[k] : undefined, translations);
+                if (val && typeof val === 'string') return val;
+                val = keys.reduce((o, k) => o && o[k] !== undefined ? o[k] : undefined, objLang);
+                if (val && typeof val === 'string') return val;
+                return fallback;
+            }
+
+            function applyAllTranslations() {
+                document.getElementById('game-title').textContent = getTranslation('GH.neon.title',
+                'Neon Speed Runner');
+                document.getElementById('how-to-play-title').textContent = getTranslation('GH.neon.howToPlay',
+                    'How to Play');
+                document.getElementById('instr1').textContent = getTranslation('GH.neon.instr1',
+                    'Press Space, Up Arrow, W, Click, or Tap to jump');
+                document.getElementById('instr2').textContent = getTranslation('GH.neon.instr2',
+                    'Double-jump while airborne for extra height');
+                document.getElementById('instr3').textContent = getTranslation('GH.neon.instr3',
+                    'Dodge obstacles — reach 350 points to level up');
+                document.getElementById('instr4').textContent = getTranslation('GH.neon.instr4',
+                    'Collect power-ups for shields and score boosts');
+                document.getElementById('instr5').textContent = getTranslation('GH.neon.instr5',
+                    'Speed increases with each level — stay sharp!');
+                document.getElementById('label-score').textContent = getTranslation('GH.neon.score', 'Score');
+                document.getElementById('label-level').textContent = getTranslation('GH.neon.level', 'Level');
+                document.getElementById('label-speed').textContent = getTranslation('GH.neon.speed', 'Speed');
+                document.getElementById('label-best').textContent = getTranslation('GH.neon.best', 'Best');
+                document.getElementById('label-difficulty').textContent = getTranslation('GH.neon.difficulty',
+                'Difficulty:');
+                document.getElementById('label-progress').textContent = getTranslation('GH.neon.progress',
+                    'Progress to Next Level');
+                document.getElementById('btn-start-text').textContent = getTranslation('GH.neon.start', 'Start');
+                document.getElementById('btn-stop-text').textContent = getTranslation('GH.neon.stop', 'Stop');
+                document.getElementById('btn-restart-text').textContent = getTranslation('GH.neon.restart', 'Restart');
+                document.getElementById('btn-play-again-text').textContent = getTranslation('GH.neon.playAgain',
+                    'Play Again');
+                document.getElementById('btn-main-menu-text').textContent = getTranslation('GH.neon.mainMenu',
+                    'Main Menu');
+                document.getElementById('modal-label-score').textContent = getTranslation('GH.neon.finalScore',
+                    'Final Score');
+                document.getElementById('modal-label-level').textContent = getTranslation('GH.neon.levelReached',
+                    'Level Reached');
+                document.getElementById('modal-label-speed').textContent = getTranslation('GH.neon.topSpeed',
+                    'Top Speed');
+                document.getElementById('modal-label-best').textContent = getTranslation('GH.neon.bestScore',
+                    'Best Score');
+                document.getElementById('diff-easy').textContent = getTranslation('GH.neon.easy', 'Easy');
+                document.getElementById('diff-medium').textContent = getTranslation('GH.neon.medium', 'Medium');
+                document.getElementById('diff-hard').textContent = getTranslation('GH.neon.hard', 'Hard');
+                updateBestDisplay();
+            }
+
+            // ─── Button Events ───────────────
+            document.getElementById('neon-start-btn').addEventListener('click', () => {
+                if (gameState === STATE.PLAYING && paused) { paused = false;
+                    lastTime = performance.now(); } else if (gameState !== STATE.PLAYING) startGame();
+            });
+            document.getElementById('neon-stop-btn').addEventListener('click', () => {
+                if (gameState === STATE.PLAYING && !paused) paused = true;
+            });
+            document.getElementById('neon-restart-btn').addEventListener('click', restartGame);
+            document.getElementById('neon-play-again-btn').addEventListener('click', () => {
+                hideGameOverModal();
+                startGame();
+            });
+            document.getElementById('neon-main-menu-btn').addEventListener('click', () => {
+                hideGameOverModal();
+                window.location.href = 'index.html';
+            });
+
+            // ─── Difficulty Buttons ──────────
+            document.querySelectorAll('.GH-difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const diff = this.getAttribute('data-diff');
+                    if (currentDifficulty === diff) return;
+                    currentDifficulty = diff;
+                    document.querySelectorAll('.GH-difficulty-btn').forEach(b => b.classList
+                .remove('active'));
+                    this.classList.add('active');
+                    updateBestDisplay();
+                    if (gameState === STATE.PLAYING || gameState === STATE.WAITING) restartGame();
+                });
+            });
+
+            // ─── Language Change Listener ────
+            const langSelect = document.getElementById('languageSelect');
+            if (langSelect) {
+                langSelect.addEventListener('change', function() {
+                    setTimeout(applyAllTranslations, 150);
+                });
+            }
+
+            // ─── Init ────────────────────────
+            function init() {
+                resize();
+                resetPlayer();
+                player.x = Math.floor(W * 0.16);
+                player.y = groundY - player.height;
+                player.groundY = groundY;
+                initStars();
+                ambientParticles = [];
+                for (let i = 0; i < 30; i++) ambientParticles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    size: 0.4 + Math.random() * 1,
+                    alpha: 0.08 + Math.random() * 0.25,
+                    twinkleSpeed: 1 + Math.random() * 2,
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    driftX: (Math.random() - 0.5) * 3,
+                    driftY: -2 - Math.random() * 5
+                });
+                lastTime = performance.now();
+                accumulator = 0;
+                updateBestDisplay();
+                applyAllTranslations();
+                document.querySelector('.GH-difficulty-btn[data-diff="' + currentDifficulty + '"]').classList.add(
+                    'active');
+            }
+            init();
+            window.addEventListener('resize', () => {
+                initStars();
+                if (player) { player.groundY = groundY; if (!player.isJumping && gameState === STATE.PLAYING && !
+                        paused) player.y = groundY - player.height; }
+            });
+            requestAnimationFrame(gameLoop);
+
+            // Expose for external translation updates
+            window.neonApplyTranslations = applyAllTranslations;
+            console.log('🚀 Neon Speed Runner — GameHub Edition ready');
+        })();
+    </script>
+
+    <script>
+        // ─────────────────────────────────────
+        // GHObjectTranslations — Neon Speed Runner
+        // ─────────────────────────────────────
+        window.GHObjectTranslations = window.GHObjectTranslations || {};
+        Object.assign(window.GHObjectTranslations, {
+            en: {
+                neon: {
+                    title: "Neon Speed Runner",
+                    howToPlay: "How to Play",
+                    instr1: "Press Space, Up Arrow, W, Click, or Tap to jump",
+                    instr2: "Double-jump while airborne for extra height",
+                    instr3: "Dodge obstacles — reach 350 points to level up",
+                    instr4: "Collect power-ups for shields and score boosts",
+                    instr5: "Speed increases with each level — stay sharp!",
+                    score: "Score",
+                    level: "Level",
+                    speed: "Speed",
+                    best: "Best",
+                    difficulty: "Difficulty:",
+                    easy: "Easy",
+                    medium: "Medium",
+                    hard: "Hard",
+                    progress: "Progress to Next Level",
+                    start: "Start",
+                    stop: "Stop",
+                    restart: "Restart",
+                    playAgain: "Play Again",
+                    mainMenu: "Main Menu",
+                    finalScore: "Final Score",
+                    levelReached: "Level Reached",
+                    topSpeed: "Top Speed",
+                    bestScore: "Best Score",
+                    gameOver: "GAME OVER",
+                    gameOverTitle: "Game Over!",
+                    gameOverMsg: "Keep racing to beat your high score!",
+                    newBest: "NEW BEST!",
+                    newBestTitle: "NEW BEST!",
+                    pressToStart: "PRESS SPACE OR TAP TO START",
+                    tapToRetry: "TAP OR PRESS SPACE TO RETRY",
+                    levelUp: "LEVEL ",
+                    levelUpNotif: "Level up! Speed increased.",
+                }
+            },
+            ar: {
+                neon: {
+                    title: "نيون سبيد رانر",
+                    howToPlay: "كيفية اللعب",
+                    instr1: "اضغط Space أو السهم للأعلى أو W أو انقر للقفز",
+                    instr2: "قفزة مزدوجة أثناء الطيران لارتفاع إضافي",
+                    instr3: "تفادى العقبات — اجمع 350 نقطة للارتقاء بالمستوى",
+                    instr4: "اجمع التعزيزات للحصول على دروع ونقاط إضافية",
+                    instr5: "السرعة تزداد مع كل مستوى — ابقَ متيقظاً!",
+                    score: "النقاط",
+                    level: "المستوى",
+                    speed: "السرعة",
+                    best: "الأفضل",
+                    difficulty: "الصعوبة:",
+                    easy: "سهل",
+                    medium: "متوسط",
+                    hard: "صعب",
+                    progress: "التقدم للمستوى التالي",
+                    start: "ابدأ",
+                    stop: "توقف",
+                    restart: "إعادة",
+                    playAgain: "العب مجدداً",
+                    mainMenu: "القائمة الرئيسية",
+                    finalScore: "النتيجة النهائية",
+                    levelReached: "المستوى المُحقَّق",
+                    topSpeed: "أقصى سرعة",
+                    bestScore: "أفضل نتيجة",
+                    gameOver: "انتهت اللعبة",
+                    gameOverTitle: "انتهت اللعبة!",
+                    gameOverMsg: "استمر في السباق لتحطيم رقمك القياسي!",
+                    newBest: "رقم قياسي!",
+                    newBestTitle: "رقم قياسي جديد!",
+                    pressToStart: "اضغط SPACE أو انقر للبدء",
+                    tapToRetry: "انقر أو اضغط SPACE للإعادة",
+                    levelUp: "المستوى ",
+                    levelUpNotif: "ارتقيت! السرعة ازدادت.",
+                }
+            },
+            fr: {
+                neon: {
+                    title: "Neon Speed Runner",
+                    howToPlay: "Comment Jouer",
+                    instr1: "Appuyez sur Espace, Flèche Haut, W, ou Tapez pour sauter",
+                    instr2: "Double-saut en l'air pour plus de hauteur",
+                    instr3: "Esquivez les obstacles — 350 points pour monter de niveau",
+                    instr4: "Collectez des power-ups pour boucliers et bonus",
+                    instr5: "La vitesse augmente à chaque niveau — restez vif!",
+                    score: "Score",
+                    level: "Niveau",
+                    speed: "Vitesse",
+                    best: "Meilleur",
+                    difficulty: "Difficulté:",
+                    easy: "Facile",
+                    medium: "Moyen",
+                    hard: "Difficile",
+                    progress: "Progrès vers le Niveau Suivant",
+                    start: "Démarrer",
+                    stop: "Arrêter",
+                    restart: "Redémarrer",
+                    playAgain: "Rejouer",
+                    mainMenu: "Menu Principal",
+                    finalScore: "Score Final",
+                    levelReached: "Niveau Atteint",
+                    topSpeed: "Vitesse Max",
+                    bestScore: "Meilleur Score",
+                    gameOver: "PARTIE TERMINÉE",
+                    gameOverTitle: "Partie Terminée!",
+                    gameOverMsg: "Continuez à courir pour battre votre record!",
+                    newBest: "NOUVEAU RECORD!",
+                    newBestTitle: "NOUVEAU RECORD!",
+                    pressToStart: "APPUYEZ SUR ESPACE OU TAPEZ",
+                    tapToRetry: "TAPEZ OU APPUYEZ SUR ESPACE",
+                    levelUp: "NIVEAU ",
+                    levelUpNotif: "Niveau supérieur! Vitesse augmentée.",
+                }
+            }
+        });
+    </script>
+</body>
+</html>

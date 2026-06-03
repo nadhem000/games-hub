@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GameHub - Sliding Puzzle</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        :root {
+            --game-primary: #4f6ef7;
+            --game-secondary: #3b54db;
+            --game-accent: #ff6b9d;
+            --game-success: #38B000;
+            --game-error: #FF4D6D;
+            --game-warning: #FF9E00;
+            --game-light-bg: #F0F4FF;
+            --game-dark-bg: #0A192F;
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-dark-card-bg: rgba(20, 30, 55, 0.95);
+            --game-glow: 0 0 20px rgba(79, 110, 247, 0.5);
+            --game-gold: #FFD700;
+            --puzzle-grid-bg: #e2e6eb;
+            --puzzle-dark-grid-bg: #1a2030;
+            --puzzle-tile-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+            --puzzle-tile-shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.28);
+            --puzzle-empty-bg: #d5dbe3;
+            --puzzle-dark-empty-bg: #252d3f;
+            --puzzle-empty-border: #c0c7d0;
+            --puzzle-dark-empty-border: #3a4358;
+            --gh-space-xs: 4px;
+            --gh-space-sm: 8px;
+            --gh-space-md: 12px;
+            --gh-space-lg: 16px;
+            --gh-space-xl: 24px;
+            --gh-space-2xl: 32px;
+            --gh-radius-md: 8px;
+            --gh-radius-lg: 12px;
+            --gh-radius-xl: 16px;
+            --gh-radius-2xl: 20px;
+            --gh-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --gh-shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.14);
+            --gh-shadow-xl: 0 10px 36px rgba(0, 0, 0, 0.18);
+            --gh-font-size-sm: 0.8rem;
+            --gh-font-size-md: 0.9rem;
+            --gh-font-size-lg: 1rem;
+            --gh-font-size-xl: 1.2rem;
+            --gh-font-size-2xl: 1.5rem;
+            --gh-font-size-3xl: 2rem;
+            --gh-font-size-4xl: 2.5rem;
+            --gh-dark-text: #e8e8f0;
+        }
+
+        .GH-dark-mode {
+            --game-card-bg: var(--game-dark-card-bg);
+        }
+
+        .GH-game-container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-xl);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-lg);
+            position: relative;
+            overflow: hidden;
+            flex-wrap: wrap;
+            gap: var(--gh-space-md);
+        }
+
+        /* Decorative pattern removed to comply with site restrictions (no SVG with www) */
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: var(--gh-space-md) var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            text-align: center;
+            min-width: 80px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-stat-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .GH-stat-box.best-box {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            min-width: 100px;
+        }
+        .GH-stat-box.best-box .GH-stat-value {
+            color: var(--game-gold);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-3xl);
+            font-weight: bold;
+            display: block;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .GH-game-area {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-xl);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--gh-shadow-lg);
+            min-height: 420px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(79, 110, 247, 0.1);
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.4s ease;
+        }
+
+        .GH-dark-mode .GH-game-area {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(79, 110, 247, 0.2);
+        }
+
+        .GH-game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 20% 30%, rgba(79, 110, 247, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 107, 157, 0.06) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .GH-puzzle-container {
+            position: relative;
+            width: min(360px, 72vw);
+            height: min(360px, 72vw);
+            background: var(--puzzle-grid-bg);
+            border-radius: var(--gh-radius-lg);
+            border: 3px solid #c8cdd5;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            z-index: 1;
+            transition: background 0.4s ease, border-color 0.4s ease;
+            cursor: default;
+        }
+        .GH-dark-mode .GH-puzzle-container {
+            background: var(--puzzle-dark-grid-bg);
+            border-color: #2e3648;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+
+        .GH-puzzle-tile {
+            position: absolute;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            transition: top 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                box-shadow 0.25s ease,
+                transform 0.15s ease;
+            box-shadow: var(--puzzle-tile-shadow);
+            z-index: 2;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .GH-puzzle-tile:hover {
+            z-index: 5;
+            box-shadow: var(--puzzle-tile-shadow-hover);
+            transform: scale(1.04);
+        }
+        .GH-puzzle-tile:active {
+            transform: scale(0.94);
+            transition: transform 0.08s ease;
+        }
+        .GH-puzzle-tile .GH-tile-number {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 50%;
+            width: 1.8em;
+            height: 1.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            pointer-events: none;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            letter-spacing: -0.5px;
+        }
+        .GH-puzzle-tile.GH-empty-tile {
+            background: var(--puzzle-empty-bg) !important;
+            border: 2px dashed var(--puzzle-empty-border);
+            cursor: default;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.08);
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 6px;
+        }
+        .GH-dark-mode .GH-puzzle-tile.GH-empty-tile {
+            background: var(--puzzle-dark-empty-bg) !important;
+            border-color: var(--puzzle-dark-empty-border);
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+        .GH-puzzle-tile.GH-empty-tile:hover {
+            transform: none;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+        .GH-puzzle-tile.GH-empty-tile .GH-tile-number {
+            display: none;
+        }
+
+        .GH-preview-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--gh-radius-md);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            background-size: cover;
+            box-shadow: var(--gh-shadow-md);
+            position: relative;
+            z-index: 1;
+            background-image: linear-gradient(135deg,
+                    hsl(0, 85%, 62%) 0%, hsl(25, 88%, 56%) 11%, hsl(50, 90%, 52%) 22%,
+                    hsl(80, 70%, 50%) 33%, hsl(140, 60%, 50%) 44%, hsl(185, 70%, 48%) 55%,
+                    hsl(220, 80%, 56%) 66%, hsl(260, 75%, 58%) 77%, hsl(310, 70%, 54%) 88%, hsl(340, 80%, 58%) 100%);
+        }
+        .GH-preview-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: var(--gh-shadow-lg);
+            border-color: var(--game-accent);
+        }
+
+        .GH-game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--gh-space-lg);
+            margin-top: var(--gh-space-lg);
+            flex-wrap: wrap;
+            z-index: 1;
+            position: relative;
+        }
+
+        .GH-game-btn {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            font-size: var(--gh-font-size-lg);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-lg);
+            min-width: 150px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .GH-game-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        .GH-game-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(79, 110, 247, 0.4);
+        }
+        .GH-game-btn:hover::before {
+            left: 100%;
+        }
+        .GH-game-btn:active {
+            transform: translateY(2px);
+        }
+        .GH-game-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--game-primary);
+            color: var(--game-primary);
+            box-shadow: none;
+        }
+        .GH-dark-mode .GH-game-btn.secondary {
+            color: var(--game-accent);
+            border-color: var(--game-accent);
+        }
+        .GH-game-btn.secondary:hover {
+            background: var(--game-primary);
+            color: white;
+            box-shadow: 0 10px 25px rgba(79, 110, 247, 0.3);
+        }
+        .GH-dark-mode .GH-game-btn.secondary:hover {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+        }
+
+        .GH-difficulty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gh-space-md);
+            margin: var(--gh-space-lg) 0;
+            flex-wrap: wrap;
+            z-index: 1;
+            position: relative;
+        }
+        .GH-difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--game-primary);
+            background: transparent;
+            color: var(--game-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 90px;
+            -webkit-tap-highlight-color: transparent;
+            font-size: var(--gh-font-size-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.2;
+        }
+        .GH-difficulty-btn small {
+            font-size: 0.7em;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+        .GH-dark-mode .GH-difficulty-btn {
+            border-color: var(--game-accent);
+            color: var(--game-accent);
+        }
+        .GH-difficulty-btn.active {
+            background: var(--game-primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(79, 110, 247, 0.3);
+        }
+        .GH-dark-mode .GH-difficulty-btn.active {
+            background: var(--game-accent);
+            color: var(--game-dark-bg);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+        }
+        .GH-difficulty-btn:hover:not(.active) {
+            background: rgba(79, 110, 247, 0.08);
+        }
+        .GH-dark-mode .GH-difficulty-btn:hover:not(.active) {
+            background: rgba(255, 107, 157, 0.1);
+        }
+
+        .GH-instructions {
+            background-color: var(--game-card-bg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            margin-bottom: var(--gh-space-lg);
+            box-shadow: var(--gh-shadow-md);
+            border: 1px solid rgba(79, 110, 247, 0.1);
+            transition: background-color 0.4s ease;
+        }
+        .GH-dark-mode .GH-instructions {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(79, 110, 247, 0.2);
+        }
+        .GH-instructions h2 {
+            margin-bottom: var(--gh-space-md);
+            text-align: center;
+            color: var(--game-primary);
+            font-size: var(--gh-font-size-2xl);
+        }
+        .GH-dark-mode .GH-instructions h2 {
+            color: var(--game-accent);
+        }
+        .GH-instructions ul {
+            padding-left: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 8px;
+            list-style: none;
+            padding-left: 0;
+        }
+        .GH-instructions li {
+            margin-bottom: 8px;
+            position: relative;
+            padding: 6px 0 6px 28px;
+        }
+        .GH-instructions li::before {
+            content: '🧩';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            font-size: 0.9em;
+        }
+
+        .GH-level-progress {
+            width: 100%;
+            max-width: 500px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            margin: var(--gh-space-md) 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.08);
+            z-index: 1;
+            position: relative;
+        }
+        .GH-dark-mode .GH-level-progress {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .GH-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--game-primary), var(--game-accent));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+            box-shadow: 0 0 10px rgba(79, 110, 247, 0.5);
+        }
+        .GH-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .GH-target-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            gap: 10px;
+            flex-wrap: wrap;
+            z-index: 1;
+            position: relative;
+        }
+        .GH-target-stat {
+            background-color: var(--game-card-bg);
+            padding: 12px 16px;
+            border-radius: var(--gh-radius-lg);
+            min-width: 90px;
+            text-align: center;
+            box-shadow: var(--gh-shadow-md);
+            border: 1px solid rgba(79, 110, 247, 0.1);
+            transition: transform 0.3s ease, background-color 0.4s ease;
+        }
+        .GH-target-stat:hover {
+            transform: translateY(-4px);
+        }
+        .GH-dark-mode .GH-target-stat {
+            background-color: var(--game-dark-card-bg);
+            border: 1px solid rgba(79, 110, 247, 0.2);
+        }
+        .GH-target-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 4px;
+            color: var(--game-primary);
+        }
+        .GH-dark-mode .GH-target-value {
+            color: var(--game-accent);
+        }
+
+        .GH-game-notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            color: white;
+            font-weight: bold;
+            box-shadow: var(--gh-shadow-xl);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+        }
+        .GH-game-notification.show {
+            transform: translateX(0);
+        }
+        .GH-game-notification.success {
+            background: linear-gradient(135deg, var(--game-success), #2E8B57);
+        }
+        .GH-game-notification.info {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+        }
+
+        .GH-game-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(10, 25, 47, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+        .GH-game-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-xl);
+            padding: var(--gh-space-xl);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-xl);
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(79, 110, 247, 0.2);
+        }
+        .GH-dark-mode .GH-modal-content {
+            background: var(--game-dark-card-bg);
+        }
+        .GH-game-modal.active .GH-modal-content {
+            transform: scale(1) translateY(0);
+        }
+        .GH-modal-title {
+            font-size: var(--gh-font-size-4xl);
+            margin-bottom: var(--gh-space-lg);
+            color: var(--game-gold);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        .GH-modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--gh-space-lg);
+            margin: var(--gh-space-xl) 0;
+        }
+        .GH-modal-stat {
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            background: rgba(79, 110, 247, 0.08);
+            border: 1px solid rgba(79, 110, 247, 0.15);
+            transition: transform 0.3s ease;
+        }
+        .GH-modal-stat:hover {
+            transform: translateY(-4px);
+        }
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-3xl);
+            font-weight: bold;
+            color: var(--game-primary);
+        }
+        .GH-dark-mode .GH-modal-stat-value {
+            color: var(--game-accent);
+        }
+        .GH-modal-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .GH-start-message {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--game-primary);
+            text-shadow: 0 2px 10px rgba(79, 110, 247, 0.3);
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--gh-radius-lg);
+            box-shadow: var(--gh-shadow-lg);
+            border: 1px solid rgba(79, 110, 247, 0.2);
+            pointer-events: none;
+            z-index: 1;
+            position: relative;
+        }
+        .GH-dark-mode .GH-start-message {
+            color: var(--game-accent);
+            background: rgba(20, 30, 55, 0.9);
+            border: 1px solid rgba(255, 107, 157, 0.2);
+        }
+
+        [dir="rtl"] .GH-instructions li {
+            padding: 6px 28px 6px 0;
+        }
+        [dir="rtl"] .GH-instructions li::before {
+            left: auto;
+            right: 0;
+        }
+        [dir="rtl"] .GH-game-notification {
+            right: auto;
+            left: 30px;
+            transform: translateX(-150%);
+        }
+        [dir="rtl"] .GH-game-notification.show {
+            transform: translateX(0);
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        .GH-confetti {
+            position: fixed;
+            top: -20px;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 3000;
+            animation: confetti-fall 2.5s ease-in forwards;
+        }
+
+        @media (max-width: 768px) {
+            .GH-game-header {
+                flex-direction: column;
+                gap: var(--gh-space-md);
+                text-align: center;
+            }
+            .GH-game-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: var(--gh-space-sm);
+            }
+            .GH-stat-box {
+                min-width: 65px;
+                padding: var(--gh-space-sm) var(--gh-space-md);
+            }
+            .GH-stat-value {
+                font-size: var(--gh-font-size-xl);
+            }
+            .GH-puzzle-container {
+                width: min(300px, 78vw);
+                height: min(300px, 78vw);
+                border-radius: var(--gh-radius-md);
+            }
+            .GH-puzzle-tile {
+                border-radius: 4px;
+                font-size: 0.9rem;
+            }
+            .GH-puzzle-tile .GH-tile-number {
+                width: 1.5em;
+                height: 1.5em;
+                font-size: 0.65em;
+            }
+            .GH-game-btn {
+                width: 100%;
+                max-width: 280px;
+                padding: 12px 20px;
+                font-size: var(--gh-font-size-md);
+            }
+            .GH-game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .GH-target-stats {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: var(--gh-space-sm);
+                justify-content: center;
+            }
+            .GH-target-stat {
+                min-width: 75px;
+                padding: 8px 10px;
+            }
+            .GH-target-value {
+                font-size: 1.2rem;
+            }
+            .GH-instructions ul {
+                grid-template-columns: 1fr;
+            }
+            .GH-modal-stats {
+                grid-template-columns: 1fr;
+            }
+            .GH-game-area {
+                min-height: 340px;
+                padding: 14px;
+            }
+            .GH-start-message {
+                font-size: 1.4rem;
+            }
+            .GH-difficulty-btn {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+                min-width: 70px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .GH-puzzle-container {
+                width: min(240px, 80vw);
+                height: min(240px, 80vw);
+            }
+            .GH-puzzle-tile {
+                font-size: 0.7rem;
+                border-radius: 3px;
+            }
+            .GH-puzzle-tile .GH-tile-number {
+                width: 1.3em;
+                height: 1.3em;
+                font-size: 0.6em;
+            }
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+    <header class="GH-header">
+        <div class="GH-header-content">
+            <div class="GH-logo-section">
+                <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                    <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+                </a>
+            </div>
+            <h1 class="GH-title" data-i18n="GH.puzzle.title">Sliding Puzzle</h1>
+            <div class="GH-controls">
+                <select class="GH-language-select" id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="fr">Français</option>
+                </select>
+                <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                    <span class="GH-icon">🌙</span>
+                </button>
+                <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                    <span class="GH-icon">🔔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="GH-main">
+        <div class="GH-game-container">
+            <div class="GH-game-header">
+                <div class="GH-game-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="moveCountDisplay">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.puzzle.moves">Moves</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="timerDisplay">00:00</span>
+                        <span class="GH-stat-label" data-i18n="GH.puzzle.time">Time</span>
+                    </div>
+                    <div class="GH-stat-box best-box">
+                        <span class="GH-stat-value" id="bestScoreDisplay">--</span>
+                        <span class="GH-stat-label" data-i18n="GH.puzzle.best">Best</span>
+                    </div>
+                </div>
+                <div class="GH-preview-thumb" id="previewThumb" data-i18n-title="GH.puzzle.previewHint" title="Preview target image"></div>
+            </div>
+
+            <div class="GH-instructions">
+                <h2 data-i18n="GH.puzzle.howToPlay">How to Play</h2>
+                <ul>
+                    <li data-i18n="GH.puzzle.instruction1">Click a tile next to the empty space to slide it</li>
+                    <li data-i18n="GH.puzzle.instruction2">Arrange the tiles to match the gradient pattern</li>
+                    <li data-i18n="GH.puzzle.instruction3">Use keyboard arrows for faster play on desktop</li>
+                    <li data-i18n="GH.puzzle.instruction4">Solve in fewer moves for a better score!</li>
+                </ul>
+            </div>
+
+            <div class="GH-difficulty-selector">
+                <span data-i18n="GH.puzzle.difficulty">Difficulty:</span>
+                <button class="GH-difficulty-btn active" data-grid="3" data-i18n="GH.puzzle.easy">Easy<br><small>3×3</small></button>
+                <button class="GH-difficulty-btn" data-grid="4" data-i18n="GH.puzzle.medium">Medium<br><small>4×4</small></button>
+                <button class="GH-difficulty-btn" data-grid="5" data-i18n="GH.puzzle.hard">Hard<br><small>5×5</small></button>
+            </div>
+
+            <div class="GH-level-progress">
+                <div id="progressBar" class="GH-progress" style="width: 0%"></div>
+            </div>
+
+            <div class="GH-game-area" id="gameArea">
+                <div class="GH-start-message" id="startMessage" data-i18n="GH.puzzle.getReady">Get Ready!</div>
+                <div class="GH-puzzle-container" id="puzzleContainer"></div>
+            </div>
+
+            <div class="GH-target-stats">
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.puzzle.gridSize">Grid</span>
+                    <div class="GH-target-value" id="gridSizeDisplay">3×3</div>
+                </div>
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.puzzle.tilesCorrect">Correct</span>
+                    <div class="GH-target-value" id="tilesCorrectDisplay">0/8</div>
+                </div>
+                <div class="GH-target-stat">
+                    <span data-i18n="GH.puzzle.completion">Complete</span>
+                    <div class="GH-target-value" id="completionDisplay">0%</div>
+                </div>
+            </div>
+
+            <div class="GH-game-controls">
+                <button id="btnShuffle" class="GH-game-btn" data-i18n="GH.puzzle.shuffle">
+                    <span>🔀</span> Shuffle
+                </button>
+                <button id="btnReset" class="GH-game-btn secondary" data-i18n="GH.puzzle.reset">
+                    <span>🔄</span> Reset
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="GH-footer">
+        <div class="GH-footer-content">
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.version">Version:</span>
+                <span>v0.1.0</span>
+            </div>
+            <div class="GH-footer-column">
+                <span data-i18n="GH.general.developer">Developer:</span>
+                <span>Mejri Ziad</span>
+            </div>
+            <div class="GH-footer-column">
+                <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+                <span> | </span>
+                <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="GH-game-notification" id="gameNotification" style="display: none;"></div>
+
+    <div class="GH-game-modal" id="gameOverModal">
+        <div class="GH-modal-content">
+            <h2 class="GH-modal-title" id="gameResultTitle" data-i18n="GH.puzzle.solved">🎉 Puzzle Solved!</h2>
+            <p id="gameResultMessage" style="font-size:1.1rem;margin-bottom:10px;"></p>
+            <div class="GH-modal-stats">
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="finalMoves">0</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.puzzle.totalMoves">Total Moves</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="finalTime">00:00</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.puzzle.totalTime">Total Time</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="finalGrid">3×3</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.puzzle.difficultyLabel">Difficulty</div>
+                </div>
+                <div class="GH-modal-stat">
+                    <div class="GH-modal-stat-value" id="finalBest">--</div>
+                    <div class="GH-modal-stat-label" data-i18n="GH.puzzle.bestScore">Best Score</div>
+                </div>
+            </div>
+            <div class="GH-game-controls">
+                <button id="btnPlayAgain" class="GH-game-btn" data-i18n="GH.puzzle.playAgain">Play Again</button>
+                <button id="btnChangeDiff" class="GH-game-btn secondary" data-i18n="GH.puzzle.changeDifficulty">Change Difficulty</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="translation.js"></script>
+    <script src="global.js"></script>
+    <script>
+        (function() {
+            // ─────────────────────────────────────
+            // Object-specific translations
+            // ─────────────────────────────────────
+            window.GHObjectTranslations = window.GHObjectTranslations || {};
+            Object.assign(window.GHObjectTranslations, {
+                en: {
+                    puzzle: {
+                        title: "Sliding Puzzle",
+                        howToPlay: "How to Play",
+                        instruction1: "Click a tile next to the empty space to slide it",
+                        instruction2: "Arrange the tiles to match the gradient pattern",
+                        instruction3: "Use keyboard arrows for faster play on desktop",
+                        instruction4: "Solve in fewer moves for a better score!",
+                        moves: "Moves",
+                        time: "Time",
+                        best: "Best",
+                        previewHint: "Preview target image",
+                        difficulty: "Difficulty:",
+                        easy: "Easy",
+                        medium: "Medium",
+                        hard: "Hard",
+                        getReady: "Get Ready!",
+                        gridSize: "Grid",
+                        tilesCorrect: "Correct",
+                        completion: "Complete",
+                        shuffle: "Shuffle",
+                        reset: "Reset",
+                        solved: "🎉 Puzzle Solved!",
+                        solvedMessage: "You solved the {0} puzzle in {1} moves!",
+                        solvedMessageNewBest: "You solved the {0} puzzle in {1} moves! 🏆 New best score!",
+                        totalMoves: "Total Moves",
+                        totalTime: "Total Time",
+                        difficultyLabel: "Difficulty",
+                        bestScore: "Best Score",
+                        playAgain: "Play Again",
+                        changeDifficulty: "Change Difficulty",
+                        puzzleShuffled: "Puzzle shuffled! Good luck!",
+                        puzzleReset: "Puzzle reset to solved state.",
+                        newBest: "New best score! 🏆",
+    timeFormat: "{0} min {1} sec",
+                    }
+                },
+                ar: {
+                    puzzle: {
+                        title: "لعبة الألغاز المنزلقة",
+                        howToPlay: "كيفية اللعب",
+                        instruction1: "انقر على البلاط المجاور للمساحة الفارغة لتحريكه",
+                        instruction2: "رتب البلاطات لتطابق نمط التدرج اللوني",
+                        instruction3: "استخدم أسهم لوحة المفاتيح للعب أسرع",
+                        instruction4: "حل اللغز بحركات أقل للحصول على نتيجة أفضل!",
+                        moves: "الحركات",
+                        time: "الوقت",
+                        best: "الأفضل",
+                        previewHint: "معاينة الصورة المستهدفة",
+                        difficulty: "الصعوبة:",
+                        easy: "سهل",
+                        medium: "متوسط",
+                        hard: "صعب",
+                        getReady: "استعد!",
+                        gridSize: "الشبكة",
+                        tilesCorrect: "صحيح",
+                        completion: "مكتمل",
+                        shuffle: "خلط",
+                        reset: "إعادة",
+                        solved: "🎉 تم حل اللغز!",
+                        solvedMessage: "لقد حللت لغز {0} في {1} حركة!",
+                        solvedMessageNewBest: "لقد حللت لغز {0} في {1} حركة! 🏆 أفضل نتيجة جديدة!",
+                        totalMoves: "إجمالي الحركات",
+                        totalTime: "الوقت الإجمالي",
+                        difficultyLabel: "الصعوبة",
+                        bestScore: "أفضل نتيجة",
+                        playAgain: "العب مرة أخرى",
+                        changeDifficulty: "تغيير الصعوبة",
+                        puzzleShuffled: "تم خلط اللغز! حظاً طيباً!",
+                        puzzleReset: "تمت إعادة اللغز إلى الحالة المحلولة.",
+                        newBest: "أفضل نتيجة جديدة! 🏆",
+    timeFormat: "{0} دقيقة {1} ثانية",
+                    }
+                },
+                fr: {
+                    puzzle: {
+                        title: "Puzzle Coulissant",
+                        howToPlay: "Comment Jouer",
+                        instruction1: "Cliquez sur une tuile adjacente à l'espace vide pour la faire glisser",
+                        instruction2: "Disposez les tuiles pour reproduire le motif en dégradé",
+                        instruction3: "Utilisez les flèches du clavier pour jouer plus vite",
+                        instruction4: "Résolvez en moins de coups pour un meilleur score !",
+                        moves: "Coups",
+                        time: "Temps",
+                        best: "Meilleur",
+                        previewHint: "Aperçu de l'image cible",
+                        difficulty: "Difficulté :",
+                        easy: "Facile",
+                        medium: "Moyen",
+                        hard: "Difficile",
+                        getReady: "Préparez-vous !",
+                        gridSize: "Grille",
+                        tilesCorrect: "Correct",
+                        completion: "Complété",
+                        shuffle: "Mélanger",
+                        reset: "Réinitialiser",
+                        solved: "🎉 Puzzle Résolu !",
+                        solvedMessage: "Vous avez résolu le puzzle {0} en {1} coups !",
+                        solvedMessageNewBest: "Vous avez résolu le puzzle {0} en {1} coups ! 🏆 Nouveau meilleur score !",
+                        totalMoves: "Total Coups",
+                        totalTime: "Temps Total",
+                        difficultyLabel: "Difficulté",
+                        bestScore: "Meilleur Score",
+                        playAgain: "Rejouer",
+                        changeDifficulty: "Changer Difficulté",
+                        puzzleShuffled: "Puzzle mélangé ! Bonne chance !",
+                        puzzleReset: "Puzzle réinitialisé à l'état résolu.",
+                        newBest: "Nouveau meilleur score ! 🏆",
+    timeFormat: "{0} min {1} sec",
+                    }
+                }
+            });
+
+            // ─────────────────────────────────────
+            // DOM References
+            // ─────────────────────────────────────
+            const puzzleContainer = document.getElementById('puzzleContainer');
+            const moveCountDisplay = document.getElementById('moveCountDisplay');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const bestScoreDisplay = document.getElementById('bestScoreDisplay');
+            const progressBar = document.getElementById('progressBar');
+            const gridSizeDisplay = document.getElementById('gridSizeDisplay');
+            const tilesCorrectDisplay = document.getElementById('tilesCorrectDisplay');
+            const completionDisplay = document.getElementById('completionDisplay');
+            const startMessage = document.getElementById('startMessage');
+            const gameArea = document.getElementById('gameArea');
+            const previewThumb = document.getElementById('previewThumb');
+            const gameNotification = document.getElementById('gameNotification');
+            const gameOverModal = document.getElementById('gameOverModal');
+            const gameResultTitle = document.getElementById('gameResultTitle');
+            const gameResultMessage = document.getElementById('gameResultMessage');
+            const finalMovesEl = document.getElementById('finalMoves');
+            const finalTimeEl = document.getElementById('finalTime');
+            const finalGridEl = document.getElementById('finalGrid');
+            const finalBestEl = document.getElementById('finalBest');
+            const btnShuffle = document.getElementById('btnShuffle');
+            const btnReset = document.getElementById('btnReset');
+            const btnPlayAgain = document.getElementById('btnPlayAgain');
+            const btnChangeDiff = document.getElementById('btnChangeDiff');
+            const modeToggle = document.getElementById('modeToggle');
+            const languageSelect = document.getElementById('languageSelect');
+            const difficultyButtons = document.querySelectorAll('.GH-difficulty-btn');
+
+            // ─────────────────────────────────────
+            // Game State
+            // ─────────────────────────────────────
+            let gridSize = 3;
+            let tiles = [];
+            let emptyIndex = gridSize * gridSize - 1;
+            let moves = 0;
+            let seconds = 0;
+            let timerInterval = null;
+            let gameActive = false;
+            let gameWon = false;
+            let isDarkMode = false;
+
+            // ─────────────────────────────────────
+            // Gradient "Image"
+            // ─────────────────────────────────────
+            function getGradientCSS() {
+                return 'linear-gradient(135deg,' +
+                    'hsl(0,85%,62%) 0%,hsl(25,88%,56%) 11%,hsl(50,90%,52%) 22%,' +
+                    'hsl(80,70%,50%) 33%,hsl(140,60%,50%) 44%,hsl(185,70%,48%) 55%,' +
+                    'hsl(220,80%,56%) 66%,hsl(260,75%,58%) 77%,hsl(310,70%,54%) 88%,hsl(340,80%,58%) 100%)';
+            }
+
+            // ─────────────────────────────────────
+            // Helpers
+            // ─────────────────────────────────────
+            function getContainerSize() {
+                return puzzleContainer.offsetWidth;
+            }
+
+            function getCellSize() {
+                return getContainerSize() / gridSize;
+            }
+
+            function createSolvedTiles() {
+                const total = gridSize * gridSize;
+                const arr = [];
+                for (let i = 0; i < total - 1; i++) arr.push(i + 1);
+                arr.push(0);
+                return arr;
+            }
+
+            function countCorrectTiles() {
+                let correct = 0;
+                const total = gridSize * gridSize;
+                for (let i = 0; i < total - 1; i++) {
+                    if (tiles[i] === i + 1) correct++;
+                }
+                return correct;
+            }
+
+            function updateStatsDisplay() {
+                moveCountDisplay.textContent = moves;
+                const totalTiles = gridSize * gridSize - 1;
+                const correct = countCorrectTiles();
+                tilesCorrectDisplay.textContent = correct + '/' + totalTiles;
+                const pct = Math.round((correct / totalTiles) * 100);
+                completionDisplay.textContent = pct + '%';
+                progressBar.style.width = pct + '%';
+                gridSizeDisplay.textContent = gridSize + '×' + gridSize;
+                updateBestScoreDisplay();
+            }
+
+            function updateBestScoreDisplay() {
+                const key = 'puzzleBest_' + gridSize;
+                const stored = localStorage.getItem(key);
+                if (stored !== null) {
+                    bestScoreDisplay.textContent = stored;
+                } else {
+                    bestScoreDisplay.textContent = '--';
+                }
+            }
+
+            function checkAndSaveBest() {
+                const key = 'puzzleBest_' + gridSize;
+                const stored = localStorage.getItem(key);
+                const currentBest = stored !== null ? parseInt(stored) : Infinity;
+                if (moves < currentBest) {
+                    localStorage.setItem(key, moves);
+                    bestScoreDisplay.textContent = moves;
+                    return true;
+                }
+                return false;
+            }
+
+            function updateTimerDisplayText() {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                timerDisplay.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            }
+
+            function startTimer() {
+                if (timerInterval) return;
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    updateTimerDisplayText();
+                }, 1000);
+            }
+
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+
+            function resetTimer() {
+                stopTimer();
+                seconds = 0;
+                updateTimerDisplayText();
+            }
+
+            // ─────────────────────────────────────
+            // Translations
+            // ─────────────────────────────────────
+            function getTranslation(key, fallback) {
+                const translations = window.getTranslations ? window.getTranslations() : {};
+                const cleanKey = key.replace(/^GH\./, '');
+                const keys = cleanKey.split('.');
+                let value = keys.reduce((obj, k) => {
+                    return obj && obj[k] !== undefined ? obj[k] : undefined;
+                }, translations);
+                if (value && typeof value === 'string') return value;
+                const objTrans = window.GHObjectTranslations || {};
+                const lang = (languageSelect && languageSelect.value) || 'en';
+                const langObj = objTrans[lang] || objTrans['en'] || {};
+                let objVal = keys.reduce((obj, k) => {
+                    return obj && obj[k] !== undefined ? obj[k] : undefined;
+                }, langObj);
+                return (objVal && typeof objVal === 'string') ? objVal : fallback;
+            }
+
+            function showTranslatableNotification(messageKey, type) {
+                const message = getTranslation(messageKey, messageKey);
+                showNotification(message, type);
+            }
+
+            function showNotification(message, type) {
+                gameNotification.textContent = message;
+                gameNotification.className = 'GH-game-notification ' + (type || 'info');
+                gameNotification.style.display = 'block';
+                gameNotification.classList.add('show');
+                setTimeout(() => {
+                    gameNotification.classList.remove('show');
+                    setTimeout(() => {
+                        gameNotification.style.display = 'none';
+                    }, 300);
+                }, 3500);
+            }
+
+            function applyTranslations() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (!key) return;
+                    const translated = getTranslation(key, el.textContent || key);
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = translated;
+                    } else if (el.hasAttribute('data-i18n-title')) {
+                        el.title = getTranslation(el.getAttribute('data-i18n-title'), el.title);
+                    } else if (el.hasAttribute('data-i18n-alt')) {
+                        el.alt = getTranslation(el.getAttribute('data-i18n-alt'), el.alt);
+                    } else if (el.classList.contains('GH-difficulty-btn')) {
+                        // Special handling for difficulty buttons to preserve the <small> tag
+                        const small = el.querySelector('small');
+                        if (small) {
+                            // The translation includes a <br><small> part; we need to set the main text and small text separately.
+                            const parts = translated.split('<br>');
+                            if (parts.length === 2) {
+                                el.childNodes[0].nodeValue = parts[0].trim();
+                                small.textContent = parts[1].replace(/<\/?small>/g, '').trim();
+                            } else {
+                                el.childNodes[0].nodeValue = translated;
+                                small.textContent = '';
+                            }
+                        } else {
+                            el.textContent = translated;
+                        }
+                    } else {
+                        el.textContent = translated;
+                    }
+                });
+            }
+
+            // ─────────────────────────────────────
+            // Puzzle Rendering
+            // ─────────────────────────────────────
+            function renderPuzzle() {
+                const containerSize = getContainerSize();
+                const cellSize = containerSize / gridSize;
+                const totalCells = gridSize * gridSize;
+                const gradientCSS = getGradientCSS();
+
+                puzzleContainer.innerHTML = '';
+
+                for (let i = 0; i < totalCells; i++) {
+                    const tileValue = tiles[i];
+                    const row = Math.floor(i / gridSize);
+                    const col = i % gridSize;
+
+                    const tileEl = document.createElement('div');
+                    tileEl.classList.add('GH-puzzle-tile');
+                    tileEl.style.width = cellSize + 'px';
+                    tileEl.style.height = cellSize + 'px';
+                    tileEl.style.top = row * cellSize + 'px';
+                    tileEl.style.left = col * cellSize + 'px';
+
+                    if (tileValue === 0) {
+                        tileEl.classList.add('GH-empty-tile');
+                        tileEl.style.background = 'var(--puzzle-empty-bg)';
+                        tileEl.style.border = '2px dashed var(--puzzle-empty-border)';
+                    } else {
+                        const correctIndex = tileValue - 1;
+                        const correctRow = Math.floor(correctIndex / gridSize);
+                        const correctCol = correctIndex % gridSize;
+                        tileEl.style.backgroundImage = gradientCSS;
+                        tileEl.style.backgroundSize = containerSize + 'px ' + containerSize + 'px';
+                        tileEl.style.backgroundPosition =
+                            (-correctCol * cellSize) + 'px ' + (-correctRow * cellSize) + 'px';
+
+                        const numberSpan = document.createElement('span');
+                        numberSpan.classList.add('GH-tile-number');
+                        numberSpan.textContent = tileValue;
+                        tileEl.appendChild(numberSpan);
+
+                        tileEl.addEventListener('click', () => moveTile(i));
+                        tileEl.addEventListener('touchend', (e) => {
+                            e.preventDefault();
+                            moveTile(i);
+                        });
+                    }
+
+                    puzzleContainer.appendChild(tileEl);
+                }
+
+                updateStatsDisplay();
+                startMessage.style.display = gameActive ? 'none' : 'block';
+            }
+
+            // ─────────────────────────────────────
+            // Move Logic
+            // ─────────────────────────────────────
+            function canMoveTile(index) {
+                if (gameWon) return false;
+                const er = Math.floor(emptyIndex / gridSize);
+                const ec = emptyIndex % gridSize;
+                const tr = Math.floor(index / gridSize);
+                const tc = index % gridSize;
+                return (Math.abs(er - tr) + Math.abs(ec - tc)) === 1;
+            }
+
+            function moveTile(index) {
+                if (!canMoveTile(index)) return;
+                if (gameWon) return;
+
+                if (!gameActive) {
+                    gameActive = true;
+                    startTimer();
+                    startMessage.style.display = 'none';
+                }
+
+                tiles[emptyIndex] = tiles[index];
+                tiles[index] = 0;
+                emptyIndex = index;
+                moves++;
+                renderPuzzle();
+
+                if (checkWinCondition()) {
+                    handleWin();
+                }
+            }
+
+            function checkWinCondition() {
+                const total = gridSize * gridSize;
+                for (let i = 0; i < total - 1; i++) {
+                    if (tiles[i] !== i + 1) return false;
+                }
+                if (tiles[total - 1] !== 0) return false;
+                return true;
+            }
+
+            function handleWin() {
+                gameWon = true;
+                gameActive = false;
+                stopTimer();
+                const isNewBest = checkAndSaveBest();
+                updateStatsDisplay();
+
+                const mins = Math.floor(seconds / 60);
+const secs = seconds % 60;
+const timeFormat = getTranslation('GH.puzzle.timeFormat', '{0} min {1} sec');
+const timeStr = timeFormat.replace('{0}', mins).replace('{1}', secs);
+
+                const gridLabel = gridSize + '×' + gridSize;
+                const messageKey = isNewBest ? 'GH.puzzle.solvedMessageNewBest' : 'GH.puzzle.solvedMessage';
+                const messageTemplate = getTranslation(messageKey, 'You solved the {0} puzzle in {1} moves!');
+                const finalMessage = messageTemplate.replace('{0}', gridLabel).replace('{1}', moves);
+
+                gameResultTitle.textContent = getTranslation('GH.puzzle.solved', '🎉 Puzzle Solved!');
+                gameResultMessage.textContent = finalMessage;
+                finalMovesEl.textContent = moves;
+                finalTimeEl.textContent = timeStr;
+                finalGridEl.textContent = gridLabel;
+                finalBestEl.textContent = bestScoreDisplay.textContent;
+
+                if (isNewBest) {
+                    showTranslatableNotification('GH.puzzle.newBest', 'success');
+                }
+
+                gameOverModal.classList.add('active');
+                spawnConfetti();
+                renderPuzzle();
+            }
+
+            // ─────────────────────────────────────
+            // Shuffle & Reset
+            // ─────────────────────────────────────
+            function shuffleTiles() {
+                tiles = createSolvedTiles();
+                emptyIndex = tiles.indexOf(0);
+                const totalCells = gridSize * gridSize;
+                const numMoves = totalCells * 40;
+                let lastMovedIndex = -1;
+
+                for (let i = 0; i < numMoves; i++) {
+                    const er = Math.floor(emptyIndex / gridSize);
+                    const ec = emptyIndex % gridSize;
+                    const neighbors = [];
+                    if (er > 0) neighbors.push(emptyIndex - gridSize);
+                    if (er < gridSize - 1) neighbors.push(emptyIndex + gridSize);
+                    if (ec > 0) neighbors.push(emptyIndex - 1);
+                    if (ec < gridSize - 1) neighbors.push(emptyIndex + 1);
+                    const candidates = neighbors.filter(idx => idx !== lastMovedIndex);
+                    const pickFrom = candidates.length > 0 ? candidates : neighbors;
+                    const randomNeighbor = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+                    lastMovedIndex = emptyIndex;
+                    tiles[emptyIndex] = tiles[randomNeighbor];
+                    tiles[randomNeighbor] = 0;
+                    emptyIndex = randomNeighbor;
+                }
+
+                if (checkWinCondition()) {
+                    for (let i = 0; i < 25; i++) {
+                        const er = Math.floor(emptyIndex / gridSize);
+                        const ec = emptyIndex % gridSize;
+                        const neighbors = [];
+                        if (er > 0) neighbors.push(emptyIndex - gridSize);
+                        if (er < gridSize - 1) neighbors.push(emptyIndex + gridSize);
+                        if (ec > 0) neighbors.push(emptyIndex - 1);
+                        if (ec < gridSize - 1) neighbors.push(emptyIndex + 1);
+                        const pick = neighbors[Math.floor(Math.random() * neighbors.length)];
+                        tiles[emptyIndex] = tiles[pick];
+                        tiles[pick] = 0;
+                        emptyIndex = pick;
+                        if (!checkWinCondition()) break;
+                    }
+                }
+
+                stopTimer();
+                gameActive = false;
+                gameWon = false;
+                moves = 0;
+                seconds = 0;
+                updateTimerDisplayText();
+                updateStatsDisplay();
+                gameOverModal.classList.remove('active');
+                startMessage.style.display = 'block';
+                startMessage.textContent = getTranslation('GH.puzzle.getReady', 'Get Ready!');
+                renderPuzzle();
+                showTranslatableNotification('GH.puzzle.puzzleShuffled', 'info');
+            }
+
+            function resetPuzzle() {
+                tiles = createSolvedTiles();
+                emptyIndex = tiles.indexOf(0);
+                stopTimer();
+                gameActive = false;
+                gameWon = false;
+                moves = 0;
+                seconds = 0;
+                updateTimerDisplayText();
+                updateStatsDisplay();
+                gameOverModal.classList.remove('active');
+                startMessage.style.display = 'block';
+                startMessage.textContent = getTranslation('GH.puzzle.getReady', 'Get Ready!');
+                renderPuzzle();
+                showTranslatableNotification('GH.puzzle.puzzleReset', 'info');
+            }
+
+            // ─────────────────────────────────────
+            // Difficulty
+            // ─────────────────────────────────────
+            function setDifficulty(size) {
+                gridSize = size;
+                resetPuzzle();
+                shuffleTiles();
+                updateBestScoreDisplay();
+                difficultyButtons.forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.grid) === size);
+                });
+                puzzleContainer.style.borderRadius = size >= 5 ? '10px' : '12px';
+            }
+
+            // ─────────────────────────────────────
+            // Confetti
+            // ─────────────────────────────────────
+            function spawnConfetti() {
+                const colors = [
+                    '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff',
+                    '#ff922b', '#845ef7', '#ff6eb4', '#20c997',
+                    '#ffc048', '#5b9bd5', '#ff8e53', '#a855f7'
+                ];
+                for (let i = 0; i < 60; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('GH-confetti');
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = (6 + Math.random() * 10) + 'px';
+                    confetti.style.height = (6 + Math.random() * 10) + 'px';
+                    confetti.style.animationDuration = (1.8 + Math.random() * 3) + 's';
+                    confetti.style.animationDelay = Math.random() * 0.8 + 's';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => {
+                        if (confetti.parentNode) confetti.parentNode.removeChild(confetti);
+                    }, 3500);
+                }
+            }
+
+            // ─────────────────────────────────────
+            // Theme
+            // ─────────────────────────────────────
+            function toggleTheme() {
+                isDarkMode = !isDarkMode;
+                if (isDarkMode) {
+                    document.body.classList.remove('GH-light-mode');
+                    document.body.classList.add('GH-dark-mode');
+                    modeToggle.querySelector('.GH-icon').textContent = '☀️';
+                } else {
+                    document.body.classList.remove('GH-dark-mode');
+                    document.body.classList.add('GH-light-mode');
+                    modeToggle.querySelector('.GH-icon').textContent = '🌙';
+                }
+                renderPuzzle();
+                updatePreviewThumb();
+            }
+
+            function updatePreviewThumb() {
+                previewThumb.style.backgroundImage = getGradientCSS();
+                previewThumb.style.backgroundSize = 'cover';
+            }
+
+            // ─────────────────────────────────────
+            // Event Listeners
+            // ─────────────────────────────────────
+            btnShuffle.addEventListener('click', shuffleTiles);
+            btnReset.addEventListener('click', resetPuzzle);
+            btnPlayAgain.addEventListener('click', () => {
+                gameOverModal.classList.remove('active');
+                shuffleTiles();
+            });
+            btnChangeDiff.addEventListener('click', () => {
+                gameOverModal.classList.remove('active');
+                const sizes = [3, 4, 5];
+                const currentIdx = sizes.indexOf(gridSize);
+                const nextIdx = (currentIdx + 1) % sizes.length;
+                setDifficulty(sizes[nextIdx]);
+            });
+
+            gameOverModal.addEventListener('click', (e) => {
+                if (e.target === gameOverModal) {
+                    gameOverModal.classList.remove('active');
+                    shuffleTiles();
+                }
+            });
+
+            modeToggle.addEventListener('click', toggleTheme);
+
+            difficultyButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const size = parseInt(this.dataset.grid);
+                    if (size && size !== gridSize) {
+                        setDifficulty(size);
+                    }
+                });
+            });
+
+            languageSelect.addEventListener('change', function() {
+                applyTranslations();
+                startMessage.textContent = getTranslation('GH.puzzle.getReady', 'Get Ready!');
+                updateStatsDisplay();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (gameWon) return;
+                if (gameOverModal.classList.contains('active')) return;
+                const er = Math.floor(emptyIndex / gridSize);
+                const ec = emptyIndex % gridSize;
+                let targetIndex = -1;
+                switch (e.key) {
+                    case 'ArrowUp':
+                        if (er < gridSize - 1) targetIndex = emptyIndex + gridSize;
+                        break;
+                    case 'ArrowDown':
+                        if (er > 0) targetIndex = emptyIndex - gridSize;
+                        break;
+                    case 'ArrowLeft':
+                        if (ec < gridSize - 1) targetIndex = emptyIndex + 1;
+                        break;
+                    case 'ArrowRight':
+                        if (ec > 0) targetIndex = emptyIndex - 1;
+                        break;
+                }
+                if (targetIndex >= 0 && targetIndex < gridSize * gridSize) {
+                    e.preventDefault();
+                    moveTile(targetIndex);
+                }
+            });
+
+            let resizeDebounce;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeDebounce);
+                resizeDebounce = setTimeout(() => {
+                    renderPuzzle();
+                }, 150);
+            });
+
+            previewThumb.addEventListener('click', () => {
+                showTranslatableNotification('GH.puzzle.previewShown', 'info');
+            });
+
+            // ─────────────────────────────────────
+            // Initialization
+            // ─────────────────────────────────────
+            function init() {
+                updatePreviewThumb();
+                updateBestScoreDisplay();
+                setDifficulty(gridSize);
+                applyTranslations();
+                startMessage.textContent = getTranslation('GH.puzzle.getReady', 'Get Ready!');
+                if (document.body.classList.contains('GH-dark-mode')) {
+                    isDarkMode = true;
+                    modeToggle.querySelector('.GH-icon').textContent = '☀️';
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            console.log('🧩 Sliding Puzzle ready!');
+        })();
+    </script>
+</body>
+</html>

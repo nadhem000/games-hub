@@ -1,815 +1,930 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-		<title>GameHub - Memory & Brain Games with Damma</title>
-		<link rel="stylesheet" href="main.css">
-		<!-- PWA Manifest -->
-		<link rel="manifest" href="manifest.json">
-		<meta name="theme-color" content="#667eea">
-		<meta name="description" content="GameHub - A collection of fun browser games including Damma and Damma Beta in Brain Games">
-		<!-- iOS Safari PWA -->
-		<meta name="apple-mobile-web-app-capable" content="yes">
-		<meta name="apple-mobile-web-app-status-bar-style" content="default">
-		<meta name="apple-mobile-web-app-title" content="GameHub">
-		<link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
-		<style>
-			/* Modal Styles */
-			.GH-modal-overlay {
-			position: fixed;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background-color: rgba(0, 0, 0, 0.7);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			z-index: 2000;
-			opacity: 0;
-			visibility: hidden;
-			transition: all var(--gh-transition-normal);
-			backdrop-filter: blur(5px);
-			}
-			
-			.GH-modal-overlay.active {
-			opacity: 1;
-			visibility: visible;
-			}
-			
-			.GH-modal {
-			background: var(--gh-light-card-bg);
-			border-radius: var(--gh-radius-lg);
-			width: 90%;
-			max-width: 600px;
-			max-height: 80vh;
-			overflow-y: auto;
-			box-shadow: var(--gh-shadow-lg);
-			transform: translateY(-20px);
-			transition: transform var(--gh-transition-normal);
-			position: relative;
-			}
-			
-			.GH-dark-mode .GH-modal {
-			background: var(--gh-dark-card-bg);
-			color: var(--gh-dark-text);
-			}
-			
-			.GH-modal-overlay.active .GH-modal {
-			transform: translateY(0);
-			}
-			
-			.GH-modal-header {
-			padding: var(--gh-space-lg);
-			border-bottom: 1px solid var(--gh-light-border);
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			}
-			
-			.GH-dark-mode .GH-modal-header {
-			border-bottom-color: var(--gh-dark-border);
-			}
-			
-			.GH-modal-title {
-			font-size: var(--gh-font-size-2xl);
-			font-weight: 600;
-			margin: 0;
-			}
-			
-			.GH-modal-close {
-			background: none;
-			border: none;
-			font-size: var(--gh-font-size-2xl);
-			cursor: pointer;
-			width: 40px;
-			height: 40px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 50%;
-			transition: all var(--gh-transition-fast);
-			color: inherit;
-			}
-			
-			.GH-modal-close:hover {
-			background-color: rgba(0, 0, 0, 0.1);
-			}
-			
-			.GH-dark-mode .GH-modal-close:hover {
-			background-color: rgba(255, 255, 255, 0.1);
-			}
-			
-			.GH-modal-body {
-			padding: var(--gh-space-lg);
-			}
-			
-			.GH-modal-games {
-			display: grid;
-			gap: var(--gh-space-md);
-			}
-			
-			.GH-modal-game {
-			display: flex;
-			align-items: center;
-			padding: var(--gh-space-md);
-			border-radius: var(--gh-radius-md);
-			background: rgba(255, 255, 255, 0.05);
-			transition: all var(--gh-transition-normal);
-			cursor: pointer;
-			text-decoration: none;
-			color: inherit;
-			border: 1px solid transparent;
-			}
-			
-			.GH-dark-mode .GH-modal-game {
-			background: rgba(255, 255, 255, 0.05);
-			}
-			
-			.GH-modal-game:hover {
-			transform: translateY(-3px);
-			box-shadow: var(--gh-shadow-md);
-			border-color: var(--gh-primary);
-			background: rgba(102, 126, 234, 0.1);
-			}
-			
-			.GH-modal-game-icon {
-			width: 60px;
-			height: 60px;
-			border-radius: var(--gh-radius-md);
-			background: var(--gh-gradient-primary);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			margin-right: var(--gh-space-md);
-			font-size: var(--gh-font-size-xl);
-			color: white;
-			flex-shrink: 0;
-			}
-			
-			.GH-modal-game-info {
-			flex: 1;
-			}
-			
-			.GH-modal-game-title {
-			font-size: var(--gh-font-size-lg);
-			font-weight: 600;
-			margin-bottom: 4px;
-			}
-			
-			.GH-modal-game-description {
-			font-size: var(--gh-font-size-sm);
-			opacity: 0.8;
-			}
-			
-			/* Install Button Styles */
-			.GH-install-btn {
-			background: rgba(255, 255, 255, 0.95);
-			border: 1px solid rgba(255, 255, 255, 0.3);
-			color: var(--gh-light-text);
-			padding: var(--gh-space-xs) var(--gh-space-sm);
-			border-radius: var(--gh-radius-md);
-			cursor: pointer;
-			transition: all var(--gh-transition-normal);
-			font-size: var(--gh-font-size-sm);
-			font-weight: 500;
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			backdrop-filter: blur(10px);
-			}
-			
-			.GH-dark-mode .GH-install-btn {
-			background: rgba(255, 255, 255, 0.95);
-			color: var(--gh-dark-bg);
-			border: 1px solid rgba(255, 255, 255, 0.2);
-			}
-			
-			.GH-install-btn:hover {
-			transform: translateY(-2px);
-			box-shadow: var(--gh-shadow-lg);
-			}
-			
-			.GH-install-btn .GH-icon {
-			font-size: 1.1rem;
-			}
-			
-			.GH-install-btn.hidden {
-			display: none;
-			}
-			
-			/* No games message */
-			.GH-modal-no-games {
-			text-align: center;
-			padding: var(--gh-space-xl);
-			opacity: 0.7;
-			}
-			
-			/* Fourth card styles */
-			.GH-card-4 {
-			background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-			}
-			
-			.GH-dark-mode .GH-card-4 {
-			background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-			}
-			
-			/* Responsive adjustments */
-			@media (max-width: 768px) {
-			.GH-modal {
-			width: 95%;
-			max-height: 85vh;
-			}
-			
-			.GH-modal-game {
-			flex-direction: column;
-			text-align: center;
-			}
-			
-			.GH-modal-game-icon {
-			margin-right: 0;
-			margin-bottom: var(--gh-space-sm);
-			}
-			
-			.GH-controls {
-			flex-wrap: wrap;
-			justify-content: center;
-			}
-			
-			.GH-install-btn {
-			font-size: var(--gh-font-size-xs);
-			padding: 8px 12px;
-			}
-			}
-		</style>
-	</head>
-	<body class="GH-body GH-light-mode">
-		<!-- Header -->
-		<header class="GH-header">
-			<div class="GH-header-content">
-				<div class="GH-logo-section">
-					<a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
-						<img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
-					</a>
-				</div>
-				
-				<h1 class="GH-title" data-i18n="GH.general.title">GameHub</h1>
-				
-				<div class="GH-controls">
-					<button class="GH-install-btn hidden" id="installButton">
-						<span class="GH-icon">📱</span>
-						<span data-i18n="GH.general.install">Install</span>
-					</button>
-					
-					<select class="GH-language-select" id="languageSelect">
-						<option value="en">English</option>
-						<option value="ar">العربية</option>
-						<option value="fr">Français</option>
-					</select>
-					
-					<button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
-						<span class="GH-icon">🌙</span>
-					</button>
-					
-					<button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
-						<span class="GH-icon">🔔</span>
-					</button>
-				</div>
-			</div>
-		</header>
-		
-		<!-- Main Content -->
-		<main class="GH-main">
-			<div class="GH-cards-container">
-				<!-- Memory & Brain Games (contains Damma + Damma Beta) -->
-				<div class="GH-card GH-card-1" id="memory-brain-card">
-					<h2 data-i18n="GH.index.card1Title">Memory & Brain Games</h2>
-					<p data-i18n="GH.index.explore">Explore the games</p>
-				</div>
-				
-				<!-- Puzzle & Logic Games -->
-				<div class="GH-card GH-card-2" id="puzzle-logic-card">
-					<h2 data-i18n="GH.index.card2Title">Puzzle & Logic Games</h2>
-					<p data-i18n="GH.index.explore">Explore the games</p>
-				</div>
-				
-				<!-- Action & Reflex Games -->
-				<div class="GH-card GH-card-3" id="action-reflex-card">
-					<h2 data-i18n="GH.index.card3Title">Action & Reflex Games</h2>
-					<p data-i18n="GH.index.explore">Explore the games</p>
-				</div>
-				
-				<!-- Coming Soon Card -->
-				<div class="GH-card GH-card-4">
-					<h2 data-i18n="GH.index.card4Title">More Games</h2>
-					<p data-i18n="GH.index.comingSoon">Coming Soon</p>
-				</div>
-			</div>
-		</main>
-		
-		<!-- Footer -->
-		<footer class="GH-footer">
-			<div class="GH-footer-content">
-				<div class="GH-footer-column">
-					<span data-i18n="GH.general.version">Version:</span>
-					<span>v0.0.1</span>
-				</div>
-				
-				<div class="GH-footer-column">
-					<span data-i18n="GH.general.developer">Developer:</span>
-					<span>Mejri Ziad</span>
-				</div>
-				
-				<div class="GH-footer-column">
-					<a href="#" data-i18n="GH.general.terms">Terms of Use</a>
-					<span> | </span>
-					<a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
-				</div>
-			</div>
-		</footer>
-		
-		<!-- Games Modal -->
-		<div class="GH-modal-overlay" id="games-modal">
-			<div class="GH-modal">
-				<div class="GH-modal-header">
-					<h2 class="GH-modal-title" id="modal-title" data-i18n="GH.index.modalTitle">Memory & Brain Games</h2>
-					<button class="GH-modal-close" id="modal-close">&times;</button>
-				</div>
-				<div class="GH-modal-body">
-					<div class="GH-modal-games" id="games-list">
-						<!-- Games populated by JavaScript -->
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<!-- Include JavaScript files -->
-		<script src="translation.js"></script>
-		<script src="global.js"></script>
-		<script src="main.js"></script>
-		
-		<!-- Games data with Damma added to Memory & Brain Games -->
-		<script>
-			// Games data organized by category
-			const gameCategories = {
-				memory: {
-					id: 'memory-brain-card',
-					titleKey: 'GH.index.card1Title',
-					modalTitleKey: 'GH.index.modalTitles.memoryBrain',
-					games: [
-						{
-							id: 'memory-challenge',
-							titleKey: 'GH.index.games.memoryChallenge.title',
-							descriptionKey: 'GH.index.games.memoryChallenge.description',
-							icon: '🧠',
-							url: '/GH-memory-challenge'
-						},
-						{
-							id: 'memory-pc',
-							titleKey: 'GH.index.games.memoryPC.title',
-							descriptionKey: 'GH.index.games.memoryPC.description',
-							icon: '💻',
-							url: '/GH-memoryPC'
-						},
-						{
-							id: 'pattern-recognition',
-							titleKey: 'GH.index.games.patternRecognition.title',
-							descriptionKey: 'GH.index.games.patternRecognition.description',
-							icon: '🔍',
-							url: '/GH-pattern-recognition'
-						},
-						// ========== DAMMA GAME (classic) ==========
-						{
-							id: 'damma-classic',
-							titleKey: 'GH.index.games.damma.title',
-							descriptionKey: 'GH.index.games.damma.description',
-							icon: '🎲',
-							url: '/GH-damma'
-						},
-						// ========== DAMMA GAME v.beta ==========
-						{
-							id: 'damma-beta',
-							titleKey: 'GH.index.games.dammaBeta.title',
-							descriptionKey: 'GH.index.games.dammaBeta.description',
-							icon: '⚙️',
-							url: '/GH-damma-beta'
-						}
-					]
-				},
-				puzzle: {
-					id: 'puzzle-logic-card',
-					titleKey: 'GH.index.card2Title',
-					modalTitleKey: 'GH.index.modalTitles.puzzleLogic',
-					games: [
-						{
-							id: 'logic-puzzle',
-							titleKey: 'GH.index.games.logicPuzzle.title',
-							descriptionKey: 'GH.index.games.logicPuzzle.description',
-							icon: '🧩',
-							url: '/GH-logic-puzzle'
-						},
-						{
-							id: 'color-match',
-							titleKey: 'GH.index.games.colorMatch.title',
-							descriptionKey: 'GH.index.games.colorMatch.description',
-							icon: '🎨',
-							url: '/GH-color-match'
-						},
-						{
-							id: 'sequence-prediction',
-							titleKey: 'GH.index.games.sequencePrediction.title',
-							descriptionKey: 'GH.index.games.sequencePrediction.description',
-							icon: '🔢',
-							url: '/GH-sequence-prediction'
-						},
-						{
-							id: 'hearts-card',
-							titleKey: 'GH.index.games.heartsCard.title',
-							descriptionKey: 'GH.index.games.heartsCard.description',
-							icon: '♥️',
-							url: '/GH-hearts-card'
-						},
-						{
-							id: 'chess',
-							titleKey: 'GH.index.games.chess.title',
-							descriptionKey: 'GH.index.games.chess.description',
-							icon: '♟️',
-							url: '/GH-chess-no-ai'
-						},
-						{
-							id: 'chess-ai',
-							titleKey: 'GH.index.games.chessAI.title',
-							descriptionKey: 'GH.index.games.chessAI.description',
-							icon: '🤖',
-							url: '/GH-chess-ai'
-						}
-					]
-				},
-				action: {
-					id: 'action-reflex-card',
-					titleKey: 'GH.index.card3Title',
-					modalTitleKey: 'GH.index.modalTitles.actionReflex',
-					games: [
-						{
-							id: 'reflex-challenge',
-							titleKey: 'GH.index.games.reflexChallenge.title',
-							descriptionKey: 'GH.index.games.reflexChallenge.description',
-							icon: '⚡',
-							url: '/GH-reflex-challenge'
-						},
-						{
-							id: 'target-practice',
-							titleKey: 'GH.index.games.targetPractice.title',
-							descriptionKey: 'GH.index.games.targetPractice.description',
-							icon: '🎯',
-							url: '/GH-target-practice'
-						},
-						{
-						  id: 'monopoly-deal',
-						  titleKey: 'GH.index.games.monopolyDeal.title',
-						  descriptionKey: 'GH.index.games.monopolyDeal.description',
-						  icon: '🏠',
-						  url: '/GH-monopoly-deal'
-						}
-					]
-				}
-			};
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>GameHub - Memory & Brain Games with Damma</title>
+    <link rel="stylesheet" href="main.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="GameHub - A collection of fun browser games including Damma and Damma Beta in Brain Games">
+    <!-- iOS Safari PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="GameHub">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+    <style>
+        /* Modal Styles */
+        .GH-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--gh-transition-normal);
+            backdrop-filter: blur(5px);
+        }
 
-			// Modal functionality (unchanged)
-			document.addEventListener('DOMContentLoaded', function() {
-				const modal = document.getElementById('games-modal');
-				const modalTitle = document.getElementById('modal-title');
-				const modalClose = document.getElementById('modal-close');
-				const gamesList = document.getElementById('games-list');
-				
-				// Add click events to all category cards
-				Object.values(gameCategories).forEach(category => {
-					const card = document.getElementById(category.id);
-					if (card) {
-						card.addEventListener('click', function(e) {
-							e.stopPropagation();
-							openModal(category);
-						});
-					}
-				});
-				
-				// Close modal when clicking close button
-				if (modalClose) {
-					modalClose.addEventListener('click', closeModal);
-				}
-				
-				// Close modal when clicking outside of it
-				if (modal) {
-					modal.addEventListener('click', function(e) {
-						if (e.target === modal) closeModal();
-					});
-				}
-				
-				// Close modal with Escape key
-				document.addEventListener('keydown', function(e) {
-					if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-				});
-				
-				function openModal(category) {
-					if (modal && modalTitle) {
-						const title = getTranslation(category.modalTitleKey, category.modalTitleKey);
-						modalTitle.textContent = title;
-						populateGamesList(category.games);
-						modal.classList.add('active');
-						document.body.style.overflow = 'hidden';
-					}
-				}
-				
-				function closeModal() {
-					if (modal) {
-						modal.classList.remove('active');
-						document.body.style.overflow = '';
-					}
-				}
-				
-				function populateGamesList(games) {
-					if (!gamesList) return;
-					gamesList.innerHTML = '';
-					
-					if (games.length === 0) {
-						const noGamesMessage = document.createElement('div');
-						noGamesMessage.className = 'GH-modal-no-games';
-						noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
-						gamesList.appendChild(noGamesMessage);
-					} else {
-						games.forEach(game => {
-							const gameElement = document.createElement('a');
-							gameElement.href = game.url;
-							gameElement.className = 'GH-modal-game';
-							const title = getTranslation(game.titleKey, game.titleKey);
-							const description = getTranslation(game.descriptionKey, game.descriptionKey);
-							gameElement.innerHTML = `
-								<div class="GH-modal-game-icon">${game.icon}</div>
-								<div class="GH-modal-game-info">
-									<div class="GH-modal-game-title">${title}</div>
-									<div class="GH-modal-game-description">${description}</div>
-								</div>
-							`;
-							gamesList.appendChild(gameElement);
-						});
-					}
-				}
-				
-				function getTranslation(key, fallback) {
-					const translations = window.getTranslations ? window.getTranslations() : {};
-					const cleanKey = key.replace(/^GH\./, '');
-					const keys = cleanKey.split('.');
-					let value = translations;
-					for (const k of keys) {
-						if (value && value[k] !== undefined) value = value[k];
-						else return fallback;
-					}
-					return value || fallback;
-				}
-				
-				// Listen for language changes to update modal content
-				document.addEventListener('translationsUpdated', function() {
-					if (modal && modal.classList.contains('active')) {
-						const activeCategory = Object.values(gameCategories).find(cat => 
-							getTranslation(cat.modalTitleKey, '') === modalTitle.textContent
-						);
-						if (activeCategory) {
-							modalTitle.textContent = getTranslation(activeCategory.modalTitleKey, activeCategory.modalTitleKey);
-							populateGamesList(activeCategory.games);
-						}
-					}
-				});
-			});
-		</script>
-					
-		<!-- Translations extended with Damma entries -->
-		<script>
-			window.GHObjectTranslations = window.GHObjectTranslations || {
-				en: {
-					index: {
-						card1Title: "Memory & Brain Games",
-						card2Title: "Puzzle & Logic Games", 
-						card3Title: "Action & Reflex Games",
-						card4Title: "More Games",
-						comingSoon: "Coming Soon",
-						explore: "Explore the games",
-						modalTitles: {
-							memoryBrain: "Memory & Brain Games",
-							puzzleLogic: "Puzzle & Logic Games", 
-							actionReflex: "Action & Reflex Games"
-						},
-						noGames: "No games available yet",
-						games: {
-							colorMatch: {
-								title: "Color Match Challenge",
-								description: "Test your color perception skills by matching the target color"
-							},
-							memoryChallenge: {
-								title: "Memory Challenge",
-								description: "Train your memory by matching pairs of cards with increasing difficulty"
-							},
-							logicPuzzle: {
-								title: "Logic Puzzle Challenge",
-								description: "Test your logical reasoning with challenging puzzles"
-							},
-							memoryPC: {
-								title: "Memory PC Challenge",
-								description: "Test your memory with computer-themed cards and increasing difficulty levels"
-							},
-							patternRecognition: {
-								title: "Pattern Recognition Challenge",
-								description: "Test your memory by recreating complex patterns"
-							},
-							sequencePrediction: {
-								title: "Sequence Prediction Challenge",
-								description: "Test your logical reasoning with sequence patterns!"
-							},
-							reflexChallenge: {
-								title: "Quick Reflex Challenge",
-								description: "Test your reflexes by clicking targets as quickly as possible!"
-							},
-							targetPractice: {
-								title: "Target Practice",
-								description: "Test your accuracy by clicking targets as fast as you can!"
-							},
-							monopolyDeal: {
-							  title: "Monopoly Deal",
-							  description: "Buy, trade, and build your way to property domination"
-							},
-							heartsCard: {
-								title: "Hearts Card Game",
-								description: "Avoid taking hearts and the Queen of Spades in this classic card game"
-							},
-							chess: {
-								title: "Chess Challenge",
-								description: "Test your strategic thinking in this classic game of chess!"
-							},
-							chessAI: {
-								title: "Chess vs AI",
-								description: "Challenge the computer in a game of chess with adjustable difficulty"
-							},
-							// Damma games added to Brain Games category
-							damma: {
-								title: "Damma Game",
-								description: "Classic strategy board game — capture all opponent pieces by jumping"
-							},
-							dammaBeta: {
-								title: "Damma Game v.beta",
-								description: "Enhanced beta version with new rules, AI improvements and visual polish"
-							}
-						}
-					}
-				},
-				ar: {
-					index: {
-						card1Title: "ألعاب الذاكرة والعقل",
-						card2Title: "ألعاب الألغاز والمنطق",
-						card3Title: "ألعاب الحركة وسرعة رد الفعل", 
-						card4Title: "ألعاب إضافية",
-						comingSoon: "قريباً",
-						explore: "اكتشف الألعاب",
-						modalTitles: {
-							memoryBrain: "ألعاب الذاكرة والعقل",
-							puzzleLogic: "ألعاب الألغاز والمنطق",
-							actionReflex: "ألعاب الحركة وسرعة رد الفعل"
-						},
-						noGames: "لا توجد ألعاب متاحة بعد",
-						games: {
-							colorMatch: {
-								title: "تحدي مطابقة الألوان",
-								description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
-							},
-							memoryChallenge: {
-								title: "تحدي الذاكرة",
-								description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
-							},
-							logicPuzzle: {
-								title: "تحدي الألغاز المنطقية",
-								description: "اختبر تفكيرك المنطقي بألغاز صعبة"
-							},
-							memoryPC: {
-								title: "تحدي الذاكرة الحاسوبي",
-								description: "اختبر ذاكرتك ببطاقات ذات طابع حاسوبي ومستويات صعوبة متزايدة"
-							},
-							patternRecognition: {
-								title: "تحدي التعرف على الأنماط",
-								description: "اختبر ذاكرتك بإعادة إنشاء الأنماط المعقدة"
-							},
-							sequencePrediction: {
-								title: "تحدي توقع التسلسل",
-								description: "اختبر تفكيرك المنطقي بأنماط التسلسل!"
-							},
-							reflexChallenge: {
-								title: "تحدي سرعة رد الفعل",
-								description: "اختبر سرعة رد فعلك بالنقر على الأهداف بأسرع ما يمكن!"
-							},
-							targetPractice: {
-								title: "تدريب على التصويب",
-								description: "اختبر دقتك بالنقر على الأهداف بأسرع ما يمكن!"
-							},
-							monopolyDeal: {
-							  title: "صفقة مونوبولي",
-							  description: "اشتر، تاجر، وابن طريقك نحو السيطرة العقارية"
-							},
-							heartsCard: {
-								title: "لعبة الورق هارتس",
-								description: "تجنب أخذ القلوب وملكة البستوني في هذه اللعبة الكلاسيكية"
-							},
-							chess: {
-								title: "تحدي الشطرنج",
-								description: "اختبر تفكيرك الاستراتيجي في هذه اللعبة الكلاسيكية للشطرنج!"
-							},
-							chessAI: {
-								title: "الشطرنج ضد الذكاء الاصطناعي",
-								description: "تحدَّ الكمبيوتر في لعبة شطرنج بمستويات صعوبة قابلة للتعديل"
-							},
-							damma: {
-								title: "لعبة الدمّة",
-								description: "لعبة إستراتيجية كلاسيكية — التقاط جميع قطع الخصم عن طريق القفز"
-							},
-							dammaBeta: {
-								title: "النسخة التجريبية من الدمّة v.beta",
-								description: "نسخة تجريبية محسّنة بقواعد جديدة وتحسينات في الذكاء الاصطناعي"
-							}
-						}
-					}
-				},
-				fr: {
-					index: {
-						card1Title: "Jeux de Mémoire et Cérébraux",
-						card2Title: "Jeux de Puzzle et Logique",
-						card3Title: "Jeux d'Action et Réflexes",
-						card4Title: "Plus de Jeux", 
-						comingSoon: "Bientôt Disponible",
-						explore: "Explorer les jeux",
-						modalTitles: {
-							memoryBrain: "Jeux de Mémoire et Cérébraux",
-							puzzleLogic: "Jeux de Puzzle et Logique",
-							actionReflex: "Jeux d'Action et Réflexes"
-						},
-						noGames: "Aucun jeu disponible pour le moment",
-						games: {
-							colorMatch: {
-								title: "Défi de Correspondance de Couleurs",
-								description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
-							},
-							memoryChallenge: {
-								title: "Défi de Mémoire",
-								description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
-							},
-							logicPuzzle: {
-								title: "Défi de Puzzles Logiques",
-								description: "Testez votre raisonnement logique avec des puzzles stimulants"
-							},
-							memoryPC: {
-								title: "Défi Mémoire PC",
-								description: "Testez votre mémoire avec des cartes à thème informatique et des niveaux de difficulté croissants"
-							},
-							patternRecognition: {
-								title: "Défi de Reconnaissance de Motifs",
-								description: "Testez votre mémoire en recréant des motifs complexes"
-							},
-							sequencePrediction: {
-								title: "Défi de Prédiction de Séquence",
-								description: "Testez votre raisonnement logique avec des motifs de séquence!"
-							},
-							reflexChallenge: {
-								title: "Défi de Réflexes Rapides",
-								description: "Testez vos réflexes en cliquant sur les cibles le plus rapidement possible!"
-							},
-							targetPractice: {
-								title: "Entraînement à la Cible",
-								description: "Testez votre précision en cliquant sur les cibles le plus vite possible!"
-							},
-							monopolyDeal: {
-							  title: "Monopoly Deal",
-							  description: "Achetez, échangez et construisez votre chemin vers la domination immobilière"
-							},
-							heartsCard: {
-								title: "Jeu de Carte Cœurs",
-								description: "Évitez de prendre les cœurs et la Dame de Pique dans ce jeu de carte classique"
-							},
-							chess: {
-								title: "Défi d'Échecs",
-								description: "Testez votre pensée stratégique dans ce jeu classique d'échecs !"
-							},
-							chessAI: {
-								title: "Échecs contre IA",
-								description: "Affrontez l'ordinateur dans une partie d'échecs avec difficulté réglable"
-							},
-							damma: {
-								title: "Jeu Damma",
-								description: "Jeu de stratégie classique — capturez toutes les pièces adverses en sautant"
-							},
-							dammaBeta: {
-								title: "Jeu Damma v.beta",
-								description: "Version bêta améliorée avec nouvelles règles, IA améliorée et finitions visuelles"
-							}
-						}
-					}
-				}
-			};
-		</script>
-	</body>
+        .GH-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .GH-modal {
+            background: var(--gh-light-card-bg);
+            border-radius: var(--gh-radius-lg);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--gh-shadow-lg);
+            transform: translateY(-20px);
+            transition: transform var(--gh-transition-normal);
+            position: relative;
+        }
+
+        .GH-dark-mode .GH-modal {
+            background: var(--gh-dark-card-bg);
+            color: var(--gh-dark-text);
+        }
+
+        .GH-modal-overlay.active .GH-modal {
+            transform: translateY(0);
+        }
+
+        .GH-modal-header {
+            padding: var(--gh-space-lg);
+            border-bottom: 1px solid var(--gh-light-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .GH-dark-mode .GH-modal-header {
+            border-bottom-color: var(--gh-dark-border);
+        }
+
+        .GH-modal-title {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .GH-modal-close {
+            background: none;
+            border: none;
+            font-size: var(--gh-font-size-2xl);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all var(--gh-transition-fast);
+            color: inherit;
+        }
+
+        .GH-modal-close:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-dark-mode .GH-modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .GH-modal-body {
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-modal-games {
+            display: grid;
+            gap: var(--gh-space-md);
+        }
+
+        .GH-modal-game {
+            display: flex;
+            align-items: center;
+            padding: var(--gh-space-md);
+            border-radius: var(--gh-radius-md);
+            background: rgba(255, 255, 255, 0.05);
+            transition: all var(--gh-transition-normal);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid transparent;
+        }
+
+        .GH-dark-mode .GH-modal-game {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .GH-modal-game:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--gh-shadow-md);
+            border-color: var(--gh-primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .GH-modal-game-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--gh-radius-md);
+            background: var(--gh-gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--gh-space-md);
+            font-size: var(--gh-font-size-xl);
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .GH-modal-game-info {
+            flex: 1;
+        }
+
+        .GH-modal-game-title {
+            font-size: var(--gh-font-size-lg);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .GH-modal-game-description {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.8;
+        }
+
+        /* Install Button Styles */
+        .GH-install-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--gh-light-text);
+            padding: var(--gh-space-xs) var(--gh-space-sm);
+            border-radius: var(--gh-radius-md);
+            cursor: pointer;
+            transition: all var(--gh-transition-normal);
+            font-size: var(--gh-font-size-sm);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .GH-dark-mode .GH-install-btn {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--gh-dark-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .GH-install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-install-btn .GH-icon {
+            font-size: 1.1rem;
+        }
+
+        .GH-install-btn.hidden {
+            display: none;
+        }
+
+        /* No games message */
+        .GH-modal-no-games {
+            text-align: center;
+            padding: var(--gh-space-xl);
+            opacity: 0.7;
+        }
+
+        /* Fourth card styles */
+        .GH-card-4 {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .GH-dark-mode .GH-card-4 {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .GH-modal {
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            .GH-modal-game {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .GH-modal-game-icon {
+                margin-right: 0;
+                margin-bottom: var(--gh-space-sm);
+            }
+
+            .GH-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .GH-install-btn {
+                font-size: var(--gh-font-size-xs);
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+<!-- Header -->
+<header class="GH-header">
+    <div class="GH-header-content">
+        <div class="GH-logo-section">
+            <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+            </a>
+        </div>
+
+        <h1 class="GH-title" data-i18n="GH.general.title">GameHub</h1>
+
+        <div class="GH-controls">
+            <button class="GH-install-btn hidden" id="installButton">
+                <span class="GH-icon">📱</span>
+                <span data-i18n="GH.general.install">Install</span>
+            </button>
+
+            <select class="GH-language-select" id="languageSelect">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+                <option value="fr">Français</option>
+            </select>
+
+            <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                <span class="GH-icon">🌙</span>
+            </button>
+
+            <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                <span class="GH-icon">🔔</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="GH-main">
+    <div class="GH-cards-container">
+        <!-- Memory & Brain Games (contains Damma + Damma Beta) -->
+        <div class="GH-card GH-card-1" id="memory-brain-card">
+            <h2 data-i18n="GH.index.card1Title">Memory & Brain Games</h2>
+            <p data-i18n="GH.index.explore">Explore the games</p>
+        </div>
+
+        <!-- Puzzle & Logic Games (includes Tetris now) -->
+        <div class="GH-card GH-card-2" id="puzzle-logic-card">
+            <h2 data-i18n="GH.index.card2Title">Puzzle & Logic Games</h2>
+            <p data-i18n="GH.index.explore">Explore the games</p>
+        </div>
+
+        <!-- Action & Reflex Games -->
+        <div class="GH-card GH-card-3" id="action-reflex-card">
+            <h2 data-i18n="GH.index.card3Title">Action & Reflex Games</h2>
+            <p data-i18n="GH.index.explore">Explore the games</p>
+        </div>
+
+        <!-- Coming Soon Card -->
+        <div class="GH-card GH-card-4">
+            <h2 data-i18n="GH.index.card4Title">More Games</h2>
+            <p data-i18n="GH.index.comingSoon">Coming Soon</p>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="GH-footer">
+    <div class="GH-footer-content">
+        <div class="GH-footer-column">
+            <span data-i18n="GH.general.version">Version:</span>
+            <span>v0.0.1</span>
+        </div>
+
+        <div class="GH-footer-column">
+            <span data-i18n="GH.general.developer">Developer:</span>
+            <span>Mejri Ziad</span>
+        </div>
+
+        <div class="GH-footer-column">
+            <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+            <span> | </span>
+            <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+        </div>
+    </div>
+</footer>
+
+<!-- Games Modal -->
+<div class="GH-modal-overlay" id="games-modal">
+    <div class="GH-modal">
+        <div class="GH-modal-header">
+            <h2 class="GH-modal-title" id="modal-title" data-i18n="GH.index.modalTitle">Memory & Brain Games</h2>
+            <button class="GH-modal-close" id="modal-close">&times;</button>
+        </div>
+        <div class="GH-modal-body">
+            <div class="GH-modal-games" id="games-list">
+                <!-- Games populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include JavaScript files -->
+<script src="translation.js"></script>
+<script src="global.js"></script>
+<script src="main.js"></script>
+
+<!-- Games data with added Tetris -->
+<script>
+    // Games data organized by category (updated with Tetris)
+    const gameCategories = {
+        memory: {
+            id: 'memory-brain-card',
+            titleKey: 'GH.index.card1Title',
+            modalTitleKey: 'GH.index.modalTitles.memoryBrain',
+            games: [
+                {
+                    id: 'memory-challenge',
+                    titleKey: 'GH.index.games.memoryChallenge.title',
+                    descriptionKey: 'GH.index.games.memoryChallenge.description',
+                    icon: '🧠',
+                    url: '/GH-memory-challenge'
+                },
+                {
+                    id: 'memory-pc',
+                    titleKey: 'GH.index.games.memoryPC.title',
+                    descriptionKey: 'GH.index.games.memoryPC.description',
+                    icon: '💻',
+                    url: '/GH-memoryPC'
+                },
+                {
+                    id: 'pattern-recognition',
+                    titleKey: 'GH.index.games.patternRecognition.title',
+                    descriptionKey: 'GH.index.games.patternRecognition.description',
+                    icon: '🔍',
+                    url: '/GH-pattern-recognition'
+                },
+                {
+                    id: 'damma-classic',
+                    titleKey: 'GH.index.games.damma.title',
+                    descriptionKey: 'GH.index.games.damma.description',
+                    icon: '🎲',
+                    url: '/GH-damma'
+                },
+                {
+                    id: 'damma-beta',
+                    titleKey: 'GH.index.games.dammaBeta.title',
+                    descriptionKey: 'GH.index.games.dammaBeta.description',
+                    icon: '⚙️',
+                    url: '/GH-damma-beta'
+                }
+            ]
+        },
+        puzzle: {
+            id: 'puzzle-logic-card',
+            titleKey: 'GH.index.card2Title',
+            modalTitleKey: 'GH.index.modalTitles.puzzleLogic',
+            games: [
+                {
+                    id: 'logic-puzzle',
+                    titleKey: 'GH.index.games.logicPuzzle.title',
+                    descriptionKey: 'GH.index.games.logicPuzzle.description',
+                    icon: '🧩',
+                    url: '/GH-logic-puzzle'
+                },
+                {
+                    id: 'color-match',
+                    titleKey: 'GH.index.games.colorMatch.title',
+                    descriptionKey: 'GH.index.games.colorMatch.description',
+                    icon: '🎨',
+                    url: '/GH-color-match'
+                },
+                {
+                    id: 'sequence-prediction',
+                    titleKey: 'GH.index.games.sequencePrediction.title',
+                    descriptionKey: 'GH.index.games.sequencePrediction.description',
+                    icon: '🔢',
+                    url: '/GH-sequence-prediction'
+                },
+                {
+                    id: 'hearts-card',
+                    titleKey: 'GH.index.games.heartsCard.title',
+                    descriptionKey: 'GH.index.games.heartsCard.description',
+                    icon: '♥️',
+                    url: '/GH-hearts-card'
+                },
+                {
+                    id: 'chess',
+                    titleKey: 'GH.index.games.chess.title',
+                    descriptionKey: 'GH.index.games.chess.description',
+                    icon: '♟️',
+                    url: '/GH-chess-no-ai'
+                },
+                {
+                    id: 'chess-ai',
+                    titleKey: 'GH.index.games.chessAI.title',
+                    descriptionKey: 'GH.index.games.chessAI.description',
+                    icon: '🤖',
+                    url: '/GH-chess-ai'
+                },
+                {
+                    id: 'image-puzzle',
+                    titleKey: 'GH.index.games.imagePuzzle.title',
+                    descriptionKey: 'GH.index.games.imagePuzzle.description',
+                    icon: '🖼️',
+                    url: 'GH-image-puzzle.html'
+                },
+                {
+                    id: 'sliding-puzzle',
+                    titleKey: 'GH.index.games.slidingPuzzle.title',
+                    descriptionKey: 'GH.index.games.slidingPuzzle.description',
+                    icon: '🧩',
+                    url: 'GH-image-puzzle-slide.html'
+                },
+                // ========== TETRIS ADDED HERE ==========
+                {
+                    id: 'tetris',
+                    titleKey: 'GH.index.games.tetris.title',
+                    descriptionKey: 'GH.index.games.tetris.description',
+                    icon: '🧩',
+                    url: 'GH-tetris-block.html'
+                }
+            ]
+        },
+        action: {
+            id: 'action-reflex-card',
+            titleKey: 'GH.index.card3Title',
+            modalTitleKey: 'GH.index.modalTitles.actionReflex',
+            games: [
+                {
+                    id: 'reflex-challenge',
+                    titleKey: 'GH.index.games.reflexChallenge.title',
+                    descriptionKey: 'GH.index.games.reflexChallenge.description',
+                    icon: '⚡',
+                    url: '/GH-reflex-challenge'
+                },
+                {
+                    id: 'target-practice',
+                    titleKey: 'GH.index.games.targetPractice.title',
+                    descriptionKey: 'GH.index.games.targetPractice.description',
+                    icon: '🎯',
+                    url: '/GH-target-practice'
+                },
+                {
+                    id: 'monopoly-deal',
+                    titleKey: 'GH.index.games.monopolyDeal.title',
+                    descriptionKey: 'GH.index.games.monopolyDeal.description',
+                    icon: '🏠',
+                    url: '/GH-monopoly-deal'
+                },
+                {
+                    id: 'neon-speed-runner',
+                    titleKey: 'GH.index.games.neonSpeedRunner.title',
+                    descriptionKey: 'GH.index.games.neonSpeedRunner.description',
+                    icon: '🏃‍♂️💨',
+                    url: 'GH-neon-runner.html'
+                },
+                {
+                    id: 'archery-clash',
+                    titleKey: 'GH.index.games.archeryClash.title',
+                    descriptionKey: 'GH.index.games.archeryClash.description',
+                    icon: '🏹',
+                    url: 'GH-archery-clash.html'
+                },
+                {
+                    id: 'bottle-blast',
+                    titleKey: 'GH.index.games.bottleBlast.title',
+                    descriptionKey: 'GH.index.games.bottleBlast.description',
+                    icon: '🍾💥',
+                    url: 'GH-bottle-blast.html'
+                }
+            ]
+        }
+    };
+
+    // Modal functionality (unchanged)
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('games-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalClose = document.getElementById('modal-close');
+        const gamesList = document.getElementById('games-list');
+
+        // Add click events to all category cards
+        Object.values(gameCategories).forEach(category => {
+            const card = document.getElementById(category.id);
+            if (card) {
+                card.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openModal(category);
+                });
+            }
+        });
+
+        // Close modal when clicking close button
+        if (modalClose) {
+            modalClose.addEventListener('click', closeModal);
+        }
+
+        // Close modal when clicking outside of it
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+        });
+
+        function openModal(category) {
+            if (modal && modalTitle) {
+                const title = getTranslation(category.modalTitleKey, category.modalTitleKey);
+                modalTitle.textContent = title;
+                populateGamesList(category.games);
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal() {
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function populateGamesList(games) {
+            if (!gamesList) return;
+            gamesList.innerHTML = '';
+
+            if (games.length === 0) {
+                const noGamesMessage = document.createElement('div');
+                noGamesMessage.className = 'GH-modal-no-games';
+                noGamesMessage.textContent = getTranslation('GH.index.noGames', 'No games available yet');
+                gamesList.appendChild(noGamesMessage);
+            } else {
+                games.forEach(game => {
+                    const gameElement = document.createElement('a');
+                    gameElement.href = game.url;
+                    gameElement.className = 'GH-modal-game';
+                    const title = getTranslation(game.titleKey, game.titleKey);
+                    const description = getTranslation(game.descriptionKey, game.descriptionKey);
+                    gameElement.innerHTML = `
+                        <div class="GH-modal-game-icon">${game.icon}</div>
+                        <div class="GH-modal-game-info">
+                            <div class="GH-modal-game-title">${title}</div>
+                            <div class="GH-modal-game-description">${description}</div>
+                        </div>
+                    `;
+                    gamesList.appendChild(gameElement);
+                });
+            }
+        }
+
+        function getTranslation(key, fallback) {
+            const translations = window.getTranslations ? window.getTranslations() : {};
+            const cleanKey = key.replace(/^GH\./, '');
+            const keys = cleanKey.split('.');
+            let value = translations;
+            for (const k of keys) {
+                if (value && value[k] !== undefined) value = value[k];
+                else return fallback;
+            }
+            return value || fallback;
+        }
+
+        // Listen for language changes to update modal content
+        document.addEventListener('translationsUpdated', function() {
+            if (modal && modal.classList.contains('active')) {
+                const activeCategory = Object.values(gameCategories).find(cat =>
+                    getTranslation(cat.modalTitleKey, '') === modalTitle.textContent
+                );
+                if (activeCategory) {
+                    modalTitle.textContent = getTranslation(activeCategory.modalTitleKey, activeCategory.modalTitleKey);
+                    populateGamesList(activeCategory.games);
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Translations extended with Tetris entry -->
+<script>
+    window.GHObjectTranslations = window.GHObjectTranslations || {
+        en: {
+            index: {
+                card1Title: "Memory & Brain Games",
+                card2Title: "Puzzle & Logic Games",
+                card3Title: "Action & Reflex Games",
+                card4Title: "More Games",
+                comingSoon: "Coming Soon",
+                explore: "Explore the games",
+                modalTitles: {
+                    memoryBrain: "Memory & Brain Games",
+                    puzzleLogic: "Puzzle & Logic Games",
+                    actionReflex: "Action & Reflex Games"
+                },
+                noGames: "No games available yet",
+                games: {
+                    colorMatch: {
+                        title: "Color Match Challenge",
+                        description: "Test your color perception skills by matching the target color"
+                    },
+                    memoryChallenge: {
+                        title: "Memory Challenge",
+                        description: "Train your memory by matching pairs of cards with increasing difficulty"
+                    },
+                    logicPuzzle: {
+                        title: "Logic Puzzle Challenge",
+                        description: "Test your logical reasoning with challenging puzzles"
+                    },
+                    memoryPC: {
+                        title: "Memory PC Challenge",
+                        description: "Test your memory with computer-themed cards and increasing difficulty levels"
+                    },
+                    patternRecognition: {
+                        title: "Pattern Recognition Challenge",
+                        description: "Test your memory by recreating complex patterns"
+                    },
+                    sequencePrediction: {
+                        title: "Sequence Prediction Challenge",
+                        description: "Test your logical reasoning with sequence patterns!"
+                    },
+                    reflexChallenge: {
+                        title: "Quick Reflex Challenge",
+                        description: "Test your reflexes by clicking targets as quickly as possible!"
+                    },
+                    targetPractice: {
+                        title: "Target Practice",
+                        description: "Test your accuracy by clicking targets as fast as you can!"
+                    },
+                    monopolyDeal: {
+                        title: "Monopoly Deal",
+                        description: "Buy, trade, and build your way to property domination"
+                    },
+                    heartsCard: {
+                        title: "Hearts Card Game",
+                        description: "Avoid taking hearts and the Queen of Spades in this classic card game"
+                    },
+                    chess: {
+                        title: "Chess Challenge",
+                        description: "Test your strategic thinking in this classic game of chess!"
+                    },
+                    chessAI: {
+                        title: "Chess vs AI",
+                        description: "Challenge the computer in a game of chess with adjustable difficulty"
+                    },
+                    damma: {
+                        title: "Damma Game",
+                        description: "Classic strategy board game — capture all opponent pieces by jumping"
+                    },
+                    dammaBeta: {
+                        title: "Damma Game v.beta",
+                        description: "Enhanced beta version with new rules, AI improvements and visual polish"
+                    },
+                    neonSpeedRunner: {
+                        title: "Neon Speed Runner",
+                        description: "Dash through obstacles in this fast-paced neon runner! Double jump, collect power-ups, and set high scores."
+                    },
+                    archeryClash: {
+                        title: "Archery Clash",
+                        description: "Master wind and aim to hit the bullseye in archery duels. Single player, PvP, or vs AI modes."
+                    },
+                    imagePuzzle: {
+                        title: "Image Puzzle",
+                        description: "Slide pieces to complete the picture puzzle. Choose your own image or use the default pattern."
+                    },
+                    slidingPuzzle: {
+                        title: "Sliding Puzzle",
+                        description: "Rearrange the tiles by sliding them into the empty space to solve the gradient puzzle."
+                    },
+                    bottleBlast: {
+                        title: "Bottle Blast",
+                        description: "Shoot bottles with precise aim and wind physics! Warm-up, PvP, or challenge the AI."
+                    },
+                    // ========== TETRIS TRANSLATION (EN) ==========
+                    tetris: {
+                        title: "Tetris",
+                        description: "Classic block-stacking puzzle game. Rotate and fit falling tetrominoes to clear lines and score big!"
+                    }
+                }
+            }
+        },
+        ar: {
+            index: {
+                card1Title: "ألعاب الذاكرة والعقل",
+                card2Title: "ألعاب الألغاز والمنطق",
+                card3Title: "ألعاب الحركة وسرعة رد الفعل",
+                card4Title: "ألعاب إضافية",
+                comingSoon: "قريباً",
+                explore: "اكتشف الألعاب",
+                modalTitles: {
+                    memoryBrain: "ألعاب الذاكرة والعقل",
+                    puzzleLogic: "ألعاب الألغاز والمنطق",
+                    actionReflex: "ألعاب الحركة وسرعة رد الفعل"
+                },
+                noGames: "لا توجد ألعاب متاحة بعد",
+                games: {
+                    colorMatch: {
+                        title: "تحدي مطابقة الألوان",
+                        description: "اختبر مهارات إدراكك للألوان بمطابقة اللون المستهدف"
+                    },
+                    memoryChallenge: {
+                        title: "تحدي الذاكرة",
+                        description: "درّب ذاكرتك بمطابقة أزواج البطاقات بمستويات صعوبة متزايدة"
+                    },
+                    logicPuzzle: {
+                        title: "تحدي الألغاز المنطقية",
+                        description: "اختبر تفكيرك المنطقي بألغاز صعبة"
+                    },
+                    memoryPC: {
+                        title: "تحدي الذاكرة الحاسوبي",
+                        description: "اختبر ذاكرتك ببطاقات ذات طابع حاسوبي ومستويات صعوبة متزايدة"
+                    },
+                    patternRecognition: {
+                        title: "تحدي التعرف على الأنماط",
+                        description: "اختبر ذاكرتك بإعادة إنشاء الأنماط المعقدة"
+                    },
+                    sequencePrediction: {
+                        title: "تحدي توقع التسلسل",
+                        description: "اختبر تفكيرك المنطقي بأنماط التسلسل!"
+                    },
+                    reflexChallenge: {
+                        title: "تحدي سرعة رد الفعل",
+                        description: "اختبر سرعة رد فعلك بالنقر على الأهداف بأسرع ما يمكن!"
+                    },
+                    targetPractice: {
+                        title: "تدريب على التصويب",
+                        description: "اختبر دقتك بالنقر على الأهداف بأسرع ما يمكن!"
+                    },
+                    monopolyDeal: {
+                        title: "صفقة مونوبولي",
+                        description: "اشتر، تاجر، وابن طريقك نحو السيطرة العقارية"
+                    },
+                    heartsCard: {
+                        title: "لعبة الورق هارتس",
+                        description: "تجنب أخذ القلوب وملكة البستوني في هذه اللعبة الكلاسيكية"
+                    },
+                    chess: {
+                        title: "تحدي الشطرنج",
+                        description: "اختبر تفكيرك الاستراتيجي في هذه اللعبة الكلاسيكية للشطرنج!"
+                    },
+                    chessAI: {
+                        title: "الشطرنج ضد الذكاء الاصطناعي",
+                        description: "تحدَّ الكمبيوتر في لعبة شطرنج بمستويات صعوبة قابلة للتعديل"
+                    },
+                    damma: {
+                        title: "لعبة الدمّة",
+                        description: "لعبة إستراتيجية كلاسيكية — التقاط جميع قطع الخصم عن طريق القفز"
+                    },
+                    dammaBeta: {
+                        title: "النسخة التجريبية من الدمّة v.beta",
+                        description: "نسخة تجريبية محسّنة بقواعد جديدة وتحسينات في الذكاء الاصطناعي"
+                    },
+                    neonSpeedRunner: {
+                        title: "نيون سبيد رانر",
+                        description: "انطلق عبر العقبات في هذا الجري السريع النيون! قفز مزدوج، اجمع التعزيزات وسجل أرقامًا قياسية."
+                    },
+                    archeryClash: {
+                        title: "معركة الرماية",
+                        description: "أتقن تأثير الرياح وأصِب قلب الهدف في مباريات الرماية. لاعب واحد، ضد لاعب، أو ضد الذكاء الاصطناعي."
+                    },
+                    imagePuzzle: {
+                        title: "لغز الصورة",
+                        description: "حرك القطع لتكمل صورة اللغز. اختر صورتك الخاصة أو استخدم النمط الافتراضي."
+                    },
+                    slidingPuzzle: {
+                        title: "لغز منزلق",
+                        description: "أعد ترتيب البلاطات عن طريق تحريكها في المساحة الفارغة لحل اللغز المتدرج."
+                    },
+                    bottleBlast: {
+                        title: "انفجار الزجاجة",
+                        description: "أطلق النار على الزجاجات بدقة وتأثير الرياح! وضع الإحماء، ضد لاعب، أو تحدَّ الذكاء الاصطناعي."
+                    },
+                    // ========== TETRIS TRANSLATION (AR) ==========
+                    tetris: {
+                        title: "تتريس",
+                        description: "لعبة الألغاز الكلاسيكية لتكديس المكعبات. قم بتدوير المكعبات المتساقطة وتركيبها لتكوين أسطر كاملة وسجل نقاطاً كبيرة!"
+                    }
+                }
+            }
+        },
+        fr: {
+            index: {
+                card1Title: "Jeux de Mémoire et Cérébraux",
+                card2Title: "Jeux de Puzzle et Logique",
+                card3Title: "Jeux d'Action et Réflexes",
+                card4Title: "Plus de Jeux",
+                comingSoon: "Bientôt Disponible",
+                explore: "Explorer les jeux",
+                modalTitles: {
+                    memoryBrain: "Jeux de Mémoire et Cérébraux",
+                    puzzleLogic: "Jeux de Puzzle et Logique",
+                    actionReflex: "Jeux d'Action et Réflexes"
+                },
+                noGames: "Aucun jeu disponible pour le moment",
+                games: {
+                    colorMatch: {
+                        title: "Défi de Correspondance de Couleurs",
+                        description: "Testez vos compétences de perception des couleurs en faisant correspondre la couleur cible"
+                    },
+                    memoryChallenge: {
+                        title: "Défi de Mémoire",
+                        description: "Entraînez votre mémoire en associant des paires de cartes avec une difficulté croissante"
+                    },
+                    logicPuzzle: {
+                        title: "Défi de Puzzles Logiques",
+                        description: "Testez votre raisonnement logique avec des puzzles stimulants"
+                    },
+                    memoryPC: {
+                        title: "Défi Mémoire PC",
+                        description: "Testez votre mémoire avec des cartes à thème informatique et des niveaux de difficulté croissants"
+                    },
+                    patternRecognition: {
+                        title: "Défi de Reconnaissance de Motifs",
+                        description: "Testez votre mémoire en recréant des motifs complexes"
+                    },
+                    sequencePrediction: {
+                        title: "Défi de Prédiction de Séquence",
+                        description: "Testez votre raisonnement logique avec des motifs de séquence!"
+                    },
+                    reflexChallenge: {
+                        title: "Défi de Réflexes Rapides",
+                        description: "Testez vos réflexes en cliquant sur les cibles le plus rapidement possible!"
+                    },
+                    targetPractice: {
+                        title: "Entraînement à la Cible",
+                        description: "Testez votre précision en cliquant sur les cibles le plus vite possible!"
+                    },
+                    monopolyDeal: {
+                        title: "Monopoly Deal",
+                        description: "Achetez, échangez et construisez votre chemin vers la domination immobilière"
+                    },
+                    heartsCard: {
+                        title: "Jeu de Carte Cœurs",
+                        description: "Évitez de prendre les cœurs et la Dame de Pique dans ce jeu de carte classique"
+                    },
+                    chess: {
+                        title: "Défi d'Échecs",
+                        description: "Testez votre pensée stratégique dans ce jeu classique d'échecs !"
+                    },
+                    chessAI: {
+                        title: "Échecs contre IA",
+                        description: "Affrontez l'ordinateur dans une partie d'échecs avec difficulté réglable"
+                    },
+                    damma: {
+                        title: "Jeu Damma",
+                        description: "Jeu de stratégie classique — capturez toutes les pièces adverses en sautant"
+                    },
+                    dammaBeta: {
+                        title: "Jeu Damma v.beta",
+                        description: "Version bêta améliorée avec nouvelles règles, IA améliorée et finitions visuelles"
+                    },
+                    neonSpeedRunner: {
+                        title: "Neon Speed Runner",
+                        description: "Évitez les obstacles dans ce runner néon rapide ! Double saut, bonus et records."
+                    },
+                    archeryClash: {
+                        title: "Arcade de Tir",
+                        description: "Maîtrisez le vent et visez le centre dans des duels de tir à l'arc. Solo, JcJ ou contre IA."
+                    },
+                    imagePuzzle: {
+                        title: "Puzzle d'Image",
+                        description: "Glissez les pièces pour reconstituer l'image. Choisissez votre propre image ou utilisez le motif par défaut."
+                    },
+                    slidingPuzzle: {
+                        title: "Puzzle Coulissant",
+                        description: "Réorganisez les tuiles en les faisant glisser dans l'espace vide pour résoudre le puzzle en dégradé."
+                    },
+                    bottleBlast: {
+                        title: "Bottle Blast",
+                        description: "Tirez sur les bouteilles avec précision et physique du vent ! Échauffement, JcJ ou défi IA."
+                    },
+                    // ========== TETRIS TRANSLATION (FR) ==========
+                    tetris: {
+                        title: "Tetris",
+                        description: "Jeu de puzzle classique d'empilage de blocs. Faites pivoter et ajustez les tétrominos pour compléter des lignes et marquer des points !"
+                    }
+                }
+            }
+        }
+    };
+</script>
+</body>
 </html>

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tetris – GameHub</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        /* Light mode (default) – follows site's card style */
+        :root {
+            --game-primary: #6c5ce7;
+            --game-secondary: #8b7cf0;
+            --game-accent: #fd79a8;
+            --game-gold: #ffd700;
+            /* Light background for game area / side panel */
+            --game-card-bg: rgba(255, 255, 255, 0.95);
+            --game-surface-bg: #ffffff;
+            --game-text: #1a1a2e;
+            --touch-btn-size: 55px;
+        }
+
+        /* Dark mode overrides */
+        .GH-dark-mode {
+            --game-card-bg: rgba(20, 40, 80, 0.95);
+            --game-surface-bg: #1a1a2e;
+            --game-text: #e0e0f0;
+        }
+
+        .GH-game-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--gh-space-lg);
+        }
+
+        .GH-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--gh-space-lg);
+            margin-bottom: var(--gh-space-lg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-xl);
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            color: white;
+            box-shadow: var(--gh-shadow-lg);
+        }
+
+        .GH-game-stats {
+            display: flex;
+            gap: var(--gh-space-md);
+            flex-wrap: wrap;
+        }
+
+        .GH-stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: var(--gh-space-sm) var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            text-align: center;
+            min-width: 80px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .GH-stat-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .GH-stat-value {
+            font-size: var(--gh-font-size-2xl);
+            font-weight: bold;
+            display: block;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .GH-stat-label {
+            font-size: var(--gh-font-size-sm);
+            opacity: 0.9;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .GH-game-area {
+            margin: var(--gh-space-lg) 0;
+            padding: 20px;
+            border-radius: var(--gh-radius-xl);
+            background-color: var(--game-card-bg);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            align-items: flex-start;
+            box-shadow: var(--gh-shadow-lg);
+            border: 1px solid rgba(108, 92, 231, 0.1);
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        canvas#board {
+            display: block;
+            border: 3px solid #3a3a60;
+            border-radius: 8px;
+            background: #0a0a18;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(108, 92, 231, 0.15);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 300px;
+            height: 600px;
+        }
+
+        .GH-side-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            min-width: 150px;
+            background: var(--game-card-bg);
+            padding: var(--gh-space-lg);
+            border-radius: var(--gh-radius-lg);
+            box-shadow: var(--gh-shadow-md);
+            border: 1px solid rgba(108, 92, 231, 0.1);
+        }
+
+        canvas#nextCanvas {
+            display: block;
+            border: 2px solid #3a3a60;
+            border-radius: 10px;
+            background: #0a0a18;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .GH-side-stats {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gh-space-sm);
+        }
+
+        /* Touch controls always visible */
+        .GH-touch-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .GH-touch-row {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+        }
+
+        .GH-touch-btn {
+            width: var(--touch-btn-size);
+            height: var(--touch-btn-size);
+            border-radius: 16px;
+            background: #1e1e40;
+            border: 2px solid #3a3a60;
+            color: #fff;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.08s;
+            touch-action: manipulation;
+            box-shadow: 0 6px 0 #0a0a20;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .GH-touch-btn:active {
+            background: #3a3a70;
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #0a0a20;
+        }
+
+        .GH-touch-btn.wide {
+            width: calc(var(--touch-btn-size) * 2 + 18px);
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .GH-game-btn {
+            background: linear-gradient(135deg, var(--game-primary), var(--game-secondary));
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            font-size: var(--gh-font-size-md);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--gh-shadow-lg);
+            min-width: 160px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .GH-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(108, 92, 231, 0.4);
+        }
+        .GH-game-btn:active {
+            transform: translateY(2px);
+        }
+        .GH-game-btn.paused {
+            background: linear-gradient(135deg, #e17055, #f09870);
+        }
+        .GH-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--gh-shadow-md);
+        }
+
+        .GH-game-over-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 2000; opacity: 0; visibility: hidden;
+            transition: all 0.4s ease; backdrop-filter: blur(5px);
+        }
+        .GH-game-over-overlay.active {
+            opacity: 1; visibility: visible;
+        }
+
+        .GH-modal-content {
+            background: var(--game-card-bg);
+            border-radius: var(--gh-radius-xl);
+            padding: var(--gh-space-xl);
+            max-width: 500px; width: 90%;
+            text-align: center;
+            box-shadow: var(--gh-shadow-xl);
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(108,92,231,0.2);
+        }
+        .GH-game-over-overlay.active .GH-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .GH-modal-title {
+            font-size: 2.2rem; font-weight: 900;
+            margin-bottom: var(--gh-space-lg);
+            color: var(--game-accent);
+            text-shadow: 0 0 20px rgba(253,121,168,0.6);
+        }
+        .GH-modal-stats {
+            display: grid; grid-template-columns: repeat(2,1fr);
+            gap: var(--gh-space-lg); margin: var(--gh-space-lg) 0;
+        }
+        .GH-modal-stat {
+            padding: var(--gh-space-md); border-radius: var(--gh-radius-lg);
+            background: rgba(108,92,231,0.1); border: 1px solid rgba(108,92,231,0.2);
+        }
+        .GH-modal-stat-value {
+            font-size: var(--gh-font-size-2xl); font-weight: bold; color: var(--game-primary);
+        }
+        .GH-modal-stat-label { font-size: var(--gh-font-size-sm); opacity: 0.8; }
+
+        .GH-game-notification {
+            position: fixed; top: 30px; right: 30px;
+            padding: var(--gh-space-lg); border-radius: var(--gh-radius-lg);
+            color: white; font-weight: bold; box-shadow: var(--gh-shadow-xl);
+            z-index: 3000; transform: translateX(150%);
+            transition: transform 0.4s; max-width: 350px;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .GH-game-notification.show { transform: translateX(0); }
+        .GH-game-notification.success { background: linear-gradient(135deg, #38B000, #2E8B57); }
+        .GH-game-notification.info { background: linear-gradient(135deg, var(--game-primary), var(--game-secondary)); }
+
+        @media (max-width: 700px) {
+            .GH-game-area { flex-direction: column; align-items: center; gap: 16px; }
+            .GH-side-panel { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px; width: 100%; }
+            .GH-side-stats { flex-direction: row; gap: var(--gh-space-sm); }
+            .GH-stat-box { min-width: auto; padding: 10px 14px; }
+            .GH-stat-value { font-size: var(--gh-font-size-lg); }
+            canvas#board { width: 260px; height: 520px; }
+            canvas#nextCanvas { width: 90px; height: 90px; }
+            .GH-game-btn { min-width: auto; padding: 12px 20px; font-size: var(--gh-font-size-sm); }
+        }
+
+        @media (max-width: 400px) {
+            canvas#board { width: 240px; height: 480px; }
+        }
+
+        [dir="rtl"] .GH-game-notification {
+            right: auto; left: 30px;
+            transform: translateX(-150%);
+        }
+        [dir="rtl"] .GH-game-notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Optional: subtle transition for arrow buttons */
+        .GH-touch-btn {
+            transition: all 0.08s linear, text-content 0.1s;
+        }
+    </style>
+</head>
+<body class="GH-body GH-light-mode">
+
+<!-- Header -->
+<header class="GH-header">
+    <div class="GH-header-content">
+        <div class="GH-logo-section">
+            <a href="index.html" class="GH-logo-link" data-i18n-title="GH.general.homeTooltip">
+                <img src="assets/icons/icon-96x96.png" alt="Logo" class="GH-general-logo" data-i18n-alt="GH.general.logoAlt">
+            </a>
+        </div>
+        
+        <h1 class="GH-title" data-i18n="GH.tetris.title">Tetris</h1>
+        
+        <div class="GH-controls">
+            <select class="GH-language-select" id="languageSelect">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+                <option value="fr">Français</option>
+            </select>
+            
+            <button class="GH-mode-toggle" id="modeToggle" data-i18n-title="GH.general.darkMode">
+                <span class="GH-icon">🌙</span>
+            </button>
+            
+            <button class="GH-notification-toggle" id="notificationToggle" data-i18n-title="GH.general.notifications">
+                <span class="GH-icon">🔔</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="GH-main">
+    <div class="GH-game-container">
+        <!-- Stats header -->
+        <div class="GH-game-header">
+            <div class="GH-game-stats">
+                <div class="GH-stat-box">
+                    <span class="GH-stat-value" id="scoreDisplay">0</span>
+                    <span class="GH-stat-label" data-i18n="GH.tetris.score">Score</span>
+                </div>
+                <div class="GH-stat-box">
+                    <span class="GH-stat-value" id="linesDisplay">0</span>
+                    <span class="GH-stat-label" data-i18n="GH.tetris.lines">Lines</span>
+                </div>
+                <div class="GH-stat-box">
+                    <span class="GH-stat-value" id="levelDisplay">1</span>
+                    <span class="GH-stat-label" data-i18n="GH.tetris.level">Level</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game area with board and side panel -->
+        <div class="GH-game-area" id="gameArea">
+            <canvas id="board" width="300" height="600"></canvas>
+            <div class="GH-side-panel">
+                <canvas id="nextCanvas" width="140" height="140"></canvas>
+                <div class="GH-side-stats">
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="sideScore">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.tetris.score">Score</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="sideLines">0</span>
+                        <span class="GH-stat-label" data-i18n="GH.tetris.lines">Lines</span>
+                    </div>
+                    <div class="GH-stat-box">
+                        <span class="GH-stat-value" id="sideLevel">1</span>
+                        <span class="GH-stat-label" data-i18n="GH.tetris.level">Level</span>
+                    </div>
+                </div>
+                <button class="GH-game-btn" id="btnStart" data-i18n="GH.tetris.start">▶ Start</button>
+
+                <!-- Touch controls always visible -->
+                <div class="GH-touch-controls" id="touchControls">
+                    <div class="GH-touch-row">
+                        <button class="GH-touch-btn" id="btnLeft">◀</button>
+                        <button class="GH-touch-btn" id="btnRotate">↻</button>
+                        <button class="GH-touch-btn" id="btnRight">▶</button>
+                    </div>
+                    <div class="GH-touch-row">
+                        <button class="GH-touch-btn wide" id="btnDown" data-i18n="GH.tetris.softDrop">▼ Soft</button>
+                    </div>
+                    <div class="GH-touch-row">
+                        <button class="GH-touch-btn wide" id="btnHardDrop" data-i18n="GH.tetris.hardDrop">⏬ Hard Drop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="GH-footer">
+    <div class="GH-footer-content">
+        <div class="GH-footer-column">
+            <span data-i18n="GH.general.version">Version:</span>
+            <span>v0.1.0</span>
+        </div>
+        
+        <div class="GH-footer-column">
+            <span data-i18n="GH.general.developer">Developer:</span>
+            <span>Mejri Ziad</span>
+        </div>
+        
+        <div class="GH-footer-column">
+            <a href="#" data-i18n="GH.general.terms">Terms of Use</a>
+            <span> | </span>
+            <a href="#" data-i18n="GH.general.privacy">Privacy Policy</a>
+        </div>
+    </div>
+</footer>
+
+<!-- Game Over Modal -->
+<div class="GH-game-over-overlay" id="gameOverOverlay">
+    <div class="GH-modal-content">
+        <h2 class="GH-modal-title" data-i18n="GH.tetris.gameOver">Game Over</h2>
+        <div class="GH-modal-stats">
+            <div class="GH-modal-stat">
+                <div class="GH-modal-stat-value" id="finalScore">0</div>
+                <div class="GH-modal-stat-label" data-i18n="GH.tetris.finalScore">Final Score</div>
+            </div>
+            <div class="GH-modal-stat">
+                <div class="GH-modal-stat-value" id="finalLines">0</div>
+                <div class="GH-modal-stat-label" data-i18n="GH.tetris.linesCleared">Lines Cleared</div>
+            </div>
+            <div class="GH-modal-stat">
+                <div class="GH-modal-stat-value" id="finalLevel">1</div>
+                <div class="GH-modal-stat-label" data-i18n="GH.tetris.levelReached">Level Reached</div>
+            </div>
+        </div>
+        <button class="GH-game-btn" id="btnRestart" data-i18n="GH.tetris.playAgain">↻ Play Again</button>
+    </div>
+</div>
+
+<div class="GH-game-notification" id="gameNotification" style="display: none;"></div>
+
+<!-- Include site scripts -->
+<script src="translation.js"></script>
+<script src="global.js"></script>
+
+<!-- Tetris translation strings -->
+<script>
+    window.GHObjectTranslations = window.GHObjectTranslations || {};
+    const tetrisTranslations = {
+        en: { tetris: { title: "Tetris", score: "Score", lines: "Lines", level: "Level", start: "▶ Start", pause: "⏸ Pause", resume: "▶ Resume", gameOver: "Game Over", finalScore: "Final Score", linesCleared: "Lines Cleared", levelReached: "Level Reached", playAgain: "↻ Play Again", pausedOverlay: "PAUSED", gameStarted: "Game started!", softDrop: "▼ Soft", hardDrop: "⏬ Hard Drop" } },
+        ar: { tetris: { title: "تتريس", score: "النقاط", lines: "الأسطر", level: "المستوى", start: "▶ ابدأ", pause: "⏸ إيقاف", resume: "▶ استئناف", gameOver: "انتهت اللعبة", finalScore: "النتيجة النهائية", linesCleared: "الأسطر المحذوفة", levelReached: "المستوى الذي تم الوصول إليه", playAgain: "↻ العب مرة أخرى", pausedOverlay: "متوقف", gameStarted: "بدأت اللعبة!", softDrop: "▼ إسقاط ناعم", hardDrop: "⏬ إسقاط صلب" } },
+        fr: { tetris: { title: "Tetris", score: "Score", lines: "Lignes", level: "Niveau", start: "▶ Démarrer", pause: "⏸ Pause", resume: "▶ Reprendre", gameOver: "Partie terminée", finalScore: "Score final", linesCleared: "Lignes complétées", levelReached: "Niveau atteint", playAgain: "↻ Rejouer", pausedOverlay: "PAUSE", gameStarted: "Jeu lancé !", softDrop: "▼ Chute rapide", hardDrop: "⏬ Chute instant." } }
+    };
+    for (const lang of Object.keys(tetrisTranslations)) {
+        if (!window.GHObjectTranslations[lang]) window.GHObjectTranslations[lang] = {};
+        Object.assign(window.GHObjectTranslations[lang], tetrisTranslations[lang]);
+    }
+</script>
+
+<!-- Tetris game logic + RTL arrow fix -->
+<script>
+(function() {
+    const boardCanvas = document.getElementById('board');
+    const ctx = boardCanvas.getContext('2d');
+    const nextCanvas = document.getElementById('nextCanvas');
+    const nextCtx = nextCanvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const linesDisplay = document.getElementById('linesDisplay');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const sideScore = document.getElementById('sideScore');
+    const sideLines = document.getElementById('sideLines');
+    const sideLevel = document.getElementById('sideLevel');
+    const btnStart = document.getElementById('btnStart');
+    const btnRestart = document.getElementById('btnRestart');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalLinesEl = document.getElementById('finalLines');
+    const finalLevelEl = document.getElementById('finalLevel');
+    const gameNotification = document.getElementById('gameNotification');
+
+    function getTranslation(key, fallback) {
+        const translations = window.getTranslations ? window.getTranslations() : {};
+        const cleanKey = key.replace(/^GH\./, '');
+        const keys = cleanKey.split('.');
+        let value = keys.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : undefined), translations);
+        return value && typeof value === 'string' ? value : fallback;
+    }
+
+    function updateDynamicUI() {
+        if (gameRunning && !gamePaused) {
+            btnStart.textContent = getTranslation('GH.tetris.pause', '⏸ Pause');
+        } else if (gamePaused) {
+            btnStart.textContent = getTranslation('GH.tetris.resume', '▶ Resume');
+        } else {
+            btnStart.textContent = getTranslation('GH.tetris.start', '▶ Start');
+        }
+    }
+
+    document.addEventListener('languageChanged', updateDynamicUI);
+    document.getElementById('languageSelect')?.addEventListener('change', () => setTimeout(updateDynamicUI, 50));
+
+    const COLS = 10, ROWS = 20, CELL_SIZE = 30, NEXT_CELL_SIZE = 26;
+    const BOARD_WIDTH = COLS * CELL_SIZE, BOARD_HEIGHT = ROWS * CELL_SIZE;
+
+    const TETROMINOS = {
+        I: { color: '#00e5ff', rotations: [
+            [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+            [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
+            [[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],
+            [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]
+        ]},
+        O: { color: '#ffe135', rotations: [[[1,1],[1,1]]] },
+        T: { color: '#d500f9', rotations: [
+            [[0,1,0],[1,1,1],[0,0,0]], [[0,1,0],[0,1,1],[0,1,0]],
+            [[0,0,0],[1,1,1],[0,1,0]], [[0,1,0],[1,1,0],[0,1,0]]
+        ]},
+        S: { color: '#00e676', rotations: [
+            [[0,1,1],[1,1,0],[0,0,0]], [[0,1,0],[0,1,1],[0,0,1]],
+            [[0,0,0],[0,1,1],[1,1,0]], [[1,0,0],[1,1,0],[0,1,0]]
+        ]},
+        Z: { color: '#ff5252', rotations: [
+            [[1,1,0],[0,1,1],[0,0,0]], [[0,0,1],[0,1,1],[0,1,0]],
+            [[0,0,0],[1,1,0],[0,1,1]], [[0,1,0],[1,1,0],[1,0,0]]
+        ]},
+        J: { color: '#448aff', rotations: [
+            [[1,0,0],[1,1,1],[0,0,0]], [[0,1,1],[0,1,0],[0,1,0]],
+            [[0,0,0],[1,1,1],[0,0,1]], [[0,1,0],[0,1,0],[1,1,0]]
+        ]},
+        L: { color: '#ff9100', rotations: [
+            [[0,0,1],[1,1,1],[0,0,0]], [[0,1,0],[0,1,0],[0,1,1]],
+            [[0,0,0],[1,1,1],[1,0,0]], [[1,1,0],[0,1,0],[0,1,0]]
+        ]}
+    };
+    const PIECE_NAMES = Object.keys(TETROMINOS);
+
+    let board = [], currentPiece = null, nextPieceName = null;
+    let score = 0, linesCleared = 0, level = 1;
+    let gameRunning = false, gamePaused = false, gameOver = false;
+    let dropInterval = null, animationId = null, baseSpeed = 800;
+    let touchRepeatLeft, touchRepeatRight, touchRepeatDown;
+
+    function createBoard() { board = Array.from({length: ROWS}, () => Array(COLS).fill(null)); }
+    function getMatrix(name, rot) { return TETROMINOS[name].rotations[rot % TETROMINOS[name].rotations.length]; }
+    function collides(name, rot, px, py) {
+        const m = getMatrix(name, rot);
+        for (let r=0; r<m.length; r++) for (let c=0; c<m[r].length; c++) if (m[r][c]) {
+            const bx=px+c, by=py+r;
+            if (bx<0 || bx>=COLS || by>=ROWS) return true;
+            if (by<0) continue;
+            if (board[by][bx] !== null) return true;
+        }
+        return false;
+    }
+    function spawnPiece(name) {
+        const m = getMatrix(name, 0);
+        const startX = Math.floor((COLS - m[0].length)/2), startY = -1;
+        if (collides(name, 0, startX, startY)) return false;
+        currentPiece = { name, rotation:0, x:startX, y:startY };
+        return true;
+    }
+    function lockPiece() {
+        const {name, rotation, x, y} = currentPiece;
+        const m = getMatrix(name, rotation), color = TETROMINOS[name].color;
+        for (let r=0; r<m.length; r++) for (let c=0; c<m[r].length; c++) if (m[r][c]) {
+            const bx=x+c, by=y+r;
+            if (by<0) { gameOver=true; return; }
+            board[by][bx] = color;
+        }
+        currentPiece = null;
+    }
+    function clearLines() {
+        let cleared = 0;
+        for (let r=ROWS-1; r>=0; r--) if (board[r].every(cell=>cell)) {
+            board.splice(r,1); board.unshift(Array(COLS).fill(null)); cleared++; r++;
+        }
+        if (cleared) {
+            linesCleared += cleared;
+            score += [0,100,300,500,800][cleared] * level;
+            level = Math.floor(linesCleared/10) + 1;
+            updateSpeed();
+        }
+    }
+    function updateSpeed() {
+        const speed = Math.max(50, baseSpeed - (level-1)*70);
+        if (dropInterval) { clearInterval(dropInterval); dropInterval = setInterval(tick, speed); }
+    }
+    function movePiece(dx, dy) {
+        if (!currentPiece || !gameRunning || gamePaused || gameOver) return false;
+        const {name, rotation, x, y} = currentPiece;
+        if (!collides(name, rotation, x+dx, y+dy)) { currentPiece.x+=dx; currentPiece.y+=dy; return true; }
+        return false;
+    }
+    function rotatePiece() {
+        if (!currentPiece || !gameRunning || gamePaused || gameOver) return;
+        const {name, rotation, x, y} = currentPiece;
+        const newRot = (rotation+1) % TETROMINOS[name].rotations.length;
+        if (!collides(name, newRot, x, y)) { currentPiece.rotation = newRot; return; }
+        for (const dx of [1,-1,2,-2]) if (!collides(name, newRot, x+dx, y)) {
+            currentPiece.rotation = newRot; currentPiece.x += dx; return;
+        }
+        if (!collides(name, newRot, x, y-1)) { currentPiece.rotation = newRot; currentPiece.y -= 1; }
+    }
+    function hardDrop() {
+        if (!currentPiece || !gameRunning || gamePaused || gameOver) return;
+        let dist = 0; while (movePiece(0,1)) dist++; score += dist*2; lockAndSpawn();
+    }
+    function softDrop() { if (movePiece(0,1)) { score++; return true; } return false; }
+    function tick() {
+        if (!gameRunning || gamePaused || gameOver || !currentPiece) return;
+        if (!movePiece(0,1)) lockAndSpawn();
+        updateUI(); render();
+    }
+    function lockAndSpawn() {
+        if (currentPiece) lockPiece();
+        if (gameOver) { endGame(); return; }
+        clearLines(); updateUI();
+        const ok = spawnPiece(nextPieceName); nextPieceName = randomPieceName();
+        if (!ok) { gameOver=true; endGame(); return; }
+        render(); renderNext();
+    }
+    function randomPieceName() { return PIECE_NAMES[Math.floor(Math.random()*PIECE_NAMES.length)]; }
+    function updateUI() {
+        scoreDisplay.textContent = score; linesDisplay.textContent = linesCleared; levelDisplay.textContent = level;
+        sideScore.textContent = score; sideLines.textContent = linesCleared; sideLevel.textContent = level;
+    }
+    function endGame() {
+        gameRunning = false; gameOver = true;
+        if (dropInterval) clearInterval(dropInterval); dropInterval = null; currentPiece = null;
+        finalScoreEl.textContent = score; finalLinesEl.textContent = linesCleared; finalLevelEl.textContent = level;
+        gameOverOverlay.classList.add('active');
+        updateDynamicUI();
+        render();
+    }
+    function startGame() {
+        if (dropInterval) clearInterval(dropInterval); if (animationId) cancelAnimationFrame(animationId);
+        clearTouchIntervals();
+        createBoard(); score=0; linesCleared=0; level=1; gameOver=false; gameRunning=true; gamePaused=false; currentPiece=null;
+        nextPieceName = randomPieceName(); updateUI();
+        gameOverOverlay.classList.remove('active');
+        updateDynamicUI();
+        const ok = spawnPiece(randomPieceName()); nextPieceName = randomPieceName();
+        if (!ok) { gameOver=true; endGame(); return; }
+        updateSpeed(); render(); renderNext();
+        (function loop() { render(); if (gameRunning && !gameOver) animationId = requestAnimationFrame(loop); })();
+        showNotification(getTranslation('GH.tetris.gameStarted', 'Game started!'), 'info');
+    }
+    function togglePause() {
+        if (!gameRunning || gameOver) return;
+        gamePaused = !gamePaused;
+        if (gamePaused) {
+            if (dropInterval) { clearInterval(dropInterval); dropInterval = null; }
+        } else {
+            updateSpeed();
+        }
+        updateDynamicUI();
+        render();
+    }
+
+    function clearTouchIntervals() {
+        [touchRepeatLeft, touchRepeatRight, touchRepeatDown].forEach(id => { if (id) clearInterval(id); });
+        touchRepeatLeft = touchRepeatRight = touchRepeatDown = null;
+    }
+    function startTouchRepeat(dir) {
+        if (dir==='left' && !touchRepeatLeft) {
+            movePiece(-1,0); render(); touchRepeatLeft = setInterval(()=>{movePiece(-1,0); render();}, 50);
+        } else if (dir==='right' && !touchRepeatRight) {
+            movePiece(1,0); render(); touchRepeatRight = setInterval(()=>{movePiece(1,0); render();}, 50);
+        } else if (dir==='down' && !touchRepeatDown) {
+            softDrop(); render(); touchRepeatDown = setInterval(()=>{softDrop(); render();}, 50);
+        }
+    }
+    function stopTouchRepeat(dir) {
+        if (dir==='left') { clearInterval(touchRepeatLeft); touchRepeatLeft=null; }
+        else if (dir==='right') { clearInterval(touchRepeatRight); touchRepeatRight=null; }
+        else if (dir==='down') { clearInterval(touchRepeatDown); touchRepeatDown=null; }
+    }
+    function setupTouchButton(id, action) {
+        const btn = document.getElementById(id); if (!btn) return;
+        const trigger = () => {
+            if (!gameRunning || gamePaused || gameOver) return;
+            if (action==='left') startTouchRepeat('left');
+            else if (action==='right') startTouchRepeat('right');
+            else if (action==='down') startTouchRepeat('down');
+            else if (action==='rotate') rotatePiece();
+            else if (action==='harddrop') hardDrop();
+            render(); if (action==='harddrop') renderNext();
+        };
+        const stop = () => {
+            if (action==='left') stopTouchRepeat('left');
+            else if (action==='right') stopTouchRepeat('right');
+            else if (action==='down') stopTouchRepeat('down');
+        };
+        btn.addEventListener('touchstart', e => { e.preventDefault(); trigger(); });
+        btn.addEventListener('touchend', e => { e.preventDefault(); stop(); });
+        btn.addEventListener('touchcancel', e => { e.preventDefault(); stop(); });
+        btn.addEventListener('mousedown', e => { e.preventDefault(); trigger(); });
+        btn.addEventListener('mouseup', e => { e.preventDefault(); stop(); });
+        btn.addEventListener('mouseleave', stop);
+    }
+    setupTouchButton('btnLeft', 'left');
+    setupTouchButton('btnRight', 'right');
+    setupTouchButton('btnDown', 'down');
+    setupTouchButton('btnRotate', 'rotate');
+    setupTouchButton('btnHardDrop', 'harddrop');
+
+    function drawCell(context, col, row, size, color) {
+        const x=col*size, y=row*size;
+        context.fillStyle = color; context.fillRect(x+1,y+1,size-2,size-2);
+        context.fillStyle = 'rgba(255,255,255,0.3)'; context.fillRect(x+1,y+1,size-2,4); context.fillRect(x+1,y+1,4,size-2);
+        context.fillStyle = 'rgba(0,0,0,0.3)'; context.fillRect(x+1,y+size-5,size-2,4); context.fillRect(x+size-5,y+1,4,size-2);
+        context.strokeStyle = 'rgba(255,255,255,0.15)'; context.lineWidth=1; context.strokeRect(x+1,y+1,size-2,size-2);
+    }
+    function drawGhost(context, col, row, size, color) {
+        const x=col*size, y=row*size;
+        context.strokeStyle=color; context.lineWidth=2; context.setLineDash([3,3]);
+        context.strokeRect(x+2,y+2,size-4,size-4); context.setLineDash([]);
+        context.fillStyle='rgba(255,255,255,0.05)'; context.fillRect(x+2,y+2,size-4,size-4);
+    }
+    function render() {
+        ctx.clearRect(0,0,BOARD_WIDTH,BOARD_HEIGHT);
+        ctx.fillStyle='#0a0a18'; ctx.fillRect(0,0,BOARD_WIDTH,BOARD_HEIGHT);
+        ctx.strokeStyle='#1a1a35'; ctx.lineWidth=0.5;
+        for (let r=0;r<=ROWS;r++) { ctx.beginPath(); ctx.moveTo(0,r*CELL_SIZE); ctx.lineTo(BOARD_WIDTH,r*CELL_SIZE); ctx.stroke(); }
+        for (let c=0;c<=COLS;c++) { ctx.beginPath(); ctx.moveTo(c*CELL_SIZE,0); ctx.lineTo(c*CELL_SIZE,BOARD_HEIGHT); ctx.stroke(); }
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (board[r][c]) drawCell(ctx,c,r,CELL_SIZE,board[r][c]);
+        if (currentPiece && !gameOver) {
+            const {name,rotation,x,y}=currentPiece; const m=getMatrix(name,rotation), color=TETROMINOS[name].color;
+            let ghostY=y; while (!collides(name,rotation,x,ghostY+1)) ghostY++;
+            if (ghostY!==y) for (let r=0;r<m.length;r++) for (let c=0;c<m[r].length;c++) if (m[r][c]) {
+                const gx=x+c, gy=ghostY+r; if (gy>=0) drawGhost(ctx,gx,gy,CELL_SIZE,color);
+            }
+            for (let r=0;r<m.length;r++) for (let c=0;c<m[r].length;c++) if (m[r][c]) {
+                const px=x+c, py=y+r; if (py>=0) drawCell(ctx,px,py,CELL_SIZE,color);
+            }
+        }
+        if (gamePaused && !gameOver) {
+            ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,BOARD_WIDTH,BOARD_HEIGHT);
+            ctx.fillStyle='#fff'; ctx.font='bold 28px "Segoe UI"'; ctx.textAlign='center';
+            ctx.fillText(getTranslation('GH.tetris.pausedOverlay','PAUSED'), BOARD_WIDTH/2, BOARD_HEIGHT/2);
+            ctx.textAlign='start';
+        }
+        if (gameOver) {
+            ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(0,0,BOARD_WIDTH,BOARD_HEIGHT);
+            ctx.fillStyle='#fd79a8'; ctx.font='bold 26px "Segoe UI"'; ctx.textAlign='center';
+            ctx.fillText(getTranslation('GH.tetris.gameOver','GAME OVER'), BOARD_WIDTH/2, BOARD_HEIGHT/2);
+            ctx.textAlign='start';
+        }
+    }
+    function renderNext() {
+        nextCtx.clearRect(0,0,nextCanvas.width,nextCanvas.height);
+        nextCtx.fillStyle='#0a0a18'; nextCtx.fillRect(0,0,nextCanvas.width,nextCanvas.height);
+        if (!nextPieceName) return;
+        const m = getMatrix(nextPieceName,0), color = TETROMINOS[nextPieceName].color;
+        const rows=m.length, cols=m[0].length;
+        const offX = (nextCanvas.width - cols*NEXT_CELL_SIZE)/2, offY = (nextCanvas.height - rows*NEXT_CELL_SIZE)/2;
+        for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) if (m[r][c]) {
+            const x=offX+c*NEXT_CELL_SIZE, y=offY+r*NEXT_CELL_SIZE;
+            nextCtx.fillStyle=color; nextCtx.fillRect(x+1,y+1,NEXT_CELL_SIZE-2,NEXT_CELL_SIZE-2);
+            nextCtx.fillStyle='rgba(255,255,255,0.3)'; nextCtx.fillRect(x+1,y+1,NEXT_CELL_SIZE-2,3); nextCtx.fillRect(x+1,y+1,3,NEXT_CELL_SIZE-2);
+            nextCtx.fillStyle='rgba(0,0,0,0.3)'; nextCtx.fillRect(x+1,y+NEXT_CELL_SIZE-4,NEXT_CELL_SIZE-2,3); nextCtx.fillRect(x+NEXT_CELL_SIZE-4,y+1,3,NEXT_CELL_SIZE-2);
+            nextCtx.strokeStyle='rgba(255,255,255,0.15)'; nextCtx.lineWidth=1; nextCtx.strokeRect(x+1,y+1,NEXT_CELL_SIZE-2,NEXT_CELL_SIZE-2);
+        }
+    }
+    function showNotification(msg, type) {
+        gameNotification.textContent = msg;
+        gameNotification.className = `GH-game-notification ${type}`;
+        gameNotification.style.display = 'block'; gameNotification.classList.add('show');
+        setTimeout(() => { gameNotification.classList.remove('show'); setTimeout(()=>{gameNotification.style.display='none';},300); }, 2500);
+    }
+
+    btnStart.addEventListener('click', () => {
+        if (gameOver) startGame();
+        else if (!gameRunning) startGame();
+        else togglePause();
+    });
+    btnRestart.addEventListener('click', startGame);
+    gameOverOverlay.addEventListener('click', e => { if (e.target===gameOverOverlay) startGame(); });
+
+    // ---------- FIX: RTL arrow direction for left/right buttons ----------
+    function updateArrowDirection() {
+        const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+        const leftBtn = document.getElementById('btnLeft');
+        const rightBtn = document.getElementById('btnRight');
+        if (leftBtn && rightBtn) {
+            if (isRtl) {
+                // In RTL, left button visually points RIGHT, right button points LEFT
+                leftBtn.textContent = '▶';
+                rightBtn.textContent = '◀';
+            } else {
+                leftBtn.textContent = '◀';
+                rightBtn.textContent = '▶';
+            }
+        }
+    }
+    
+    // Listen to language/direction changes (global event 'languageChanged' or manual update)
+    document.addEventListener('languageChanged', function() {
+        updateArrowDirection();
+    });
+    // Also watch for initial dir attribute changes (in case translation.js updates it directly)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mut) {
+            if (mut.attributeName === 'dir') {
+                updateArrowDirection();
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+    // Initial call
+    updateArrowDirection();
+    // ---------------------------------------------------------------------
+
+    // Initialize game
+    createBoard(); nextPieceName = randomPieceName();
+    render(); renderNext(); updateUI();
+    updateDynamicUI();
+})();
+</script>
+</body>
+</html>
